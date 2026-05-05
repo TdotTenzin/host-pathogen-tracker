@@ -1,0 +1,222 @@
+You are a senior frontend engineer + cellular microbiology specialist.
+
+Build a production-quality, single-file educational website (pure HTML + embedded CSS + vanilla JavaScript only, no frameworks, no build tools) that teaches host–pathogen intracellular trafficking to an advanced undergraduate biology audience.
+
+The output must be one complete HTML file, cleanly structured, fully functional, and easy to modify.
+
+1. Core Objective
+
+Create a high-clarity, interactive teaching interface that explains:
+
+host–pathogen interactions
+phagocytosis
+phagosome maturation
+intracellular trafficking
+membrane dynamics
+
+The site should prioritize:
+
+conceptual clarity
+mechanistic understanding
+visual structure over decoration
+2. Page Identity
+
+Title:
+Host–Pathogen Trafficking Hub
+
+Subtitle:
+Understanding how intracellular pathogens remodel host membranes and vesicular trafficking
+
+Author Line:
+Built by [Your Name], a student focused on cellular microbiology and host–pathogen dynamics
+
+3. Layout Architecture (Single Page)
+
+Use a modular section-based layout with clear separation:
+
+[Hero]
+[Introduction]
+[Pathogen Grid]
+[Phagosome Timeline]
+[Microscopy Guide]
+[Research Inspiration Box]
+[Footer]
+
+Use semantic HTML:
+
+<header>, <section>, <main>, <footer>
+4. Hero Section
+Full-width, clean layout
+Strong typography hierarchy
+Centered or slightly left-aligned
+
+Include:
+
+Title
+Subtitle
+Author line
+
+Optional:
+
+subtle gradient or scientific-style background
+5. Introduction Section (Concept Foundation)
+
+Define clearly in short blocks:
+
+Phagocytosis
+Phagosome
+Phagolysosome
+Rab GTPases
+LAMP1
+Intracellular trafficking
+Visual Requirement (IMPORTANT)
+
+Create a diagram using ONLY HTML/CSS:
+
+Flow:
+
+Extracellular pathogen → Phagocytosis → Phagosome → Phagolysosome
+Use boxes + arrows
+Must be visually intuitive
+No images or SVG libraries
+
+Add:
+
+1-line explanation: why trafficking is critical for pathogens
+6. Pathogen Card Grid (Interactive)
+
+Create a responsive grid with 5 pathogen cards:
+
+Salmonella enterica
+Listeria monocytogenes
+Mycobacterium tuberculosis
+Legionella pneumophila
+Shigella flexneri
+
+Each card must include:
+
+Visible:
+
+Name
+Image placeholder (styled div)
+Bullet points:
+entry mechanism
+trafficking manipulation
+host pathway hijacked
+
+Interactive behavior (JS required):
+
+Click or hover → expands hidden panel
+Show:
+1–2 deeper mechanistic insights
+
+Example:
+
+“Prevents Rab7 acquisition”
+“Recruits ER-derived vesicles”
+7. Phagosome Maturation Timeline (Critical Section)
+
+Create a horizontal interactive timeline:
+
+Stages:
+
+Pre-phagocytosis
+Phagosome formation
+Early phagosome
+Late phagosome
+Phagolysosome
+
+Each stage must show:
+
+Key markers:
+Rab5
+Rab7
+LAMP1
+1–2 functional changes
+Interaction:
+Hover OR click → expand detail panel inline
+Highlight active stage
+8. Microscopy Mini-Guide
+
+Section title:
+What microscopy reveals
+
+Explain briefly:
+
+confocal vs widefield
+fluorescence tagging
+colocalization
+
+Add interpretation boxes:
+
+Examples:
+
+“If pathogen colocalizes with Rab5 → early phagosome retention”
+“If pathogen avoids LAMP1 → evasion of lysosomal fusion”
+
+Use:
+
+styled cards or alert boxes
+9. Research Inspiration Callout
+
+Include a highlighted box referencing:
+
+Mauricio Terebiznik
+
+Text:
+“This site is inspired by research on host–pathogen interactions and intracellular trafficking in labs such as Mauricio Terebiznik’s at the University of Toronto Scarborough.”
+
+Include link:
+https://www.utsc.utoronto.ca/biosci/mauricio-terebiznik
+
+Optional:
+Contact line placeholder
+
+10. Styling Requirements
+Clean scientific UI
+System sans-serif fonts only
+Color palette:
+white background
+soft blue accents
+dark gray text
+No heavy animations
+Subtle hover states only
+Fully responsive (mobile + desktop)
+11. JavaScript Requirements
+No libraries
+Keep logic minimal and readable
+
+Must handle:
+
+card expansion toggles
+timeline interaction
+optional state highlighting
+12. Code Quality
+Use clear indentation
+Add comments for:
+sections
+components
+JS logic
+Keep everything in ONE file:
+<style> inside <head>
+<script> at bottom of <body>
+13. Constraints
+No frameworks (React, Vue, etc.)
+No external CSS/JS/CDN
+No analytics or tracking
+No unnecessary complexity
+14. Output Format
+
+Return ONLY:
+
+full HTML file
+ready to copy/paste and run
+15. Design Philosophy (Important)
+
+This is not a flashy website.
+
+It should feel like:
+
+a high-level biology learning interface
+clear, structured, and intellectually focused
+optimized for understanding mechanisms, not aesthetics

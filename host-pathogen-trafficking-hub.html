@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Host–Pathogen Trafficking Hub</title>
+
+  <style>
+    /* =============================================
+       RESET & BASE
+    ============================================= */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --color-bg: #ffffff;
+      --color-bg-alt: #f4f7fb;
+      --color-bg-dark: #1a2433;
+      --color-blue: #2563eb;
+      --color-blue-light: #dbeafe;
+      --color-blue-mid: #3b82f6;
+      --color-accent: #0ea5e9;
+      --color-text: #1e293b;
+      --color-text-muted: #64748b;
+      --color-border: #e2e8f0;
+      --color-card: #ffffff;
+      --color-highlight: #eff6ff;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --radius: 8px;
+      --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.06);
+      --transition: 0.22s ease;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    /* =============================================
+       TYPOGRAPHY
+    ============================================= */
+    h1, h2, h3, h4 {
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+    }
+
+    h2 {
+      font-size: 1.65rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.4rem;
+    }
+
+    p {
+      margin-bottom: 0.85rem;
+      color: var(--color-text);
+    }
+
+    a {
+      color: var(--color-blue);
+      text-decoration: underline;
+    }
+
+    a:hover {
+      color: var(--color-accent);
+    }
+
+    /* =============================================
+       LAYOUT UTILITIES
+    ============================================= */
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .section {
+      padding: 64px 0;
+    }
+
+    .section-alt {
+      background: var(--color-bg-alt);
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-blue);
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 8px;
+    }
+
+    .section-subtitle {
+      font-size: 1rem;
+      color: var(--color-text-muted);
+      max-width: 560px;
+      margin-bottom: 40px;
+    }
+
+    /* =============================================
+       NAVIGATION
+    ============================================= */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.96);
+      border-bottom: 1px solid var(--color-border);
+      backdrop-filter: blur(6px);
+    }
+
+    nav .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 52px;
+    }
+
+    nav .nav-brand {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--color-blue);
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+
+    nav .nav-links {
+      display: flex;
+      gap: 20px;
+      list-style: none;
+    }
+
+    nav .nav-links a {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    nav .nav-links a:hover {
+      color: var(--color-blue);
+    }
+
+    /* =============================================
+       HERO SECTION
+    ============================================= */
+    #hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0c2d5a 100%);
+      color: white;
+      padding: 80px 0 72px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #hero::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 420px; height: 420px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    #hero::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: 10%;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(14,165,233,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      background: rgba(59,130,246,0.22);
+      color: #93c5fd;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(147,197,253,0.2);
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 5vw, 3rem);
+      color: #ffffff;
+      margin-bottom: 16px;
+      max-width: 700px;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+    }
+
+    .hero-subtitle {
+      font-size: 1.05rem;
+      color: #94a3b8;
+      max-width: 560px;
+      margin-bottom: 28px;
+      line-height: 1.65;
+    }
+
+    .hero-author {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: #64748b;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 999px;
+      padding: 7px 16px;
+    }
+
+    .hero-author-dot {
+      width: 8px; height: 8px;
+      background: #3b82f6;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .hero-nav-hints {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 36px;
+    }
+
+    .hero-nav-hint {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #93c5fd;
+      background: rgba(59,130,246,0.1);
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 999px;
+      padding: 4px 14px;
+      text-decoration: none;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .hero-nav-hint:hover {
+      background: rgba(59,130,246,0.22);
+      color: #bfdbfe;
+    }
+
+    /* =============================================
+       INTRODUCTION: GLOSSARY GRID
+    ============================================= */
+    .glossary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .glossary-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 20px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .glossary-card .gterm {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-blue);
+      margin-bottom: 6px;
+    }
+
+    .glossary-card .gdef {
+      font-size: 0.9rem;
+      color: var(--color-text-muted);
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    /* Trafficking Critical Notice */
+    .trafficking-note {
+      background: var(--color-blue-light);
+      border-left: 4px solid var(--color-blue);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 14px 20px;
+      font-size: 0.92rem;
+      color: #1e3a5f;
+      margin-bottom: 40px;
+    }
+
+    .trafficking-note strong {
+      color: var(--color-blue);
+    }
+
+    /* =============================================
+       TRAFFICKING DIAGRAM (HTML/CSS ONLY)
+    ============================================= */
+    .diagram-wrapper {
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .diagram {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      min-width: 620px;
+      padding: 24px 0;
+    }
+
+    .diagram-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      flex: 1;
+    }
+
+    .diagram-box {
+      background: var(--color-card);
+      border: 2px solid var(--color-blue);
+      border-radius: var(--radius);
+      padding: 14px 12px;
+      width: 100%;
+      max-width: 145px;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+    }
+
+    .diagram-box .dicon {
+      font-size: 1.4rem;
+      margin-bottom: 4px;
+    }
+
+    .diagram-box .dtitle {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--color-blue);
+      margin-bottom: 3px;
+    }
+
+    .diagram-box .ddetail {
+      font-size: 0.72rem;
+      color: var(--color-text-muted);
+      line-height: 1.4;
+    }
+
+    .diagram-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+      width: 44px;
+    }
+
+    .diagram-arrow-line {
+      width: 30px;
+      height: 2px;
+      background: var(--color-blue-mid);
+      position: relative;
+    }
+
+    .diagram-arrow-line::after {
+      content: '';
+      position: absolute;
+      right: -1px; top: -4px;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 8px solid var(--color-blue-mid);
+    }
+
+    .diagram-arrow-label {
+      font-size: 0.62rem;
+      color: var(--color-text-muted);
+      margin-top: 6px;
+      text-align: center;
+      line-height: 1.3;
+      max-width: 50px;
+    }
+
+    /* =============================================
+       PATHOGEN CARD GRID
+    ============================================= */
+    .pathogen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    /* Pathogen card */
+    .pathogen-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: box-shadow var(--transition), transform var(--transition);
+      cursor: pointer;
+    }
+
+    .pathogen-card:hover {
+      box-shadow: 0 4px 20px rgba(37,99,235,0.12);
+      transform: translateY(-2px);
+    }
+
+    .pathogen-card.expanded {
+      border-color: var(--color-blue);
+    }
+
+    .pathogen-card-top {
+      padding: 22px 22px 16px;
+    }
+
+    /* Image placeholder */
+    .pathogen-img {
+      width: 100%;
+      height: 96px;
+      border-radius: 6px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pathogen-img::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.12;
+    }
+
+    .pathogen-img-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      z-index: 1;
+    }
+
+    /* Individual pathogen colors */
+    .pi-salmonella { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; }
+    .pi-listeria   { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; }
+    .pi-myco       { background: linear-gradient(135deg, #fce7f3, #fbcfe8); color: #831843; }
+    .pi-legionella { background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: #4c1d95; }
+    .pi-shigella   { background: linear-gradient(135deg, #ffedd5, #fed7aa); color: #7c2d12; }
+
+    .pathogen-name {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 2px;
+      font-style: italic;
+    }
+
+    .pathogen-class {
+      font-size: 0.73rem;
+      font-weight: 600;
+      color: var(--color-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      font-style: normal;
+    }
+
+    .pathogen-bullets {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: 0.85rem;
+    }
+
+    .pathogen-bullets li {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+      line-height: 1.45;
+    }
+
+    .pathogen-bullets li:last-child {
+      border-bottom: none;
+    }
+
+    .bullet-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-blue);
+      flex-shrink: 0;
+      padding-top: 1px;
+      min-width: 48px;
+    }
+
+    /* Expand toggle */
+    .pathogen-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 22px;
+      background: var(--color-highlight);
+      border-top: 1px solid var(--color-border);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--color-blue);
+      user-select: none;
+    }
+
+    .toggle-icon {
+      font-size: 1rem;
+      transition: transform var(--transition);
+    }
+
+    .pathogen-card.expanded .toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    /* Expanded panel */
+    .pathogen-panel {
+      display: none;
+      background: #f8faff;
+      border-top: 1px solid #dbeafe;
+      padding: 18px 22px;
+    }
+
+    .pathogen-card.expanded .pathogen-panel {
+      display: block;
+    }
+
+    .panel-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-blue);
+      margin-bottom: 10px;
+    }
+
+    .panel-insight {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px 12px;
+      background: white;
+      border: 1px solid #dbeafe;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      color: var(--color-text);
+      line-height: 1.5;
+    }
+
+    .panel-insight:last-child {
+      margin-bottom: 0;
+    }
+
+    .panel-insight-icon {
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* =============================================
+       PHAGOSOME MATURATION TIMELINE
+    ============================================= */
+    .timeline-wrapper {
+      overflow-x: auto;
+      padding-bottom: 12px;
+    }
+
+    .timeline {
+      display: flex;
+      gap: 0;
+      min-width: 700px;
+      padding: 16px 0 20px;
+      position: relative;
+    }
+
+    /* Connecting line through the center */
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 54px;
+      left: 32px;
+      right: 32px;
+      height: 3px;
+      background: linear-gradient(to right, #bfdbfe, #2563eb, #1e40af);
+      border-radius: 999px;
+      z-index: 0;
+    }
+
+    .timeline-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Stage dot / circle */
+    .stage-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid var(--color-blue);
+      margin-bottom: 10px;
+      margin-top: 26px;
+      transition: background var(--transition), transform var(--transition), border-color var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--color-blue);
+    }
+
+    .timeline-stage:hover .stage-dot,
+    .timeline-stage.active .stage-dot {
+      background: var(--color-blue);
+      color: white;
+      transform: scale(1.2);
+      border-color: #1d4ed8;
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.15);
+    }
+
+    .stage-name {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--color-text);
+      text-align: center;
+      margin-bottom: 4px;
+      line-height: 1.3;
+      padding: 0 4px;
+    }
+
+    .stage-time {
+      font-size: 0.68rem;
+      color: var(--color-text-muted);
+      text-align: center;
+    }
+
+    .timeline-stage.active .stage-name {
+      color: var(--color-blue);
+    }
+
+    /* Timeline detail panel */
+    .timeline-detail {
+      background: var(--color-card);
+      border: 1px solid var(--color-blue);
+      border-radius: var(--radius);
+      margin-top: 20px;
+      padding: 24px 28px;
+      box-shadow: 0 4px 20px rgba(37,99,235,0.09);
+      display: none;
+    }
+
+    .timeline-detail.visible {
+      display: block;
+    }
+
+    .detail-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 16px;
+    }
+
+    .detail-stage-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--color-blue);
+    }
+
+    .detail-close {
+      background: none;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .detail-block {
+      background: var(--color-bg-alt);
+      border-radius: 6px;
+      padding: 14px 16px;
+    }
+
+    .detail-block-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-blue);
+      margin-bottom: 8px;
+    }
+
+    .marker-tag {
+      display: inline-block;
+      background: var(--color-blue-light);
+      color: var(--color-blue);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 999px;
+      margin: 2px 2px 2px 0;
+    }
+
+    .marker-tag.absent {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    .marker-tag.present {
+      background: #f0fdf4;
+      color: #15803d;
+    }
+
+    .detail-changes {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .detail-changes li {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      padding: 3px 0;
+      padding-left: 14px;
+      position: relative;
+      line-height: 1.45;
+    }
+
+    .detail-changes li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--color-blue);
+      font-size: 0.8rem;
+    }
+
+    /* =============================================
+       MICROSCOPY GUIDE
+    ============================================= */
+    .microscopy-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .micro-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .micro-card h4 {
+      font-size: 0.92rem;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+
+    .micro-card p {
+      font-size: 0.85rem;
+      color: var(--color-text-muted);
+      margin: 0;
+    }
+
+    .micro-tag {
+      display: inline-block;
+      background: var(--color-blue-light);
+      color: var(--color-blue);
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+
+    /* Interpretation boxes */
+    .interp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .interp-box {
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      font-size: 0.87rem;
+      border-left: 4px solid;
+      line-height: 1.5;
+    }
+
+    .interp-box.green {
+      background: #f0fdf4;
+      border-color: #16a34a;
+      color: #14532d;
+    }
+
+    .interp-box.red {
+      background: #fef2f2;
+      border-color: #dc2626;
+      color: #7f1d1d;
+    }
+
+    .interp-box.amber {
+      background: #fffbeb;
+      border-color: #d97706;
+      color: #78350f;
+    }
+
+    .interp-box.purple {
+      background: #f5f3ff;
+      border-color: #7c3aed;
+      color: #3b0764;
+    }
+
+    .interp-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .interp-condition {
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .interp-inference {
+      font-style: italic;
+    }
+
+    /* =============================================
+       RESEARCH INSPIRATION CALLOUT
+    ============================================= */
+    .callout {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      border: 1px solid #bfdbfe;
+      border-radius: var(--radius);
+      padding: 32px 36px;
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .callout-icon {
+      font-size: 2rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .callout-body h3 {
+      font-size: 1.05rem;
+      color: var(--color-blue);
+      margin-bottom: 10px;
+    }
+
+    .callout-body p {
+      font-size: 0.92rem;
+      color: #1e40af;
+      margin-bottom: 12px;
+    }
+
+    .callout-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-blue);
+      text-decoration: none;
+      border: 1px solid var(--color-blue);
+      border-radius: 6px;
+      padding: 7px 14px;
+      background: white;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .callout-link:hover {
+      background: var(--color-blue);
+      color: white;
+    }
+
+    /* =============================================
+       FOOTER
+    ============================================= */
+    footer {
+      background: var(--color-bg-dark);
+      color: #94a3b8;
+      padding: 40px 0 32px;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+    }
+
+    .footer-brand {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 6px;
+    }
+
+    .footer-tagline {
+      font-size: 0.82rem;
+      color: #64748b;
+      max-width: 300px;
+      line-height: 1.55;
+    }
+
+    .footer-links {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .footer-links a {
+      font-size: 0.83rem;
+      color: #64748b;
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    .footer-links a:hover {
+      color: #93c5fd;
+    }
+
+    .footer-bottom {
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.78rem;
+      color: #475569;
+    }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width: 680px) {
+      nav .nav-links {
+        display: none;
+      }
+
+      .microscopy-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .callout {
+        flex-direction: column;
+        gap: 12px;
+        padding: 24px 20px;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================
+       NAVIGATION
+  =========================================== -->
+  <nav>
+    <div class="container nav-inner">
+      <a class="nav-brand" href="#hero">Host–Pathogen Hub</a>
+      <ul class="nav-links">
+        <li><a href="#intro">Concepts</a></li>
+        <li><a href="#pathogens">Pathogens</a></li>
+        <li><a href="#timeline">Timeline</a></li>
+        <li><a href="#microscopy">Microscopy</a></li>
+        <li><a href="#inspiration">Research</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ==========================================
+         HERO
+    =========================================== -->
+    <header id="hero">
+      <div class="container">
+        <div class="hero-tag">Educational Resource · Cellular Microbiology</div>
+        <h1 class="hero-title">Host–Pathogen Trafficking Hub</h1>
+        <p class="hero-subtitle">
+          Understanding how intracellular pathogens remodel host membranes and vesicular trafficking — from phagocytosis to phagosome evasion.
+        </p>
+        <div class="hero-author">
+          <span class="hero-author-dot"></span>
+          Built by a student focused on cellular microbiology and host–pathogen dynamics
+        </div>
+        <div class="hero-nav-hints">
+          <a class="hero-nav-hint" href="#intro">Concept Foundations</a>
+          <a class="hero-nav-hint" href="#pathogens">5 Pathogen Profiles</a>
+          <a class="hero-nav-hint" href="#timeline">Phagosome Timeline</a>
+          <a class="hero-nav-hint" href="#microscopy">Microscopy Guide</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- ==========================================
+         INTRODUCTION / CONCEPTS
+    =========================================== -->
+    <section class="section" id="intro">
+      <div class="container">
+        <p class="section-label">Concept Foundation</p>
+        <h2 class="section-title">Core Vocabulary</h2>
+        <p class="section-subtitle">A precise shared vocabulary is the entry point to mechanistic reasoning about host–pathogen dynamics.</p>
+
+        <!-- Glossary Grid -->
+        <div class="glossary-grid">
+
+          <div class="glossary-card">
+            <p class="gterm">Phagocytosis</p>
+            <p class="gdef">The process by which host cells (e.g., macrophages, neutrophils) engulf large particles (&gt;0.5 µm), including bacteria, dead cells, and debris, via actin-driven membrane extension and remodeling.</p>
+          </div>
+
+          <div class="glossary-card">
+            <p class="gterm">Phagosome</p>
+            <p class="gdef">The membrane-bound vacuole formed around an engulfed particle. Its fate — degradation or pathogen survival — is determined by the sequential acquisition of vesicular markers during maturation.</p>
+          </div>
+
+          <div class="glossary-card">
+            <p class="gterm">Phagolysosome</p>
+            <p class="gdef">The mature phagosome after fusion with lysosomes. Characterized by acidic pH (~4.5–5), hydrolytic enzymes (cathepsins, lipases), and reactive oxygen species — the terminal degradative compartment.</p>
+          </div>
+
+          <div class="glossary-card">
+            <p class="gterm">Rab GTPases</p>
+            <p class="gdef">A family of small GTPases that define vesicular identity and regulate docking/fusion specificity. Rab5 marks early endosomes; Rab7 marks late endosomes. Pathogens manipulate Rab switching to redirect their fate.</p>
+          </div>
+
+          <div class="glossary-card">
+            <p class="gterm">LAMP1</p>
+            <p class="gdef">Lysosomal-Associated Membrane Protein 1. A canonical late endosomal/lysosomal marker. LAMP1 acquisition on a phagosome signals progression toward phagolysosome maturation. Its absence indicates evasion.</p>
+          </div>
+
+          <div class="glossary-card">
+            <p class="gterm">Intracellular Trafficking</p>
+            <p class="gdef">The tightly regulated network of vesicle budding, transport, and fusion events that moves membrane cargo between organelles. Governed by Rab GTPases, SNAREs, coat proteins (COPI, COPII, clathrin), and phosphoinositides.</p>
+          </div>
+
+        </div>
+
+        <!-- Critical note on trafficking -->
+        <div class="trafficking-note">
+          <strong>Why trafficking matters for pathogens:</strong> Intracellular pathogens survive by intercepting normal vesicular trafficking — blocking phagosome maturation, diverting membranes from the ER or mitochondria, or escaping into the cytosol entirely. Control of trafficking is synonymous with control of survival.
+        </div>
+
+        <!-- HTML/CSS Trafficking Diagram -->
+        <h3 style="margin-bottom: 16px; font-size: 1rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">Canonical Trafficking Pathway</h3>
+        <div class="diagram-wrapper">
+          <div class="diagram">
+
+            <div class="diagram-node">
+              <div class="diagram-box">
+                <div class="dicon">🦠</div>
+                <div class="dtitle">Extracellular Pathogen</div>
+                <div class="ddetail">Free in tissue or bloodstream</div>
+              </div>
+            </div>
+
+            <div class="diagram-arrow">
+              <div class="diagram-arrow-line"></div>
+              <div class="diagram-arrow-label">Receptor recognition</div>
+            </div>
+
+            <div class="diagram-node">
+              <div class="diagram-box" style="border-color: #0ea5e9;">
+                <div class="dicon">🫧</div>
+                <div class="dtitle">Phagocytosis</div>
+                <div class="ddetail">Actin cup formation; membrane zippering</div>
+              </div>
+            </div>
+
+            <div class="diagram-arrow">
+              <div class="diagram-arrow-line"></div>
+              <div class="diagram-arrow-label">Rab5 recruited</div>
+            </div>
+
+            <div class="diagram-node">
+              <div class="diagram-box" style="border-color: #6366f1;">
+                <div class="dicon">🔵</div>
+                <div class="dtitle">Phagosome</div>
+                <div class="ddetail">Early compartment; pH ~6.5; Rab5<sup>+</sup></div>
+              </div>
+            </div>
+
+            <div class="diagram-arrow">
+              <div class="diagram-arrow-line"></div>
+              <div class="diagram-arrow-label">Rab5→Rab7 switch</div>
+            </div>
+
+            <div class="diagram-node">
+              <div class="diagram-box" style="border-color: #8b5cf6;">
+                <div class="dicon">🟣</div>
+                <div class="dtitle">Late Phagosome</div>
+                <div class="ddetail">Rab7<sup>+</sup>, LAMP1 acquired; pH ~5.5</div>
+              </div>
+            </div>
+
+            <div class="diagram-arrow">
+              <div class="diagram-arrow-line"></div>
+              <div class="diagram-arrow-label">Lysosome fusion</div>
+            </div>
+
+            <div class="diagram-node">
+              <div class="diagram-box" style="border-color: #dc2626;">
+                <div class="dicon">💀</div>
+                <div class="dtitle">Phagolysosome</div>
+                <div class="ddetail">pH ~4.5; hydrolases; ROS; pathogen killed</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         PATHOGEN GRID
+    =========================================== -->
+    <section class="section section-alt" id="pathogens">
+      <div class="container">
+        <p class="section-label">Pathogen Profiles</p>
+        <h2 class="section-title">Five Intracellular Pathogens</h2>
+        <p class="section-subtitle">Click any card to reveal deeper mechanistic insights. Each pathogen has evolved a distinct strategy to subvert host trafficking.</p>
+
+        <div class="pathogen-grid">
+
+          <!-- Card 1: Salmonella -->
+          <div class="pathogen-card" id="card-salmonella" onclick="toggleCard('card-salmonella')">
+            <div class="pathogen-card-top">
+              <div class="pathogen-img pi-salmonella">
+                <span class="pathogen-img-label">Salmonella enterica · Gram–</span>
+              </div>
+              <div class="pathogen-name">Salmonella enterica</div>
+              <div class="pathogen-class">Gram-negative · Enterobacteriaceae</div>
+              <ul class="pathogen-bullets">
+                <li>
+                  <span class="bullet-label">Entry</span>
+                  <span>Trigger/ruffle mechanism via SPI-1 T3SS effectors (SopE, SipA); induces actin rearrangement in non-phagocytes</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Trafficking</span>
+                  <span>Resides in Salmonella-Containing Vacuole (SCV); blocks phagosome–lysosome fusion via SPI-2 effectors</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Hijacks</span>
+                  <span>Rab5, Rab7, and late endosomal sorting; recruits ER- and TGN-derived membranes to the SCV</span>
+                </li>
+              </ul>
+            </div>
+            <div class="pathogen-toggle">
+              <span>Mechanistic Insights</span>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="pathogen-panel">
+              <div class="panel-title">Deeper Mechanisms</div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon">🔬</span>
+                <span>SifA (SPI-2 effector) binds SKIP, displacing Rab9 from late endosomes and maintaining SCV membrane integrity while preventing lysosomal acquisition of hydrolases.</span>
+              </div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon">🔬</span>
+                <span>SCV matures into a LAMP1<sup>+</sup> compartment that is non-degradative — Salmonella manipulates Rab7 effectors (RILP, ORP1L) to decouple LAMP1 acquisition from acidification and hydrolase delivery.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Listeria -->
+          <div class="pathogen-card" id="card-listeria" onclick="toggleCard('card-listeria')">
+            <div class="pathogen-card-top">
+              <div class="pathogen-img pi-listeria">
+                <span class="pathogen-img-label">Listeria monocytogenes · Gram+</span>
+              </div>
+              <div class="pathogen-name">Listeria monocytogenes</div>
+              <div class="pathogen-class">Gram-positive · Listeriaceae</div>
+              <ul class="pathogen-bullets">
+                <li>
+                  <span class="bullet-label">Entry</span>
+                  <span>Zipper mechanism via InlA/InlB binding to E-cadherin and Met receptor, triggering PI3K and Rac1 signaling</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Trafficking</span>
+                  <span>Escapes the phagosome into cytosol within ~30 min using LLO (listeriolysin O) pore-forming toxin</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Hijacks</span>
+                  <span>Host actin polymerization (ActA/Arp2/3) for cytoplasmic motility and cell-to-cell spread</span>
+                </li>
+              </ul>
+            </div>
+            <div class="pathogen-toggle">
+              <span>Mechanistic Insights</span>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="pathogen-panel">
+              <div class="panel-title">Deeper Mechanisms</div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon">🔬</span>
+                <span>LLO is pH-dependent: it forms pores at the acidic pH of early phagosomes but is inactivated at neutral cytosolic pH — a built-in spatiotemporal switch that protects host plasma membrane after escape.</span>
+              </div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon">🔬</span>
+                <span>ActA nucleates Arp2/3-dependent branched actin networks at the bacterial surface, propelling <em>Listeria</em> through the cytoplasm and into neighboring cells via double-membrane protrusions, evading extracellular antibodies entirely.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Mycobacterium -->
+          <div class="pathogen-card" id="card-myco" onclick="toggleCard('card-myco')">
+            <div class="pathogen-card-top">
+              <div class="pathogen-img pi-myco">
+                <span class="pathogen-img-label">M. tuberculosis · Acid-fast</span>
+              </div>
+              <div class="pathogen-name">Mycobacterium tuberculosis</div>
+              <div class="pathogen-class">Acid-fast · Mycobacteriaceae</div>
+              <ul class="pathogen-bullets">
+                <li>
+                  <span class="bullet-label">Entry</span>
+                  <span>Complement receptor (CR3) and mannose receptor-mediated phagocytosis — bypasses classical FcR-triggered antimicrobial signaling</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Trafficking</span>
+                  <span>Arrests phagosome at early stage; blocks Rab7 acquisition and PI3P turnover, preventing lysosomal fusion</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Hijacks</span>
+                  <span>Host PI3-kinase signaling; SapM phosphatase degrades PI3P to prevent Rab5→Rab7 maturation switch</span>
+                </li>
+              </ul>
+            </div>
+            <div class="pathogen-toggle">
+              <span>Mechanistic Insights</span>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="pathogen-panel">
+              <div class="panel-title">Deeper Mechanisms</div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon">🔬</span>
+                <span>Prevents Rab7 acquisition: <em>Mtb</em> secretes lipoarabinomannan (LAM) and SapM, a PI3P phosphatase, to deplete the early endosomal PI3P pool required for Rab5 effector recruitment and downstream maturation.</span>
+              </div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon">🔬</span>
+                <span>The mycobacterial phagosome maintains a near-neutral pH (~6.4) due to exclusion of the vacuolar H⁺-ATPase (V-ATPase), which prevents acidification independent of lysosomal fusion status.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Legionella -->
+          <div class="pathogen-card" id="card-legionella" onclick="toggleCard('card-legionella')">
+            <div class="pathogen-card-top">
+              <div class="pathogen-img pi-legionella">
+                <span class="pathogen-img-label">Legionella pneumophila · Gram–</span>
+              </div>
+              <div class="pathogen-name">Legionella pneumophila</div>
+              <div class="pathogen-class">Gram-negative · Legionellaceae</div>
+              <ul class="pathogen-bullets">
+                <li>
+                  <span class="bullet-label">Entry</span>
+                  <span>Coiling phagocytosis or conventional phagocytosis; hijacks the process before phagosome sealing is complete</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Trafficking</span>
+                  <span>Creates Legionella-Containing Vacuole (LCV) that recruits ER-derived vesicles via Dot/Icm T4SS effectors, bypassing endocytic pathway entirely</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Hijacks</span>
+                  <span>ER-to-Golgi secretory pathway; Rab1 GEF activity; intercepts COPI/COPII vesicles</span>
+                </li>
+              </ul>
+            </div>
+            <div class="pathogen-toggle">
+              <span>Mechanistic Insights</span>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="pathogen-panel">
+              <div class="panel-title">Deeper Mechanisms</div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon">🔬</span>
+                <span>Recruits ER-derived vesicles: DrrA/SidM is a Rab1 GEF secreted by Dot/Icm that activates Rab1 on the LCV, redirecting COPII vesicle traffic from the ER to the pathogen vacuole rather than the Golgi.</span>
+              </div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon">🔬</span>
+                <span>AnkX is a phosphocholinase that modifies Rab35 and Rab1 with phosphocholine, locking them in an inactive state — a post-translational trafficking block distinct from any known host regulatory mechanism.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 5: Shigella -->
+          <div class="pathogen-card" id="card-shigella" onclick="toggleCard('card-shigella')">
+            <div class="pathogen-card-top">
+              <div class="pathogen-img pi-shigella">
+                <span class="pathogen-img-label">Shigella flexneri · Gram–</span>
+              </div>
+              <div class="pathogen-name">Shigella flexneri</div>
+              <div class="pathogen-class">Gram-negative · Enterobacteriaceae</div>
+              <ul class="pathogen-bullets">
+                <li>
+                  <span class="bullet-label">Entry</span>
+                  <span>Trigger mechanism: IpaB/IpaC T3SS translocon drives massive membrane ruffling and macropinocytic-like uptake into colonic epithelial cells</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Trafficking</span>
+                  <span>Rapid phagosome lysis (&lt;15 min) via IpaB pore-forming activity; escapes to cytosol before early phagosome markers are fully acquired</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Hijacks</span>
+                  <span>Host actin (via IcsA/VirG-Arp2/3) for motility; intercepts septin cage autophagy evasion pathways</span>
+                </li>
+              </ul>
+            </div>
+            <div class="pathogen-toggle">
+              <span>Mechanistic Insights</span>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="pathogen-panel">
+              <div class="panel-title">Deeper Mechanisms</div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon">🔬</span>
+                <span>IpaB inserts into the phagosomal membrane and oligomerizes to form a translocation pore. Unlike <em>Listeria</em>'s LLO, IpaB-mediated lysis is not pH-gated — <em>Shigella</em> escapes before significant acidification occurs.</span>
+              </div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon">🔬</span>
+                <span>In the cytosol, <em>Shigella</em> faces septin cage entrapment and selective autophagy (xenophagy). IcsB masks IcsA from autophagy receptor LC3, competitively binding to prevent ubiquitin-dependent capture.</span>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /pathogen-grid -->
+      </div>
+    </section>
+
+    <!-- ==========================================
+         PHAGOSOME MATURATION TIMELINE
+    =========================================== -->
+    <section class="section" id="timeline">
+      <div class="container">
+        <p class="section-label">Phagosome Maturation</p>
+        <h2 class="section-title">Stage-by-Stage Timeline</h2>
+        <p class="section-subtitle">Click any stage to reveal key molecular markers, functional changes, and how pathogens target that transition.</p>
+
+        <div class="timeline-wrapper">
+          <div class="timeline" id="phagosome-timeline">
+
+            <div class="timeline-stage" id="stage-0" onclick="activateStage(0)">
+              <div class="stage-dot">0</div>
+              <div class="stage-name">Pre-Phagocytosis</div>
+              <div class="stage-time">T = 0</div>
+            </div>
+
+            <div class="timeline-stage" id="stage-1" onclick="activateStage(1)">
+              <div class="stage-dot">1</div>
+              <div class="stage-name">Phagosome Formation</div>
+              <div class="stage-time">0–2 min</div>
+            </div>
+
+            <div class="timeline-stage" id="stage-2" onclick="activateStage(2)">
+              <div class="stage-dot">2</div>
+              <div class="stage-name">Early Phagosome</div>
+              <div class="stage-time">2–15 min</div>
+            </div>
+
+            <div class="timeline-stage" id="stage-3" onclick="activateStage(3)">
+              <div class="stage-dot">3</div>
+              <div class="stage-name">Late Phagosome</div>
+              <div class="stage-time">15–45 min</div>
+            </div>
+
+            <div class="timeline-stage" id="stage-4" onclick="activateStage(4)">
+              <div class="stage-dot">4</div>
+              <div class="stage-name">Phagolysosome</div>
+              <div class="stage-time">&gt;45 min</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Timeline detail panel (populated by JS) -->
+        <div class="timeline-detail" id="timeline-detail">
+          <div class="detail-header">
+            <div>
+              <div class="detail-stage-name" id="detail-stage-name"></div>
+            </div>
+            <button class="detail-close" onclick="closeTimeline()" title="Close">✕</button>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-block">
+              <div class="detail-block-title">Key Markers</div>
+              <div id="detail-markers"></div>
+            </div>
+            <div class="detail-block">
+              <div class="detail-block-title">Functional Changes</div>
+              <ul class="detail-changes" id="detail-changes"></ul>
+            </div>
+          </div>
+          <div class="detail-block" style="margin-top: 14px;">
+            <div class="detail-block-title">Pathogen Targeting — Who Acts Here?</div>
+            <ul class="detail-changes" id="detail-pathogens"></ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         MICROSCOPY GUIDE
+    =========================================== -->
+    <section class="section section-alt" id="microscopy">
+      <div class="container">
+        <p class="section-label">Microscopy</p>
+        <h2 class="section-title">What Microscopy Reveals</h2>
+        <p class="section-subtitle">Fluorescence microscopy is the primary tool for tracking phagosome maturation and pathogen compartmentalization in living or fixed cells.</p>
+
+        <div class="microscopy-grid">
+
+          <div class="micro-card">
+            <div class="micro-tag">Technique</div>
+            <h4>Widefield Fluorescence</h4>
+            <p>Uses a broad illumination field to excite all fluorophores in the sample simultaneously. Fast and high-throughput, but includes out-of-focus blur from above and below the focal plane. Suitable for endpoint assays and counting colocalization events across many cells.</p>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-tag">Technique</div>
+            <h4>Confocal Microscopy</h4>
+            <p>Uses a pinhole aperture to reject out-of-focus light, producing optical sections at defined z-depths. Essential for resolving compartment boundaries, membrane-tethered proteins, and 3D reconstruction of phagosome–organelle contacts.</p>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-tag">Strategy</div>
+            <h4>Fluorescence Tagging</h4>
+            <p>Rab GTPases and membrane markers (LAMP1, EEA1) are tagged with fluorescent proteins (GFP, mCherry, mNeonGreen) or detected via primary/secondary antibody staining. GFP-Rab5 marks early phagosomes; GFP-Rab7 marks the maturation transition.</p>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-tag">Analysis</div>
+            <h4>Colocalization Analysis</h4>
+            <p>Quantified using Pearson's correlation coefficient or Manders' coefficients between two fluorescence channels. A high overlap coefficient between the pathogen channel and LAMP1 indicates lysosomal fusion; low overlap indicates evasion. Use Costes threshold to reduce noise bias.</p>
+          </div>
+
+        </div>
+
+        <!-- Interpretation Boxes -->
+        <h3 style="margin-bottom: 16px; font-size: 1rem;">Reading the Data: Interpretation Examples</h3>
+        <div class="interp-grid">
+
+          <div class="interp-box green">
+            <div class="interp-label">Observation</div>
+            <div class="interp-condition">Pathogen colocalizes with Rab5 (EEA1<sup>+</sup>)</div>
+            <div class="interp-inference">→ Early phagosome retention; maturation is stalled at the Rab5 stage. Likely pathogen evasion (e.g., <em>M. tuberculosis</em>) or normal early kinetics.</div>
+          </div>
+
+          <div class="interp-box red">
+            <div class="interp-label">Observation</div>
+            <div class="interp-condition">Pathogen avoids LAMP1 acquisition</div>
+            <div class="interp-inference">→ Evasion of late endosomal/lysosomal fusion. The vacuole is non-degradative. Classic phenotype of <em>Salmonella</em> SCV and <em>M. tuberculosis</em> phagosome.</div>
+          </div>
+
+          <div class="interp-box amber">
+            <div class="interp-label">Observation</div>
+            <div class="interp-condition">Pathogen colocalizes with Rab7 but not LAMP1</div>
+            <div class="interp-inference">→ Maturation arrested between late endosome and lysosome stages. Rab7 acquisition has occurred but SNARE-mediated lysosomal fusion is blocked downstream.</div>
+          </div>
+
+          <div class="interp-box purple">
+            <div class="interp-label">Observation</div>
+            <div class="interp-condition">Pathogen detected in cytosol (no vacuolar marker)</div>
+            <div class="interp-inference">→ Phagosomal escape. Pathogen (e.g., <em>Listeria</em>, <em>Shigella</em>) has lysed the vacuolar membrane and entered the cytoplasm. Confirm with GALECTIN-3 puncta marking damaged membranes.</div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         RESEARCH INSPIRATION
+    =========================================== -->
+    <section class="section" id="inspiration">
+      <div class="container">
+        <p class="section-label">Research Inspiration</p>
+        <h2 class="section-title" style="margin-bottom: 28px;">Inspired by Foundational Work</h2>
+
+        <div class="callout">
+          <div class="callout-icon">🔭</div>
+          <div class="callout-body">
+            <h3>Mauricio Terebiznik Lab · University of Toronto Scarborough</h3>
+            <p>
+              This site is inspired by research on host–pathogen interactions and intracellular trafficking in labs such as Mauricio Terebiznik's at the University of Toronto Scarborough. The Terebiznik laboratory investigates how intracellular pathogens — particularly <em>Helicobacter pylori</em> and <em>Salmonella</em> — remodel host cell membranes, co-opt vesicular trafficking machinery, and survive within phagocytic compartments. Their work bridges quantitative fluorescence imaging with cell biology and microbial pathogenesis.
+            </p>
+            <a class="callout-link" href="https://www.utsc.utoronto.ca/biosci/mauricio-terebiznik" target="_blank" rel="noopener noreferrer">
+              Visit Lab Page ↗
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================
+       FOOTER
+  =========================================== -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-brand">Host–Pathogen Trafficking Hub</div>
+          <p class="footer-tagline">An educational reference on intracellular pathogen biology, phagosome dynamics, and host trafficking subversion — built for advanced undergraduate biology students.</p>
+        </div>
+        <ul class="footer-links">
+          <li><a href="#intro">Concept Foundations</a></li>
+          <li><a href="#pathogens">Pathogen Profiles</a></li>
+          <li><a href="#timeline">Phagosome Timeline</a></li>
+          <li><a href="#microscopy">Microscopy Guide</a></li>
+          <li><a href="#inspiration">Research Inspiration</a></li>
+        </ul>
+      </div>
+      <div class="footer-bottom">
+        Built as an educational resource. Content is for instructional purposes. No external libraries or tracking.
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ==========================================
+       JAVASCRIPT
+  =========================================== -->
+  <script>
+    /* ============================================
+       PATHOGEN CARD EXPANSION
+    ============================================ */
+
+    /**
+     * Toggle expanded state for a pathogen card by ID.
+     * @param {string} cardId - The element ID of the card to toggle.
+     */
+    function toggleCard(cardId) {
+      var card = document.getElementById(cardId);
+      if (!card) return;
+      card.classList.toggle('expanded');
+    }
+
+
+    /* ============================================
+       PHAGOSOME TIMELINE DATA
+    ============================================ */
+
+    /**
+     * Data for each timeline stage.
+     * Each entry has:
+     *   - name: stage title
+     *   - markers: array of { label, type } where type is 'present' | 'absent' | default
+     *   - changes: array of functional change strings
+     *   - pathogens: array of pathogen-targeting notes
+     */
+    var timelineData = [
+      {
+        name: "Pre-Phagocytosis",
+        markers: [
+          { label: "Rab5 — cytosolic", type: "" },
+          { label: "Rab7 — cytosolic", type: "" },
+          { label: "LAMP1 — lysosomal", type: "" },
+          { label: "Actin — cortical", type: "present" }
+        ],
+        changes: [
+          "Receptor recognition (Fc-γR, CR3, mannose receptor) initiates signaling",
+          "PI3K activation generates PI(4,5)P2 at the phagocytic cup",
+          "Rac1 and Cdc42 trigger actin nucleation via Arp2/3 and formins",
+          "Local membrane curvature driven by BAR-domain proteins"
+        ],
+        pathogens: [
+          "Shigella (T3SS IpaB/C): begins translocon insertion before full internalization",
+          "Listeria (InlA/InlB): triggers PI3K→Rac1 via Met receptor signaling",
+          "Salmonella (SopE, SipA): activates Rac1/Cdc42 for actin ruffle formation"
+        ]
+      },
+      {
+        name: "Phagosome Formation",
+        markers: [
+          { label: "Rab5 — being recruited", type: "present" },
+          { label: "LAMP1 — absent", type: "absent" },
+          { label: "PI(3)P — being generated", type: "present" },
+          { label: "EEA1 — absent", type: "absent" }
+        ],
+        changes: [
+          "Pseudopod zippering seals around particle; plasma membrane pinches off",
+          "PI(4,5)P2 converted to PI(3)P by class III PI3K (VPS34)",
+          "Rab5 anchors to nascent phagosomal membrane",
+          "Actin coat begins depolymerizing from sealed vacuole"
+        ],
+        pathogens: [
+          "Listeria: LLO begins inserting into the forming phagosomal membrane",
+          "Shigella: IpaB pore formation begins; may escape before full sealing",
+          "Legionella: Dot/Icm T4SS begins effector translocation immediately upon entry"
+        ]
+      },
+      {
+        name: "Early Phagosome",
+        markers: [
+          { label: "Rab5 ✓", type: "present" },
+          { label: "EEA1 ✓", type: "present" },
+          { label: "Rab7 — absent", type: "absent" },
+          { label: "LAMP1 — absent", type: "absent" }
+        ],
+        changes: [
+          "pH ~6.5 — mildly acidic, V-ATPase partly active",
+          "Early endosome fusion delivers transferrin receptor, recycling cargo",
+          "PI(3)P enrichment recruits FYVE-domain effectors (EEA1, Rabenosyn-5)",
+          "Rab5 effector complex (hVPS34/p150) maintains PI(3)P and compartment identity"
+        ],
+        pathogens: [
+          "M. tuberculosis: SapM dephosphorylates PI(3)P; blocks Rab5→Rab7 switch",
+          "Salmonella SPI-1: early SCV acquires Rab5 transiently; SPI-2 effectors then redirect",
+          "Legionella: LCV rapidly acquires ER markers instead of early endosomal markers via DrrA/SidM"
+        ]
+      },
+      {
+        name: "Late Phagosome",
+        markers: [
+          { label: "Rab7 ✓", type: "present" },
+          { label: "LAMP1 ✓", type: "present" },
+          { label: "Rab5 — absent/decreasing", type: "absent" },
+          { label: "V-ATPase ✓", type: "present" }
+        ],
+        changes: [
+          "pH ~5.5 — significant acidification via V-ATPase",
+          "Rab5→Rab7 switch mediated by Mon1–CCZ1 GEF complex",
+          "LAMP1 acquisition via late endosome fusion",
+          "Cathepsin D, cathepsin B begin import but remain largely inactive",
+          "RILP recruits dynein; vacuole moves toward perinuclear lysosomes"
+        ],
+        pathogens: [
+          "Salmonella: SifA/SKIP decouples LAMP1 acquisition from functional maturation",
+          "Salmonella: SseJ deacylates membrane cholesterol to maintain SCV identity",
+          "M. tuberculosis: tlyA and other lipids prevent full V-ATPase recruitment; pH stays ~6.4"
+        ]
+      },
+      {
+        name: "Phagolysosome",
+        markers: [
+          { label: "LAMP1 ✓✓", type: "present" },
+          { label: "Cathepsins ✓", type: "present" },
+          { label: "Rab7 — decreasing", type: "" },
+          { label: "pH ~4.5", type: "present" }
+        ],
+        changes: [
+          "pH ~4.5 — fully acidified; optimal for hydrolase activity",
+          "Cathepsin B, D, L, S cleave proteins; lipases degrade bacterial membranes",
+          "Reactive Oxygen Species (ROS) generated by NADPH oxidase",
+          "Reactive Nitrogen Species (RNS) via iNOS contribute to killing",
+          "Bactericidal peptides (defensins, lactoferricin) concentrated in lumen"
+        ],
+        pathogens: [
+          "Most pathogens that reach this stage are killed — this is the canonical endpoint",
+          "Coxiella burnetii (not profiled): uniquely thrives IN the phagolysosome at pH 4.5",
+          "Pathogens like Mtb, Salmonella, Legionella act upstream to never reach this stage"
+        ]
+      }
+    ];
+
+    // Track currently active stage index
+    var activeStage = null;
+
+    /**
+     * Activate a timeline stage by index.
+     * If clicking the same stage again, close the panel (toggle behavior).
+     * @param {number} index - Stage index (0–4).
+     */
+    function activateStage(index) {
+      var stages = document.querySelectorAll('.timeline-stage');
+      var detail = document.getElementById('timeline-detail');
+
+      // Toggle off if clicking the same stage
+      if (activeStage === index) {
+        stages[index].classList.remove('active');
+        detail.classList.remove('visible');
+        activeStage = null;
+        return;
+      }
+
+      // Deactivate previous stage
+      if (activeStage !== null) {
+        stages[activeStage].classList.remove('active');
+      }
+
+      // Activate new stage
+      stages[index].classList.add('active');
+      activeStage = index;
+
+      // Populate detail panel
+      var data = timelineData[index];
+
+      document.getElementById('detail-stage-name').textContent = data.name;
+
+      // Markers
+      var markersEl = document.getElementById('detail-markers');
+      markersEl.innerHTML = '';
+      data.markers.forEach(function(m) {
+        var tag = document.createElement('span');
+        tag.className = 'marker-tag' + (m.type ? ' ' + m.type : '');
+        tag.textContent = m.label;
+        markersEl.appendChild(tag);
+      });
+
+      // Functional changes
+      var changesEl = document.getElementById('detail-changes');
+      changesEl.innerHTML = '';
+      data.changes.forEach(function(c) {
+        var li = document.createElement('li');
+        li.textContent = c;
+        changesEl.appendChild(li);
+      });
+
+      // Pathogen targeting
+      var pathEl = document.getElementById('detail-pathogens');
+      pathEl.innerHTML = '';
+      data.pathogens.forEach(function(p) {
+        var li = document.createElement('li');
+        li.textContent = p;
+        pathEl.appendChild(li);
+      });
+
+      // Show detail panel
+      detail.classList.add('visible');
+
+      // Scroll detail into view smoothly
+      setTimeout(function() {
+        detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 80);
+    }
+
+    /**
+     * Close the timeline detail panel and deactivate the active stage.
+     */
+    function closeTimeline() {
+      var stages = document.querySelectorAll('.timeline-stage');
+      var detail = document.getElementById('timeline-detail');
+
+      if (activeStage !== null) {
+        stages[activeStage].classList.remove('active');
+        activeStage = null;
+      }
+      detail.classList.remove('visible');
+    }
+  </script>
+
+</body>
+</html>
