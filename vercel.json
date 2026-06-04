@@ -1,3 +1,9 @@
 {
-  "outputDirectory": "artifacts/mockup-sandbox/dist"
+  "framework": null,
+  "buildCommand": null,
+  "installCommand": "echo 'Skipping install for static site'",
+  "outputDirectory": ".",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/host-pathogen-trafficking-hub.html" }
+  ]
 }
