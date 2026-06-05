@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none">
+  <defs>
+    <radialGradient id="bg11" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f0f4ff"/>
+      <stop offset="100%" stop-color="#dbeafe"/>
+    </radialGradient>
+    <linearGradient id="scope" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#94a3b8"/>
+      <stop offset="50%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <linearGradient id="lens" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="stand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <radialGradient id="light" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#93c5fd" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#93c5fd" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="250" cy="250" r="230" fill="url(#bg11)" opacity="0.5"/>
+  <circle cx="250" cy="250" r="160" fill="url(#light)"/>
+  <rect x="170" y="180" width="120" height="45" rx="8" fill="url(#scope)"/>
+  <rect x="290" y="188" width="60" height="29" rx="4" fill="url(#scope)"/>
+  <rect x="350" y="193" width="40" height="19" rx="10" fill="url(#lens)"/>
+  <ellipse cx="350" cy="202" rx="3" ry="9" fill="#bfdbfe" opacity="0.5"/>
+  <rect x="160" y="190" width="20" height="25" rx="4" fill="url(#scope)"/>
+  <rect x="150" y="195" width="15" height="15" rx="3" fill="#475569"/>
+  <rect x="220" y="225" width="18" height="50" rx="3" fill="url(#stand)"/>
+  <rect x="210" y="270" width="38" height="10" rx="3" fill="#475569"/>
+  <rect x="200" y="275" width="58" height="8" rx="4" fill="#334155"/>
+  <line x1="270" y1="225" x2="340" y2="270" stroke="#64748b" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="340" cy="270" r="6" fill="#475569"/>
+  <rect x="330" y="268" width="30" height="6" rx="2" fill="#334155"/>
+  <text x="250" y="125" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="600" fill="#64748b">Research · Microscopy</text>
+  <path d="M380 185 Q395 175 400 160 Q405 145 395 135" stroke="#60a5fa" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <path d="M385 180 Q400 168 405 155 Q410 140 400 130" stroke="#60a5fa" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+  <path d="M390 175 Q405 163 410 148 Q415 133 405 123" stroke="#60a5fa" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.3"/>
+  <circle cx="395" cy="135" r="2" fill="#60a5fa" opacity="0.5"/>
+  <circle cx="400" cy="130" r="1.5" fill="#60a5fa" opacity="0.3"/>
+  <text x="250" y="355" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="600" fill="#64748b">Research &amp; Discovery</text>
+</svg>

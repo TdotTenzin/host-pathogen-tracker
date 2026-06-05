@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none">
+  <defs>
+    <radialGradient id="bg5" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef2f2"/>
+      <stop offset="100%" stop-color="#fecaca"/>
+    </radialGradient>
+    <radialGradient id="vac3" cx="45%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#fecaca"/>
+      <stop offset="100%" stop-color="#fca5a5"/>
+    </radialGradient>
+    <linearGradient id="mem4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#dc2626"/>
+      <stop offset="100%" stop-color="#b91c1c"/>
+    </linearGradient>
+    <linearGradient id="enz" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <radialGradient id="ph2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </radialGradient>
+  </defs>
+  <circle cx="250" cy="250" r="230" fill="url(#bg5)" opacity="0.5"/>
+  <circle cx="255" cy="245" r="135" fill="url(#vac3)" stroke="url(#mem4)" stroke-width="4" opacity="0.9"/>
+  <rect x="210" y="220" width="40" height="20" rx="4" fill="#7f1d1d" opacity="0.6"/>
+  <rect x="260" y="245" width="25" height="12" rx="3" fill="#7f1d1d" opacity="0.4"/>
+  <circle cx="230" cy="230" r="3" fill="#fca5a5" opacity="0.8"/>
+  <circle cx="240" cy="228" r="2" fill="#fca5a5" opacity="0.8"/>
+  <circle cx="220" cy="235" r="2.5" fill="#fca5a5" opacity="0.6"/>
+  <path d="M50 50 L100 80 M60 45 L95 70" stroke="#fca5a5" stroke-width="1.5" opacity="0.3"/>
+  <rect x="150" y="260" width="55" height="14" rx="3" fill="url(#enz)" opacity="0.7"/>
+  <text x="177" y="271" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" font-weight="700" fill="#92400e">Cathepsin</text>
+  <rect x="270" y="270" width="50" height="14" rx="3" fill="url(#enz)" opacity="0.7"/>
+  <text x="295" y="281" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" font-weight="700" fill="#92400e">Lipase</text>
+  <rect x="210" y="300" width="45" height="14" rx="3" fill="#f87171" opacity="0.7"/>
+  <text x="232" y="311" text-anchor="middle" font-family="system-ui,sans-serif" font-size="7" font-weight="700" fill="#7f1d1d">ROS</text>
+  <circle cx="255" cy="245" r="55" fill="url(#ph2)" opacity="0.2"/>
+  <text x="250" y="248" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="#854d0e" opacity="0.7">pH 4.5</text>
+  <text x="250" y="420" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="600" fill="#64748b">Phagolysosome</text>
+  <text x="250" y="445" text-anchor="middle" font-family="system-ui,sans-serif" font-size="14" font-weight="500" fill="#991b1b">Degradation · pH ~4.5</text>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none">
+  <defs>
+    <radialGradient id="bg10" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff7ed"/>
+      <stop offset="100%" stop-color="#ffedd5"/>
+    </radialGradient>
+    <linearGradient id="broken" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+    <linearGradient id="srod" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#b91c1c"/>
+    </linearGradient>
+    <linearGradient id="actin3" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+  <circle cx="250" cy="250" r="230" fill="url(#bg10)" opacity="0.5"/>
+  <circle cx="250" cy="240" r="130" fill="none" stroke="url(#broken)" stroke-width="3" stroke-dasharray="5 5"/>
+  <path d="M140 200 L160 220 L145 235 L165 250" stroke="url(#broken)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M340 280 L320 260 L335 245 L315 230" stroke="url(#broken)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M160 320 L180 300 L170 285" stroke="url(#broken)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M330 180 L310 195 L325 210" stroke="url(#broken)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <text x="250" y="125" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" font-weight="700" fill="#ea580c">Ruptured Vacuole</text>
+  <rect x="210" y="225" width="65" height="32" rx="6" fill="url(#srod)"/>
+  <ellipse cx="210" cy="241" rx="9" ry="16" fill="#b91c1c"/>
+  <ellipse cx="275" cy="241" rx="9" ry="16" fill="#b91c1c"/>
+  <circle cx="228" cy="235" r="2.5" fill="#fca5a5" opacity="0.7"/>
+  <circle cx="245" cy="240" r="3" fill="#fca5a5" opacity="0.7"/>
+  <circle cx="260" cy="236" r="2" fill="#fca5a5" opacity="0.7"/>
+  <path d="M275 241 Q320 230 360 210 Q385 195 400 175" stroke="url(#actin3)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <path d="M275 241 Q320 245 355 230 Q375 220 395 200" stroke="url(#actin3)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M275 241 Q315 260 345 248 Q365 240 385 225" stroke="url(#actin3)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <circle cx="400" cy="175" r="2.5" fill="#d97706" opacity="0.6"/>
+  <circle cx="395" cy="200" r="2" fill="#d97706" opacity="0.6"/>
+  <text x="250" y="160" text-anchor="middle" font-family="system-ui,sans-serif" font-size="9" font-weight="600" fill="#ea580c">IpaB pore-forming lysis</text>
+  <circle cx="210" cy="195" r="8" fill="#fdba74" opacity="0.7"/>
+  <text x="210" y="199" text-anchor="middle" font-family="system-ui,sans-serif" font-size="5" font-weight="700" fill="#9a3412">IpaB</text>
+  <line x1="218" y1="200" x2="230" y2="225" stroke="#ea580c" stroke-width="1.5"/>
+  <circle cx="290" cy="205" r="8" fill="#fdba74" opacity="0.7"/>
+  <text x="290" y="209" text-anchor="middle" font-family="system-ui,sans-serif" font-size="5" font-weight="700" fill="#9a3412">IpaC</text>
+  <line x1="280" y1="210" x2="265" y2="228" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="250" y="380" text-anchor="middle" font-family="system-ui,sans-serif" font-size="16" font-weight="700" fill="#7c2d12">Shigella flexneri</text>
+  <text x="250" y="405" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="500" fill="#64748b">Rapid vacuole lysis · Cytosolic escape</text>
+</svg>

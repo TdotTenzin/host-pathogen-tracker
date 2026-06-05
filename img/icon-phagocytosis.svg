@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none">
+  <defs>
+    <radialGradient id="bg2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f0fdf4"/>
+      <stop offset="100%" stop-color="#dcfce7"/>
+    </radialGradient>
+    <linearGradient id="mem" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0ea5e9"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="bac" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#b91c1c"/>
+    </linearGradient>
+    <linearGradient id="actin" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+  </defs>
+  <circle cx="250" cy="250" r="230" fill="url(#bg2)" opacity="0.5"/>
+  <path d="M80 200 Q100 100 250 80 Q400 100 420 200" stroke="url(#mem)" stroke-width="4" fill="none"/>
+  <path d="M80 310 Q120 420 250 430 Q380 420 420 310" stroke="url(#mem)" stroke-width="4" fill="none"/>
+  <path d="M420 200 Q440 250 420 310" stroke="url(#mem)" stroke-width="4" fill="none"/>
+  <path d="M80 200 Q60 250 80 310" stroke="url(#mem)" stroke-width="4" fill="none"/>
+  <path d="M140 200 Q150 130 210 105 Q270 80 340 110 Q380 135 400 180" stroke="url(#mem)" stroke-width="4" fill="none"/>
+  <path d="M140 305 Q150 370 210 395 Q270 420 340 390 Q380 365 400 320" stroke="url(#mem)" stroke-width="4" fill="none"/>
+  <path d="M140 200 Q130 250 140 305" stroke="url(#mem)" stroke-width="4" fill="none"/>
+  <path d="M400 180 Q410 250 400 320" stroke="url(#mem)" stroke-width="4" fill="none"/>
+  <path d="M220 200 Q210 170 250 160 Q290 150 310 175" stroke="url(#mem)" stroke-width="3.5" fill="none" stroke-dasharray="6 4"/>
+  <path d="M180 215 Q210 185 250 180 Q290 175 320 200" stroke="url(#mem)" stroke-width="3" fill="none" stroke-dasharray="5 4"/>
+  <path d="M170 240 Q200 210 250 205 Q300 200 330 220" stroke="url(#mem)" stroke-width="2.5" fill="none" stroke-dasharray="4 4"/>
+  <rect x="220" y="230" width="80" height="40" rx="8" fill="url(#bac)"/>
+  <ellipse cx="220" cy="250" rx="12" ry="20" fill="#dc2626"/>
+  <ellipse cx="300" cy="250" rx="12" ry="20" fill="#dc2626"/>
+  <circle cx="245" cy="245" r="3" fill="#fca5a5" opacity="0.7"/>
+  <circle cx="265" cy="252" r="3.5" fill="#fca5a5" opacity="0.7"/>
+  <circle cx="280" cy="243" r="2.5" fill="#fca5a5" opacity="0.7"/>
+  <path d="M140 200 Q130 190 125 195" stroke="url(#actin)" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M155 195 Q145 180 135 188" stroke="url(#actin)" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M170 185 Q160 170 150 178" stroke="url(#actin)" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M140 305 Q130 315 125 310" stroke="url(#actin)" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M155 310 Q145 325 135 317" stroke="url(#actin)" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M170 320 Q160 335 150 327" stroke="url(#actin)" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <circle cx="130" cy="192" r="2.5" fill="#f59e0b" opacity="0.5"/>
+  <circle cx="145" cy="178" r="2.5" fill="#f59e0b" opacity="0.5"/>
+  <circle cx="130" cy="313" r="2.5" fill="#f59e0b" opacity="0.5"/>
+  <circle cx="145" cy="327" r="2.5" fill="#f59e0b" opacity="0.5"/>
+  <text x="250" y="385" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" font-weight="600" fill="#64748b">Phagocytosis</text>
+</svg>

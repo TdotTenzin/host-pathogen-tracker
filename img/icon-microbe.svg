@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f0f4ff"/>
+      <stop offset="100%" stop-color="#e0e8f5"/>
+    </radialGradient>
+    <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="40%" stop-color="#dc2626"/>
+      <stop offset="100%" stop-color="#991b1b"/>
+    </linearGradient>
+    <linearGradient id="capGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fca5a5"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+  </defs>
+  <circle cx="250" cy="250" r="230" fill="url(#bg)" opacity="0.5"/>
+  <rect x="130" y="205" width="240" height="90" rx="10" fill="url(#bodyGrad)"/>
+  <ellipse cx="130" cy="250" rx="18" ry="48" fill="url(#capGrad)"/>
+  <ellipse cx="370" cy="250" rx="18" ry="48" fill="url(#capGrad)"/>
+  <g stroke="#b91c1c" stroke-width="2.5" stroke-linecap="round">
+    <line x1="385" y1="220" x2="440" y2="170"/>
+    <line x1="385" y1="240" x2="450" y2="210"/>
+    <line x1="385" y1="260" x2="455" y2="260"/>
+    <line x1="385" y1="280" x2="450" y2="310"/>
+    <line x1="385" y1="295" x2="435" y2="340"/>
+    <line x1="115" y1="220" x2="60" y2="170"/>
+    <line x1="115" y1="240" x2="50" y2="210"/>
+    <line x1="115" y1="260" x2="45" y2="260"/>
+    <line x1="115" y1="280" x2="50" y2="310"/>
+    <line x1="115" y1="295" x2="65" y2="340"/>
+  </g>
+  <g fill="#fca5a5" opacity="0.8">
+    <circle cx="180" cy="235" r="4"/>
+    <circle cx="210" cy="228" r="3.5"/>
+    <circle cx="240" cy="240" r="5"/>
+    <circle cx="270" cy="232" r="4"/>
+    <circle cx="300" cy="238" r="3.5"/>
+    <circle cx="190" cy="268" r="3"/>
+    <circle cx="225" cy="275" r="4.5"/>
+    <circle cx="255" cy="265" r="3.5"/>
+    <circle cx="285" cy="270" r="4"/>
+    <circle cx="315" cy="262" r="3"/>
+  </g>
+  <g stroke="#fca5a5" stroke-width="1.5" fill="none" opacity="0.4">
+    <path d="M155 215 Q165 210 175 215"/>
+    <path d="M195 208 Q205 203 215 208"/>
+    <path d="M235 212 Q245 207 255 212"/>
+    <path d="M290 212 Q300 207 310 212"/>
+    <path d="M330 208 Q340 203 350 208"/>
+    <path d="M155 285 Q165 290 175 285"/>
+    <path d="M195 292 Q205 297 215 292"/>
+    <path d="M235 288 Q245 293 255 288"/>
+    <path d="M290 288 Q300 293 310 288"/>
+    <path d="M330 292 Q340 297 350 292"/>
+  </g>
+  <circle cx="162" cy="250" r="2" fill="#fff" opacity="0.35"/>
+  <circle cx="348" cy="245" r="2" fill="#fff" opacity="0.35"/>
+</svg>

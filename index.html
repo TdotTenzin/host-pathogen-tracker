@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Host–Pathogen Trafficking Hub</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <nav>
+    <div class="container nav-inner">
+      <a class="nav-brand" href="#hero">Host–Pathogen Hub</a>
+      <ul class="nav-links">
+        <li><a href="#intro">Concepts</a></li>
+        <li><a href="#pathogens">Pathogens</a></li>
+        <li><a href="#timeline">Timeline</a></li>
+        <li><a href="#microscopy">Microscopy</a></li>
+        <li><a href="#inspiration">Research</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+
+    <header id="hero">
+      <div class="container">
+        <div class="hero-tag">Educational Resource · Cellular Microbiology</div>
+        <h1 class="hero-title">Host–Pathogen Trafficking Hub</h1>
+        <p class="hero-subtitle">
+          Understanding how intracellular pathogens remodel host membranes and vesicular trafficking — from phagocytosis to phagosome evasion.
+        </p>
+        <div class="hero-author">
+          <span class="hero-author-dot"></span>
+          Built by a student focused on cellular microbiology and host–pathogen dynamics
+        </div>
+      </div>
+    </header>
+
+    <section class="section" id="intro">
+      <div class="container">
+        <p class="section-label">Concept Foundation</p>
+        <h2 class="section-title">Core Vocabulary</h2>
+        <p class="section-subtitle">A precise shared vocabulary is the entry point to mechanistic reasoning about host–pathogen dynamics.</p>
+
+        <div class="glossary-grid">
+
+          <div class="glossary-card">
+            <p class="gterm">Phagocytosis</p>
+            <p class="gdef">The process by which host cells (e.g., macrophages, neutrophils) engulf large particles (&gt;0.5 µm), including bacteria, dead cells, and debris, via actin-driven membrane extension and remodeling.</p>
+          </div>
+
+          <div class="glossary-card">
+            <p class="gterm">Phagosome</p>
+            <p class="gdef">The membrane-bound vacuole formed around an engulfed particle. Its fate — degradation or pathogen survival — is determined by the sequential acquisition of vesicular markers during maturation.</p>
+          </div>
+
+          <div class="glossary-card">
+            <p class="gterm">Phagolysosome</p>
+            <p class="gdef">The mature phagosome after fusion with lysosomes. Characterized by acidic pH (~4.5–5), hydrolytic enzymes (cathepsins, lipases), and reactive oxygen species — the terminal degradative compartment.</p>
+          </div>
+
+          <div class="glossary-card">
+            <p class="gterm">Rab GTPases</p>
+            <p class="gdef">A family of small GTPases that define vesicular identity and regulate docking/fusion specificity. Rab5 marks early endosomes; Rab7 marks late endosomes. Pathogens manipulate Rab switching to redirect their fate.</p>
+          </div>
+
+          <div class="glossary-card">
+            <p class="gterm">LAMP1</p>
+            <p class="gdef">Lysosomal-Associated Membrane Protein 1. A canonical late endosomal/lysosomal marker. LAMP1 acquisition on a phagosome signals progression toward phagolysosome maturation. Its absence indicates evasion.</p>
+          </div>
+
+          <div class="glossary-card">
+            <p class="gterm">Intracellular Trafficking</p>
+            <p class="gdef">The tightly regulated network of vesicle budding, transport, and fusion events that moves membrane cargo between organelles. Governed by Rab GTPases, SNAREs, coat proteins (COPI, COPII, clathrin), and phosphoinositides.</p>
+          </div>
+
+        </div>
+
+        <div class="trafficking-note">
+          <strong>Why trafficking matters for pathogens:</strong> Intracellular pathogens survive by intercepting normal vesicular trafficking — blocking phagosome maturation, diverting membranes from the ER or mitochondria, or escaping into the cytosol entirely. Control of trafficking is synonymous with control of survival.
+        </div>
+
+        <h3 style="margin-bottom: 16px; font-size: 1rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">Canonical Trafficking Pathway</h3>
+        <div class="diagram-wrapper">
+          <div class="diagram">
+
+            <div class="diagram-node">
+              <div class="diagram-box">
+                <div class="dicon"><img src="img/icon-microbe.svg" alt="Extracellular pathogen" /></div>
+                <div class="dtitle">Extracellular Pathogen</div>
+                <div class="ddetail">Free in tissue or bloodstream</div>
+              </div>
+            </div>
+
+            <div class="diagram-arrow">
+              <div class="diagram-arrow-line"></div>
+              <div class="diagram-arrow-label">Receptor recognition</div>
+            </div>
+
+            <div class="diagram-node">
+              <div class="diagram-box" style="border-color: #0ea5e9;">
+                <div class="dicon"><img src="img/icon-phagocytosis.svg" alt="Phagocytosis" /></div>
+                <div class="dtitle">Phagocytosis</div>
+                <div class="ddetail">Actin cup formation; membrane zippering</div>
+              </div>
+            </div>
+
+            <div class="diagram-arrow">
+              <div class="diagram-arrow-line"></div>
+              <div class="diagram-arrow-label">Rab5 recruited</div>
+            </div>
+
+            <div class="diagram-node">
+              <div class="diagram-box" style="border-color: #6366f1;">
+                <div class="dicon"><img src="img/icon-phagosome.svg" alt="Early phagosome" /></div>
+                <div class="dtitle">Phagosome</div>
+                <div class="ddetail">Early compartment; pH ~6.5; Rab5<sup>+</sup></div>
+              </div>
+            </div>
+
+            <div class="diagram-arrow">
+              <div class="diagram-arrow-line"></div>
+              <div class="diagram-arrow-label">Rab5→Rab7 switch</div>
+            </div>
+
+            <div class="diagram-node">
+              <div class="diagram-box" style="border-color: #8b5cf6;">
+                <div class="dicon"><img src="img/icon-late-phagosome.svg" alt="Late phagosome" /></div>
+                <div class="dtitle">Late Phagosome</div>
+                <div class="ddetail">Rab7<sup>+</sup>, LAMP1 acquired; pH ~5.5</div>
+              </div>
+            </div>
+
+            <div class="diagram-arrow">
+              <div class="diagram-arrow-line"></div>
+              <div class="diagram-arrow-label">Lysosome fusion</div>
+            </div>
+
+            <div class="diagram-node">
+              <div class="diagram-box" style="border-color: #dc2626;">
+                <div class="dicon"><img src="img/icon-phagolysosome.svg" alt="Phagolysosome" /></div>
+                <div class="dtitle">Phagolysosome</div>
+                <div class="ddetail">pH ~4.5; hydrolases; ROS; pathogen killed</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section section-alt" id="pathogens">
+      <div class="container">
+        <p class="section-label">Pathogen Profiles</p>
+        <h2 class="section-title">Five Intracellular Pathogens</h2>
+        <p class="section-subtitle">Click any card to reveal deeper mechanistic insights. Each pathogen has evolved a distinct strategy to subvert host trafficking.</p>
+
+        <div class="pathogen-grid">
+
+          <div class="pathogen-card" id="card-salmonella" onclick="toggleCard('card-salmonella')">
+            <div class="pathogen-card-top">
+              <div class="pathogen-img pi-salmonella">
+                <span class="pathogen-img-label">Salmonella enterica · Gram–</span>
+              </div>
+              <div class="pathogen-name">Salmonella enterica</div>
+              <div class="pathogen-class">Gram-negative · Enterobacteriaceae</div>
+              <ul class="pathogen-bullets">
+                <li>
+                  <span class="bullet-label">Entry</span>
+                  <span>Trigger/ruffle mechanism via SPI-1 T3SS effectors (SopE, SipA); induces actin rearrangement in non-phagocytes</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Trafficking</span>
+                  <span>Resides in Salmonella-Containing Vacuole (SCV); blocks phagosome–lysosome fusion via SPI-2 effectors</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Hijacks</span>
+                  <span>Rab5, Rab7, and late endosomal sorting; recruits ER- and TGN-derived membranes to the SCV</span>
+                </li>
+              </ul>
+            </div>
+            <div class="pathogen-toggle">
+              <span>Mechanistic Insights</span>
+              <span class="toggle-icon">
+                <svg viewBox="0 0 12 12"><path d="M3 5l3 3 3-3"/></svg>
+              </span>
+            </div>
+            <div class="pathogen-panel">
+              <div class="panel-title">Deeper Mechanisms</div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon"><img src="img/icon-salmonella.svg" alt="Salmonella mechanism" /></span>
+                <span>SifA (SPI-2 effector) binds SKIP, displacing Rab9 from late endosomes and maintaining SCV membrane integrity while preventing lysosomal acquisition of hydrolases.</span>
+              </div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon"><img src="img/icon-salmonella.svg" alt="Salmonella mechanism" /></span>
+                <span>SCV matures into a LAMP1<sup>+</sup> compartment that is non-degradative — Salmonella manipulates Rab7 effectors (RILP, ORP1L) to decouple LAMP1 acquisition from acidification and hydrolase delivery.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pathogen-card" id="card-listeria" onclick="toggleCard('card-listeria')">
+            <div class="pathogen-card-top">
+              <div class="pathogen-img pi-listeria">
+                <span class="pathogen-img-label">Listeria monocytogenes · Gram+</span>
+              </div>
+              <div class="pathogen-name">Listeria monocytogenes</div>
+              <div class="pathogen-class">Gram-positive · Listeriaceae</div>
+              <ul class="pathogen-bullets">
+                <li>
+                  <span class="bullet-label">Entry</span>
+                  <span>Zipper mechanism via InlA/InlB binding to E-cadherin and Met receptor, triggering PI3K and Rac1 signaling</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Trafficking</span>
+                  <span>Escapes the phagosome into cytosol within ~30 min using LLO (listeriolysin O) pore-forming toxin</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Hijacks</span>
+                  <span>Host actin polymerization (ActA/Arp2/3) for cytoplasmic motility and cell-to-cell spread</span>
+                </li>
+              </ul>
+            </div>
+            <div class="pathogen-toggle">
+              <span>Mechanistic Insights</span>
+              <span class="toggle-icon">
+                <svg viewBox="0 0 12 12"><path d="M3 5l3 3 3-3"/></svg>
+              </span>
+            </div>
+            <div class="pathogen-panel">
+              <div class="panel-title">Deeper Mechanisms</div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon"><img src="img/icon-listeria.svg" alt="Listeria mechanism" /></span>
+                <span>LLO is pH-dependent: it forms pores at the acidic pH of early phagosomes but is inactivated at neutral cytosolic pH — a built-in spatiotemporal switch that protects host plasma membrane after escape.</span>
+              </div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon"><img src="img/icon-listeria.svg" alt="Listeria mechanism" /></span>
+                <span>ActA nucleates Arp2/3-dependent branched actin networks at the bacterial surface, propelling <em>Listeria</em> through the cytoplasm and into neighboring cells via double-membrane protrusions, evading extracellular antibodies entirely.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pathogen-card" id="card-myco" onclick="toggleCard('card-myco')">
+            <div class="pathogen-card-top">
+              <div class="pathogen-img pi-myco">
+                <span class="pathogen-img-label">M. tuberculosis · Acid-fast</span>
+              </div>
+              <div class="pathogen-name">Mycobacterium tuberculosis</div>
+              <div class="pathogen-class">Acid-fast · Mycobacteriaceae</div>
+              <ul class="pathogen-bullets">
+                <li>
+                  <span class="bullet-label">Entry</span>
+                  <span>Complement receptor (CR3) and mannose receptor-mediated phagocytosis — bypasses classical FcR-triggered antimicrobial signaling</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Trafficking</span>
+                  <span>Arrests phagosome at early stage; blocks Rab7 acquisition and PI3P turnover, preventing lysosomal fusion</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Hijacks</span>
+                  <span>Host PI3-kinase signaling; SapM phosphatase degrades PI3P to prevent Rab5→Rab7 maturation switch</span>
+                </li>
+              </ul>
+            </div>
+            <div class="pathogen-toggle">
+              <span>Mechanistic Insights</span>
+              <span class="toggle-icon">
+                <svg viewBox="0 0 12 12"><path d="M3 5l3 3 3-3"/></svg>
+              </span>
+            </div>
+            <div class="pathogen-panel">
+              <div class="panel-title">Deeper Mechanisms</div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon"><img src="img/icon-mycobacterium.svg" alt="M. tuberculosis mechanism" /></span>
+                <span>Prevents Rab7 acquisition: <em>Mtb</em> secretes lipoarabinomannan (LAM) and SapM, a PI3P phosphatase, to deplete the early endosomal PI3P pool required for Rab5 effector recruitment and downstream maturation.</span>
+              </div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon"><img src="img/icon-mycobacterium.svg" alt="M. tuberculosis mechanism" /></span>
+                <span>The mycobacterial phagosome maintains a near-neutral pH (~6.4) due to exclusion of the vacuolar H⁺-ATPase (V-ATPase), which prevents acidification independent of lysosomal fusion status.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pathogen-card" id="card-legionella" onclick="toggleCard('card-legionella')">
+            <div class="pathogen-card-top">
+              <div class="pathogen-img pi-legionella">
+                <span class="pathogen-img-label">Legionella pneumophila · Gram–</span>
+              </div>
+              <div class="pathogen-name">Legionella pneumophila</div>
+              <div class="pathogen-class">Gram-negative · Legionellaceae</div>
+              <ul class="pathogen-bullets">
+                <li>
+                  <span class="bullet-label">Entry</span>
+                  <span>Coiling phagocytosis or conventional phagocytosis; hijacks the process before phagosome sealing is complete</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Trafficking</span>
+                  <span>Creates Legionella-Containing Vacuole (LCV) that recruits ER-derived vesicles via Dot/Icm T4SS effectors, bypassing endocytic pathway entirely</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Hijacks</span>
+                  <span>ER-to-Golgi secretory pathway; Rab1 GEF activity; intercepts COPI/COPII vesicles</span>
+                </li>
+              </ul>
+            </div>
+            <div class="pathogen-toggle">
+              <span>Mechanistic Insights</span>
+              <span class="toggle-icon">
+                <svg viewBox="0 0 12 12"><path d="M3 5l3 3 3-3"/></svg>
+              </span>
+            </div>
+            <div class="pathogen-panel">
+              <div class="panel-title">Deeper Mechanisms</div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon"><img src="img/icon-legionella.svg" alt="Legionella mechanism" /></span>
+                <span>Recruits ER-derived vesicles: DrrA/SidM is a Rab1 GEF secreted by Dot/Icm that activates Rab1 on the LCV, redirecting COPII vesicle traffic from the ER to the pathogen vacuole rather than the Golgi.</span>
+              </div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon"><img src="img/icon-legionella.svg" alt="Legionella mechanism" /></span>
+                <span>AnkX is a phosphocholinase that modifies Rab35 and Rab1 with phosphocholine, locking them in an inactive state — a post-translational trafficking block distinct from any known host regulatory mechanism.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pathogen-card" id="card-shigella" onclick="toggleCard('card-shigella')">
+            <div class="pathogen-card-top">
+              <div class="pathogen-img pi-shigella">
+                <span class="pathogen-img-label">Shigella flexneri · Gram–</span>
+              </div>
+              <div class="pathogen-name">Shigella flexneri</div>
+              <div class="pathogen-class">Gram-negative · Enterobacteriaceae</div>
+              <ul class="pathogen-bullets">
+                <li>
+                  <span class="bullet-label">Entry</span>
+                  <span>Trigger mechanism: IpaB/IpaC T3SS translocon drives massive membrane ruffling and macropinocytic-like uptake into colonic epithelial cells</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Trafficking</span>
+                  <span>Rapid phagosome lysis (&lt;15 min) via IpaB pore-forming activity; escapes to cytosol before early phagosome markers are fully acquired</span>
+                </li>
+                <li>
+                  <span class="bullet-label">Hijacks</span>
+                  <span>Host actin (via IcsA/VirG-Arp2/3) for motility; intercepts septin cage autophagy evasion pathways</span>
+                </li>
+              </ul>
+            </div>
+            <div class="pathogen-toggle">
+              <span>Mechanistic Insights</span>
+              <span class="toggle-icon">
+                <svg viewBox="0 0 12 12"><path d="M3 5l3 3 3-3"/></svg>
+              </span>
+            </div>
+            <div class="pathogen-panel">
+              <div class="panel-title">Deeper Mechanisms</div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon"><img src="img/icon-shigella.svg" alt="Shigella mechanism" /></span>
+                <span>IpaB inserts into the phagosomal membrane and oligomerizes to form a translocation pore. Unlike <em>Listeria</em>'s LLO, IpaB-mediated lysis is not pH-gated — <em>Shigella</em> escapes before significant acidification occurs.</span>
+              </div>
+              <div class="panel-insight">
+                <span class="panel-insight-icon"><img src="img/icon-shigella.svg" alt="Shigella mechanism" /></span>
+                <span>In the cytosol, <em>Shigella</em> faces septin cage entrapment and selective autophagy (xenophagy). IcsB masks IcsA from autophagy receptor LC3, competitively binding to prevent ubiquitin-dependent capture.</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="timeline">
+      <div class="container">
+        <p class="section-label">Phagosome Maturation</p>
+        <h2 class="section-title">Stage-by-Stage Timeline</h2>
+        <p class="section-subtitle">Click any stage to reveal key molecular markers, functional changes, and how pathogens target that transition.</p>
+
+        <div class="timeline-wrapper">
+          <div class="timeline" id="phagosome-timeline">
+
+            <div class="timeline-stage" id="stage-0" onclick="activateStage(0)">
+              <div class="stage-dot">0</div>
+              <div class="stage-name">Pre-Phagocytosis</div>
+              <div class="stage-time">T = 0</div>
+            </div>
+
+            <div class="timeline-stage" id="stage-1" onclick="activateStage(1)">
+              <div class="stage-dot">1</div>
+              <div class="stage-name">Phagosome Formation</div>
+              <div class="stage-time">0–2 min</div>
+            </div>
+
+            <div class="timeline-stage" id="stage-2" onclick="activateStage(2)">
+              <div class="stage-dot">2</div>
+              <div class="stage-name">Early Phagosome</div>
+              <div class="stage-time">2–15 min</div>
+            </div>
+
+            <div class="timeline-stage" id="stage-3" onclick="activateStage(3)">
+              <div class="stage-dot">3</div>
+              <div class="stage-name">Late Phagosome</div>
+              <div class="stage-time">15–45 min</div>
+            </div>
+
+            <div class="timeline-stage" id="stage-4" onclick="activateStage(4)">
+              <div class="stage-dot">4</div>
+              <div class="stage-name">Phagolysosome</div>
+              <div class="stage-time">&gt;45 min</div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="timeline-detail" id="timeline-detail">
+          <div class="detail-header">
+            <div>
+              <div class="detail-stage-name" id="detail-stage-name"></div>
+            </div>
+            <button class="detail-close" onclick="closeTimeline()" aria-label="Close">&times;</button>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-block">
+              <div class="detail-block-title">Key Markers</div>
+              <div id="detail-markers"></div>
+            </div>
+            <div class="detail-block">
+              <div class="detail-block-title">Functional Changes</div>
+              <ul class="detail-changes" id="detail-changes"></ul>
+            </div>
+          </div>
+          <div class="detail-block" style="margin-top: 14px;">
+            <div class="detail-block-title">Pathogen Targeting — Who Acts Here?</div>
+            <ul class="detail-changes" id="detail-pathogens"></ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section section-alt" id="microscopy">
+      <div class="container">
+        <p class="section-label">Microscopy</p>
+        <h2 class="section-title">What Microscopy Reveals</h2>
+        <p class="section-subtitle">Fluorescence microscopy is the primary tool for tracking phagosome maturation and pathogen compartmentalization in living or fixed cells.</p>
+
+        <div class="microscopy-grid">
+
+          <div class="micro-card">
+            <div class="micro-tag">Technique</div>
+            <h4>Widefield Fluorescence</h4>
+            <p>Uses a broad illumination field to excite all fluorophores in the sample simultaneously. Fast and high-throughput, but includes out-of-focus blur from above and below the focal plane. Suitable for endpoint assays and counting colocalization events across many cells.</p>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-tag">Technique</div>
+            <h4>Confocal Microscopy</h4>
+            <p>Uses a pinhole aperture to reject out-of-focus light, producing optical sections at defined z-depths. Essential for resolving compartment boundaries, membrane-tethered proteins, and 3D reconstruction of phagosome–organelle contacts.</p>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-tag">Strategy</div>
+            <h4>Fluorescence Tagging</h4>
+            <p>Rab GTPases and membrane markers (LAMP1, EEA1) are tagged with fluorescent proteins (GFP, mCherry, mNeonGreen) or detected via primary/secondary antibody staining. GFP-Rab5 marks early phagosomes; GFP-Rab7 marks the maturation transition.</p>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-tag">Analysis</div>
+            <h4>Colocalization Analysis</h4>
+            <p>Quantified using Pearson's correlation coefficient or Manders' coefficients between two fluorescence channels. A high overlap coefficient between the pathogen channel and LAMP1 indicates lysosomal fusion; low overlap indicates evasion. Use Costes threshold to reduce noise bias.</p>
+          </div>
+
+        </div>
+
+        <h3 style="margin-bottom: 16px; font-size: 1rem;">Reading the Data: Interpretation Examples</h3>
+        <div class="interp-grid">
+
+          <div class="interp-box green">
+            <div class="interp-label">Observation</div>
+            <div class="interp-condition">Pathogen colocalizes with Rab5 (EEA1<sup>+</sup>)</div>
+            <div class="interp-inference">→ Early phagosome retention; maturation is stalled at the Rab5 stage. Likely pathogen evasion (e.g., <em>M. tuberculosis</em>) or normal early kinetics.</div>
+          </div>
+
+          <div class="interp-box red">
+            <div class="interp-label">Observation</div>
+            <div class="interp-condition">Pathogen avoids LAMP1 acquisition</div>
+            <div class="interp-inference">→ Evasion of late endosomal/lysosomal fusion. The vacuole is non-degradative. Classic phenotype of <em>Salmonella</em> SCV and <em>M. tuberculosis</em> phagosome.</div>
+          </div>
+
+          <div class="interp-box amber">
+            <div class="interp-label">Observation</div>
+            <div class="interp-condition">Pathogen colocalizes with Rab7 but not LAMP1</div>
+            <div class="interp-inference">→ Maturation arrested between late endosome and lysosome stages. Rab7 acquisition has occurred but SNARE-mediated lysosomal fusion is blocked downstream.</div>
+          </div>
+
+          <div class="interp-box purple">
+            <div class="interp-label">Observation</div>
+            <div class="interp-condition">Pathogen detected in cytosol (no vacuolar marker)</div>
+            <div class="interp-inference">→ Phagosomal escape. Pathogen (e.g., <em>Listeria</em>, <em>Shigella</em>) has lysed the vacuolar membrane and entered the cytoplasm. Confirm with GALECTIN-3 puncta marking damaged membranes.</div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="inspiration">
+      <div class="container">
+        <p class="section-label">Research Inspiration</p>
+        <h2 class="section-title" style="margin-bottom: 28px;">Inspired by Foundational Work</h2>
+
+        <div class="callout">
+          <div class="callout-icon"><img src="img/icon-telescope.svg" alt="Research" /></div>
+          <div class="callout-body">
+            <h3>Mauricio Terebiznik Lab · University of Toronto Scarborough</h3>
+            <p>
+              This site is inspired by research on host–pathogen interactions and intracellular trafficking in labs such as Mauricio Terebiznik's at the University of Toronto Scarborough. The Terebiznik laboratory investigates how intracellular pathogens — particularly <em>Helicobacter pylori</em> and <em>Salmonella</em> — remodel host cell membranes, co-opt vesicular trafficking machinery, and survive within phagocytic compartments. Their work bridges quantitative fluorescence imaging with cell biology and microbial pathogenesis.
+            </p>
+            <a class="callout-link" href="https://www.utsc.utoronto.ca/biosci/mauricio-terebiznik" target="_blank" rel="noopener noreferrer">
+              Visit Lab Page &nearr;
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-brand">Host–Pathogen Trafficking Hub</div>
+          <p class="footer-tagline">An educational reference on intracellular pathogen biology, phagosome dynamics, and host trafficking subversion — built for advanced undergraduate biology students.</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        Built as an educational resource. Content is for instructional purposes. No external libraries or tracking.
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
