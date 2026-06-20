@@ -1,0 +1,6 @@
+name,species,gram_stain,strategy,description
+Salmonella enterica,Salmonella enterica serovar Typhimurium,Gram-negative,modified_compartment,Resides in SCV; acquires LAMP1 but blocks hydrolase delivery; maintains non-degradative niche
+Listeria monocytogenes,Listeria monocytogenes,Gram-positive,escape,Phagosomal escape via LLO within ~30 min; replicates in cytosol; uses ActA for actin-based motility
+Mycobacterium tuberculosis,Mycobacterium tuberculosis,Acid-fast,arrest,Arrests phagosome at early stage; blocks Rab5-to-Rab7 conversion; maintains near-neutral pH
+Legionella pneumophila,Legionella pneumophila,Gram-negative,reroute,Redirects ER-derived vesicles to build LCV; bypasses endocytic pathway entirely via Dot/Icm T4SS
+Shigella flexneri,Shigella flexneri,Gram-negative,escape,Rapid phagosome lysis (<15 min) via IpaB pore; escapes to cytosol before early markers fully acquired

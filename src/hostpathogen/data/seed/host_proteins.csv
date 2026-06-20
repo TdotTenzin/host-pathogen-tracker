@@ -1,0 +1,33 @@
+name,full_name,function,localization,pathway
+Rab5,Ras-related protein Rab-5A,Early endosome identity; recruits effectors for fusion and PI3P production,Early endosome,Endocytosis
+Rab7,Ras-related protein Rab-7A,Late endosome identity; recruits RILP for dynein-mediated lysosome transport,Late endosome / Lysosome,Endocytosis
+Rab1,Ras-related protein Rab-1A,ER-to-Golgi vesicular transport,ER / Golgi,Secretory pathway
+Rab9,Ras-related protein Rab-9A,M6PR recycling from late endosomes to TGN,Late endosome,Retrograde transport
+Rab35,Ras-related protein Rab-35,Endocytic recycling and actin dynamics,Plasma membrane / Endosome,Endocytic recycling
+LAMP1,Lysosomal-associated membrane protein 1,Lysosomal membrane integrity and stability,Lysosome,Lysosome biogenesis
+EEA1,Early endosome antigen 1,PI3P-binding tethering factor for early endosome fusion,Early endosome,Endocytosis
+RILP,Rab7-interacting lysosomal protein,Rab7 effector recruiting dynein-dynactin motors,Late endosome,Endocytosis
+SKIP,PLEKHM2 (SifA and kinesin-interacting protein),Adaptor linking kinesin-1 and Rab9; target of Salmonella SifA,Late endosome,Vesicular transport
+V-ATPase,Vacuolar-type H+-ATPase,Proton pump that acidifies phagosomes and lysosomes,Phagosome / Lysosome,Acidification
+PI3P,Phosphatidylinositol 3-phosphate,Signaling lipid marking early endosome identity,Endosome membrane,Phosphoinositide signaling
+Vps34,Class III PI3-kinase,Produces PI3P on early endosomes; recruited by Rab5,Early endosome,Phosphoinositide signaling
+M6PR,Mannose-6-phosphate receptor,Transports hydrolases from Golgi to lysosomes,Golgi / Late endosome,Lysosome biogenesis
+E-cadherin,Cadherin-1,Cell-cell adhesion molecule; used by Listeria InlA for entry,Plasma membrane,Cell adhesion
+Met receptor,Hepatocyte growth factor receptor,Receptor tyrosine kinase; used by Listeria InlB for entry,Plasma membrane,Receptor signaling
+CR3,Complement receptor 3 (integrin alpha-M beta-2),Phagocytic receptor used by M. tuberculosis for entry,Plasma membrane,Phagocytosis
+Mannose receptor,C-type lectin receptor,Recognizes mannosylated ligands; alternative M. tuberculosis entry route,Plasma membrane,Phagocytosis
+ORP1L,Oxysterol-binding protein-related protein 1,Rab7 effector; cholesterol sensing at ER contacts,Late endosome,Cholesterol metabolism
+Arp2/3,Actin-related protein 2/3 complex,Nucleates branched actin filaments; hijacked by Listeria ActA and Shigella IcsA,Cytoskeleton,Actin polymerization
+Actin,Beta-actin,Globular protein polymerizing into filaments; major cytoskeleton component,Cytoskeleton,Actin polymerization
+N-WASP,Neural Wiskott-Aldrich syndrome protein,Activates Arp2/3; recruited by Shigella IcsA for actin motility,Cytoskeleton,Actin polymerization
+Cdc42,Cell division control protein 42,Rho-family GTPase regulating actin dynamics and cell polarity,Plasma membrane / Cytosol,Rho signaling
+Rac1,Ras-related C3 botulinum toxin substrate 1,Rho-family GTPase regulating actin polymerization and membrane ruffling,Plasma membrane / Cytosol,Rho signaling
+Kinesin-1,Kinesin heavy chain,Plus-end-directed microtubule motor; recruited by PipB2 for SIF extension,Microtubule,Vesicular transport
+Nucleolin,Nucleolin,Multifunctional protein; binds IcsA?,Nucleus / Cytosol,—
+Cholesterol,Cholesterol,Membrane lipid; target of LLO pore formation and SseJ esterification,Membrane,Lipid metabolism
+Vacuolar membrane,Vacuolar membrane,Generic term for the phagosomal membrane targeted by IpaB pore formation,Phagosome,—
+Septin,Septin family,GTP-binding cytoskeletal proteins forming cage-like structures; entrap cytosolic Shigella,Cytoskeleton,Autophagy / cytoskeleton
+LC3,MAP1LC3B,Autophagy receptor recruited to ubiquitin-coated pathogens; marker for xenophagy,Cytosol,Autophagy
+Galectin-3,LGALS3,Binds exposed beta-galactosides on damaged vacuolar membranes,Cytosol / Nucleus,Membrane damage response
+"PI(4,5)P2","Phosphatidylinositol 4,5-bisphosphate",Plasma membrane signaling lipid; hydrolyzed during phagocytosis,Plasma membrane,Phosphoinositide signaling
+"PI(3,5)P2","Phosphatidylinositol 3,5-bisphosphate",Late endosome signaling lipid; hydrolyzed by MptpB,Late endosome membrane,Phosphoinositide signaling

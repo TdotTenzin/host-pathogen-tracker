@@ -1,0 +1,26 @@
+pathogen_name,effector_name,type,host_target,mechanism
+Salmonella enterica,SopE,T3SS (SPI-1),Cdc42 / Rac1,GEF for host Rho-family GTPases; triggers actin ruffling
+Salmonella enterica,SipA,T3SS (SPI-1),Actin,Binds and stabilizes actin filaments; enhances entry ruffling
+Salmonella enterica,SopB / SigD,T3SS (SPI-1),"PI(4,5)P2",Phosphatidylinositol phosphatase; depletes PI(4,5)P2 at invasion sites
+Salmonella enterica,SifA,T3SS (SPI-2),SKIP,Binds SKIP displacing Rab9; blocks M6PR delivery; maintains SCV integrity
+Salmonella enterica,PipB2,T3SS (SPI-2),Kinesin-1,Recruits kinesin-1 to SCV; extends Salmonella-induced filaments
+Salmonella enterica,SseJ,T3SS (SPI-2),Cholesterol,Acyltransferase that esterifies cholesterol; modulates SCV membrane
+Salmonella enterica,SopD2,T3SS (SPI-2),Rab7,Suppresses Rab7-dependent recruitment of lysosomal hydrolases
+Listeria monocytogenes,LLO,Toxin,Cholesterol,Pore-forming cytolysin; pH-dependent (active at acidic pH); mediates phagosome escape
+Listeria monocytogenes,ActA,Surface protein,Arp2/3,Mimics host WASP; nucleates branched actin for motility
+Listeria monocytogenes,InlA,Invasin,E-cadherin,Binds E-cadherin to trigger zipper-mediated entry
+Listeria monocytogenes,InlB,Invasin,Met receptor,Binds Met receptor; triggers PI3K and Rac1 signaling for entry
+Mycobacterium tuberculosis,LAM,Glycolipid,Vps34,Inhibits Ca2+ signaling; blocks Vps34 recruitment preventing PI3P production
+Mycobacterium tuberculosis,SapM,Secreted phosphatase,PI3P,Dephosphorylates PI3P on phagosomal membrane; blocks Rab5-to-Rab7 conversion
+Mycobacterium tuberculosis,MptpA,Secreted phosphatase,V-ATPase,Blocks V-ATPase trafficking to phagosome; prevents acidification
+Mycobacterium tuberculosis,MptpB,Secreted phosphatase,"PI(3,5)P2",Hydrolyzes PI(3,5)P2; works with SapM to enforce maturation arrest
+Legionella pneumophila,DrrA / SidM,T4SS (Dot/Icm),Rab1,GEF and GDF for Rab1; also AMPylates Rab1; recruits COPII vesicles to LCV
+Legionella pneumophila,AnkX,T4SS (Dot/Icm),Rab1 / Rab35,FIC domain phosphocholinase; locks Rabs in inactive membrane-bound state
+Legionella pneumophila,Lem3,T4SS (Dot/Icm),Rab1,Dephosphocholinase that reverses AnkX modification; temporal control
+Legionella pneumophila,SidD,T4SS (Dot/Icm),Rab1,DeAMPylase that reverses DrrA AMPylation of Rab1
+Legionella pneumophila,LidA,T4SS (Dot/Icm),Rab1,Binds active Rab1; protects it from host GAPs; stabilizes LCV Rab1 pool
+Shigella flexneri,IpaB,T3SS (translocon),Vacuolar membrane,Pore-forming translocator; mediates phagosome lysis; also activates caspase-1
+Shigella flexneri,IpaC,T3SS (translocon),Actin,Induces actin polymerization for entry; co-forms translocon pore with IpaB
+Shigella flexneri,IcsA / VirG,Autotransporter,N-WASP / Arp2/3,Recruits N-WASP and Arp2/3; drives actin-based motility
+Shigella flexneri,IcsB,T3SS,LC3,Masks IcsA from autophagy receptor LC3; prevents septin cage entrapment
+Shigella flexneri,VirA,T3SS,Rab1,Rab1 GAP activity; facilitates escape from LC3-positive vacuoles during spread

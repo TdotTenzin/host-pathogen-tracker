@@ -1,0 +1,28 @@
+effector_name,host_protein_name,interaction_type
+SopE,Cdc42,GEF
+SopE,Rac1,GEF
+SipA,Actin,binds / stabilizes
+SopB / SigD,"PI(4,5)P2",dephosphorylates
+SifA,SKIP,binds
+PipB2,Kinesin-1,recruits
+SseJ,Cholesterol,acyltransferase
+SopD2,Rab7,suppresses
+LLO,Cholesterol,pore-forming
+ActA,Arp2/3,mimics / nucleates
+InlA,E-cadherin,binds
+InlB,Met receptor,binds
+LAM,Vps34,inhibits
+SapM,PI3P,dephosphorylates
+MptpA,V-ATPase,blocks trafficking
+MptpB,"PI(3,5)P2",hydrolyzes
+DrrA / SidM,Rab1,GEF / GDF / AMPylase
+AnkX,Rab1,phosphocholination
+AnkX,Rab35,phosphocholination
+Lem3,Rab1,dephosphocholination
+SidD,Rab1,deAMPylation
+LidA,Rab1,binds / stabilizes
+IpaB,Vacuolar membrane,pore-forming
+IpaC,Actin,nucleates
+IcsA / VirG,Arp2/3,recruits / nucleates
+IcsB,LC3,masks
+VirA,Rab1,GAP

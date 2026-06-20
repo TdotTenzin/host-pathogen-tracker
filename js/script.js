@@ -175,3 +175,143 @@ function closeTimeline() {
   }
   detail.classList.remove('visible');
 }
+
+/* ---------------------------------------------------------------------------
+   Toolkit — fully offline with embedded data; API is optional enhancement
+   --------------------------------------------------------------------------- */
+
+function _buildMarkerProfiles() {
+  var profiles = {};
+  TOOLKIT_DATA.stage_markers.forEach(function(sm) {
+    if (!profiles[sm.stage_name]) profiles[sm.stage_name] = {};
+    profiles[sm.stage_name][sm.host_protein_name] = sm.presence;
+  });
+  return profiles;
+}
+
+var _STAGE_PROFILES = null;
+function _getStageProfiles() {
+  if (!_STAGE_PROFILES) _STAGE_PROFILES = _buildMarkerProfiles();
+  return _STAGE_PROFILES;
+}
+
+function initToolkit() {
+  var pSel = document.getElementById("pathogen-select");
+  var mSel = document.getElementById("ml-pathogen-select");
+  if (!pSel && !mSel) return;
+
+  var opts = TOOLKIT_DATA.pathogens.map(function(p) {
+    return '<option value="' + p.name + '">' + p.name + ' (' + p.strategy + ')</option>';
+  }).join("");
+  if (pSel) pSel.insertAdjacentHTML("beforeend", opts);
+  if (mSel && mSel !== pSel) mSel.insertAdjacentHTML("beforeend", opts);
+
+  var checklist = document.getElementById("marker-checklist");
+  if (checklist) {
+    checklist.innerHTML = TOOLKIT_DATA.stage_marker_names.map(function(m) {
+      return '<label><input type="checkbox" value="' + m + '"> ' + m + '</label>';
+    }).join("");
+  }
+}
+
+function showError(elId, msg) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = '<div class="error">' + msg + '</div>';
+}
+
+function loadPathogenEffectors() {
+  var sel = document.getElementById("pathogen-select");
+  var name = sel ? sel.value : "";
+  if (!name) { showError("pathogen-result", "Select a pathogen first."); return; }
+
+  var rows = TOOLKIT_DATA.effectors.filter(function(e) {
+    return e.pathogen_name === name;
+  });
+
+  var el = document.getElementById("pathogen-result");
+  if (!el) return;
+  if (!rows.length) { el.innerHTML = "<em>No effectors found for " + name + ".</em>"; return; }
+  var html = "<table><thead><tr><th>Effector</th><th>Type</th><th>Host Target</th><th>Mechanism</th></tr></thead><tbody>";
+  rows.forEach(function(e) {
+    html += "<tr><td>" + e.effector_name + "</td><td>" + (e.type || "—") + "</td><td>" + (e.host_target || "—") + "</td><td>" + (e.mechanism || "—") + "</td></tr>";
+  });
+  html += "</tbody></table>";
+  el.innerHTML = html;
+}
+
+function predictStage() {
+  var checked = document.querySelectorAll("#marker-checklist input:checked");
+  var observed = {};
+  Array.from(checked).forEach(function(cb) { observed[cb.value] = 1; });
+
+  if (!Object.keys(observed).length) { showError("stage-result", "Select at least one marker."); return; }
+
+  var profiles = _getStageProfiles();
+  var best = null, bestScore = -1;
+
+  Object.keys(profiles).forEach(function(stage) {
+    var profile = profiles[stage];
+    var match = 0, total = 0;
+    Object.keys(profile).forEach(function(marker) {
+      if (observed[marker] !== undefined) {
+        total++;
+        if (observed[marker] === profile[marker]) match++;
+      }
+    });
+    if (total > 0) {
+      var score = match / total;
+      if (score > bestScore) { bestScore = score; best = stage; }
+    }
+  });
+
+  var el = document.getElementById("stage-result");
+  if (!el) return;
+  if (!best) {
+    el.innerHTML = "<em>No matching stage. Try selecting different markers.</em>";
+    return;
+  }
+  el.innerHTML = "<strong>Predicted stage:</strong> "
+    + '<span class="badge badge-blue">' + best + "</span>"
+    + " &nbsp;(confidence: " + (bestScore * 100).toFixed(0) + "%)";
+}
+
+function loadHubProteins() {
+  var data = TOOLKIT_DATA.hubs;
+  var el = document.getElementById("hub-result");
+  if (!el) return;
+  if (!data.length) { el.innerHTML = "<em>No hub data available.</em>"; return; }
+  var html = "<table><thead><tr><th>#</th><th>Host Protein</th><th>Degree</th><th>Centrality</th></tr></thead><tbody>";
+  data.forEach(function(h, i) {
+    html += "<tr><td>" + (i+1) + "</td><td>" + h.host + "</td><td>" + h.degree + "</td><td>" + h.centrality.toFixed(4) + "</td></tr>";
+  });
+  html += "</tbody></table>";
+  el.innerHTML = html;
+}
+
+function predictStrategy() {
+  var sel = document.getElementById("ml-pathogen-select");
+  var name = sel ? sel.value : "";
+  if (!name) { showError("ml-result", "Select a pathogen first."); return; }
+
+  var match = null;
+  for (var i = 0; i < TOOLKIT_DATA.ml_predictions.length; i++) {
+    if (TOOLKIT_DATA.ml_predictions[i].pathogen === name) {
+      match = TOOLKIT_DATA.ml_predictions[i];
+      break;
+    }
+  }
+
+  var el = document.getElementById("ml-result");
+  if (!el) return;
+  if (!match) { el.innerHTML = "<em>No prediction available for " + name + ".</em>"; return; }
+
+  var predicted = match.predicted;
+  var actual = match.actual;
+  var ok = predicted === actual ? "green" : "red";
+  el.innerHTML = "<strong>Predicted:</strong> <span class='badge badge-" + ok + "'>" + predicted + "</span>"
+    + " &nbsp;| <strong>Actual:</strong> <span class='badge badge-blue'>" + actual + "</span>"
+    + " &nbsp;(confidence: " + (match.confidence * 100).toFixed(0) + "%)";
+}
+
+document.addEventListener("DOMContentLoaded", initToolkit);

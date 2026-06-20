@@ -17,6 +17,7 @@
         <li><a href="#timeline">Timeline</a></li>
         <li><a href="#microscopy">Microscopy</a></li>
         <li><a href="#inspiration">Research</a></li>
+        <li><a href="#toolkit">Tools</a></li>
       </ul>
     </div>
   </nav>
@@ -501,6 +502,72 @@
       </div>
     </section>
 
+    <section class="section section-alt" id="toolkit">
+      <div class="container">
+        <p class="section-label">Bioinformatics Toolkit</p>
+        <h2 class="section-title">Interactive Analysis Tools</h2>
+        <p class="section-subtitle">
+          Browse pathogens, predict maturation stages, explore hub proteins, and classify
+          evasion strategies — all powered by built-in data. No server required.
+        </p>
+
+        <div class="toolkit-grid">
+
+          <!-- Tool 1: Pathogen Explorer -->
+          <div class="tool-card">
+            <div class="tool-header">
+              <span class="tool-icon">&#119808;</span>
+              <h3>Pathogen Explorer</h3>
+            </div>
+            <p>Browse effectors and targets for any pathogen in the database.</p>
+            <select id="pathogen-select" class="tool-select">
+              <option value="">— Select a pathogen —</option>
+            </select>
+            <button class="tool-btn" onclick="loadPathogenEffectors()">Load Effectors</button>
+            <div id="pathogen-result" class="tool-result"></div>
+          </div>
+
+          <!-- Tool 2: Stage Predictor -->
+          <div class="tool-card">
+            <div class="tool-header">
+              <span class="tool-icon">&#9200;</span>
+              <h3>Stage Predictor</h3>
+            </div>
+            <p>Select observed markers to predict the phagosome maturation stage.</p>
+            <div id="marker-checklist" class="marker-grid"></div>
+            <button class="tool-btn" onclick="predictStage()">Predict Stage</button>
+            <div id="stage-result" class="tool-result"></div>
+          </div>
+
+          <!-- Tool 3: Hub Proteins -->
+          <div class="tool-card">
+            <div class="tool-header">
+              <span class="tool-icon">&#9673;</span>
+              <h3>Hub Proteins</h3>
+            </div>
+            <p>Top host proteins targeted by the most effectors (centrality hubs).</p>
+            <button class="tool-btn" onclick="loadHubProteins()">Load Top 10 Hubs</button>
+            <div id="hub-result" class="tool-result"></div>
+          </div>
+
+          <!-- Tool 4: Strategy Predictor -->
+          <div class="tool-card">
+            <div class="tool-header">
+              <span class="tool-icon">&#9881;</span>
+              <h3>Strategy Predictor</h3>
+            </div>
+            <p>Predict a pathogen's immune evasion strategy using a Random Forest model.</p>
+            <select id="ml-pathogen-select" class="tool-select">
+              <option value="">— Select a pathogen —</option>
+            </select>
+            <button class="tool-btn" onclick="predictStrategy()">Predict Strategy</button>
+            <div id="ml-result" class="tool-result"></div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
     <section class="section" id="inspiration">
       <div class="container">
         <p class="section-label">Research Inspiration</p>
@@ -538,6 +605,7 @@
     </div>
   </footer>
 
+  <script src="js/data.js"></script>
   <script src="js/script.js"></script>
 </body>
 </html>
