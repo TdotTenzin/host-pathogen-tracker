@@ -135,10 +135,29 @@ function activateStage(index) {
 
   var markersEl = document.getElementById('detail-markers');
   markersEl.innerHTML = '';
+  var map = _getProteinPathogens();
   data.markers.forEach(function(m) {
     var tag = document.createElement('span');
     tag.className = 'marker-tag' + (m.type ? ' ' + m.type : '');
     tag.textContent = m.label;
+    // Check if this label matches a known host protein
+    var label = m.label;
+    var matched = false;
+    var keys = Object.keys(map);
+    for (var k = 0; k < keys.length; k++) {
+      if (label.indexOf(keys[k]) !== -1) {
+        tag.style.cursor = "pointer";
+        tag.title = "Click to see which pathogens target " + keys[k];
+        (function(prot) {
+          tag.addEventListener("click", function(e) {
+            e.stopPropagation();
+            _showMarkerPathogens(prot, tag);
+          });
+        })(keys[k]);
+        matched = true;
+        break;
+      }
+    }
     markersEl.appendChild(tag);
   });
 
@@ -174,6 +193,66 @@ function closeTimeline() {
     activeStage = null;
   }
   detail.classList.remove('visible');
+  var info = document.getElementById("marker-pathogen-info");
+  if (info) info.style.display = "none";
+}
+
+// Build host protein → pathogens lookup from effectors data
+var _proteinPathogens = null;
+function _getProteinPathogens() {
+  if (_proteinPathogens) return _proteinPathogens;
+  _proteinPathogens = {};
+  TOOLKIT_DATA.effectors.forEach(function(e) {
+    var targets = [e.host_target];
+    // Some effectors list multiple targets separated by " / " or "and"
+    if (e.host_target) {
+      targets = e.host_target.split(/ \/ | and /);
+    }
+    targets.forEach(function(t) {
+      var key = t.trim();
+      if (!key) return;
+      if (!_proteinPathogens[key]) _proteinPathogens[key] = [];
+      if (_proteinPathogens[key].indexOf(e.pathogen_name) === -1) {
+        _proteinPathogens[key].push(e.pathogen_name);
+      }
+    });
+  });
+  return _proteinPathogens;
+}
+
+function _showMarkerPathogens(proteinName, el) {
+  var map = _getProteinPathogens();
+  var info = document.getElementById("marker-pathogen-info");
+  if (!info) return;
+
+  // Try exact match first, then partial
+  var pathogens = map[proteinName];
+  if (!pathogens || !pathogens.length) {
+    // Try partial match: find a key contained in proteinName
+    var keys = Object.keys(map);
+    for (var i = 0; i < keys.length; i++) {
+      if (proteinName.indexOf(keys[i]) !== -1) {
+        pathogens = map[keys[i]];
+        break;
+      }
+    }
+  }
+  if (!pathogens || !pathogens.length) {
+    info.style.display = "none";
+    return;
+  }
+
+  el.classList.add("clicked");
+  info.innerHTML = "<div class='marker-pathogen-header'><strong>Pathogens targeting this marker:</strong> <span class='marker-pathogen-close' onclick='_hideMarkerPathogens()'>&times;</span></div>"
+    + "<ul>" + pathogens.map(function(p) { return "<li>" + p + "</li>"; }).join("") + "</ul>";
+  info.style.display = "block";
+}
+
+function _hideMarkerPathogens() {
+  var info = document.getElementById("marker-pathogen-info");
+  if (info) info.style.display = "none";
+  var tags = document.querySelectorAll(".marker-tag.clicked");
+  tags.forEach(function(t) { t.classList.remove("clicked"); });
 }
 
 /* ---------------------------------------------------------------------------
@@ -220,18 +299,10 @@ function showError(elId, msg) {
   el.innerHTML = '<div class="error">' + msg + '</div>';
 }
 
-function loadPathogenEffectors() {
-  var sel = document.getElementById("pathogen-select");
-  var name = sel ? sel.value : "";
-  if (!name) { showError("pathogen-result", "Select a pathogen first."); return; }
+var _currentEffectors = [];
 
-  var rows = TOOLKIT_DATA.effectors.filter(function(e) {
-    return e.pathogen_name === name;
-  });
-
-  var el = document.getElementById("pathogen-result");
-  if (!el) return;
-  if (!rows.length) { el.innerHTML = "<em>No effectors found for " + name + ".</em>"; return; }
+function _renderEffectorTable(rows, el) {
+  if (!rows.length) { el.innerHTML = "<em>No effectors match the filter.</em>"; return; }
   var html = "<table><thead><tr><th>Effector</th><th>Type</th><th>Host Target</th><th>Mechanism</th></tr></thead><tbody>";
   rows.forEach(function(e) {
     html += "<tr><td>" + e.effector_name + "</td><td>" + (e.type || "—") + "</td><td>" + (e.host_target || "—") + "</td><td>" + (e.mechanism || "—") + "</td></tr>";
@@ -240,13 +311,41 @@ function loadPathogenEffectors() {
   el.innerHTML = html;
 }
 
-function predictStage() {
-  var checked = document.querySelectorAll("#marker-checklist input:checked");
-  var observed = {};
-  Array.from(checked).forEach(function(cb) { observed[cb.value] = 1; });
+function loadPathogenEffectors() {
+  var sel = document.getElementById("pathogen-select");
+  var name = sel ? sel.value : "";
+  if (!name) { showError("pathogen-result", "Select a pathogen first."); return; }
 
-  if (!Object.keys(observed).length) { showError("stage-result", "Select at least one marker."); return; }
+  _currentEffectors = TOOLKIT_DATA.effectors.filter(function(e) {
+    return e.pathogen_name === name;
+  });
 
+  var el = document.getElementById("pathogen-result");
+  if (!el) return;
+  if (!_currentEffectors.length) { el.innerHTML = "<em>No effectors found for " + name + ".</em>"; return; }
+
+  var searchEl = document.getElementById("effector-search");
+  if (searchEl) { searchEl.value = ""; searchEl.style.display = "block"; searchEl.placeholder = "Filter " + _currentEffectors.length + " effectors…"; }
+  var dlBtn = document.getElementById("dl-effectors-btn");
+  if (dlBtn) dlBtn.style.display = "inline-block";
+
+  _renderEffectorTable(_currentEffectors, el);
+}
+
+function filterEffectors() {
+  var searchEl = document.getElementById("effector-search");
+  var q = searchEl ? searchEl.value.toLowerCase() : "";
+  var filtered = _currentEffectors.filter(function(e) {
+    return e.effector_name.toLowerCase().indexOf(q) !== -1
+        || (e.type || "").toLowerCase().indexOf(q) !== -1
+        || (e.host_target || "").toLowerCase().indexOf(q) !== -1
+        || (e.mechanism || "").toLowerCase().indexOf(q) !== -1;
+  });
+  var el = document.getElementById("pathogen-result");
+  if (el) _renderEffectorTable(filtered, el);
+}
+
+function _stageResultFallback(observed, el) {
   var profiles = _getStageProfiles();
   var best = null, bestScore = -1;
 
@@ -265,8 +364,6 @@ function predictStage() {
     }
   });
 
-  var el = document.getElementById("stage-result");
-  if (!el) return;
   if (!best) {
     el.innerHTML = "<em>No matching stage. Try selecting different markers.</em>";
     return;
@@ -274,6 +371,37 @@ function predictStage() {
   el.innerHTML = "<strong>Predicted stage:</strong> "
     + '<span class="badge badge-blue">' + best + "</span>"
     + " &nbsp;(confidence: " + (bestScore * 100).toFixed(0) + "%)";
+}
+
+function predictStage() {
+  var checked = document.querySelectorAll("#marker-checklist input:checked");
+  var markers = Array.from(checked).map(function(cb) { return cb.value; });
+
+  if (!markers.length) { showError("stage-result", "Select at least one marker."); return; }
+
+  var el = document.getElementById("stage-result");
+  if (!el) return;
+  el.innerHTML = "<em>Predicting…</em>";
+
+  fetch("/api/trafficking/predict-stage", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ markers: markers })
+  })
+  .then(function(r) { if (!r.ok) throw new Error("API unavailable"); return r.json(); })
+  .then(function(info) {
+    var present = (info.markers_present || []).join(", ");
+    el.innerHTML = "<strong>Predicted stage:</strong> "
+      + '<span class="badge badge-blue">' + info.name + "</span>"
+      + "<br><small>pH " + info.ph_min + "–" + info.ph_max
+      + " · " + info.time_range
+      + " · Markers: " + present + "</small>";
+  })
+  .catch(function() {
+    var observed = {};
+    markers.forEach(function(m) { observed[m] = 1; });
+    _stageResultFallback(observed, el);
+  });
 }
 
 function loadHubProteins() {
@@ -287,6 +415,8 @@ function loadHubProteins() {
   });
   html += "</tbody></table>";
   el.innerHTML = html;
+  var dlBtn = document.getElementById("dl-hubs-btn");
+  if (dlBtn) dlBtn.style.display = "inline-block";
 }
 
 function predictStrategy() {
@@ -312,6 +442,42 @@ function predictStrategy() {
   el.innerHTML = "<strong>Predicted:</strong> <span class='badge badge-" + ok + "'>" + predicted + "</span>"
     + " &nbsp;| <strong>Actual:</strong> <span class='badge badge-blue'>" + actual + "</span>"
     + " &nbsp;(confidence: " + (match.confidence * 100).toFixed(0) + "%)";
+}
+
+function _downloadCSV(rows, columns, filename) {
+  var header = columns.map(function(c) { return '"' + c.label + '"'; }).join(",");
+  var data = rows.map(function(r) {
+    return columns.map(function(c) { var v = r[c.key]; return '"' + (v || "").replace(/"/g, '""') + '"'; }).join(",");
+  }).join("\n");
+  var blob = new Blob([header + "\n" + data], { type: "text/csv;charset=utf-8;" });
+  var link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+}
+
+function downloadEffectorsCSV() {
+  if (!_currentEffectors.length) return;
+  _downloadCSV(_currentEffectors, [
+    { key: "effector_name", label: "Effector" },
+    { key: "type", label: "Type" },
+    { key: "host_target", label: "Host Target" },
+    { key: "mechanism", label: "Mechanism" }
+  ], "effectors.csv");
+}
+
+function downloadHubsCSV() {
+  var data = TOOLKIT_DATA.hubs;
+  if (!data.length) return;
+  _downloadCSV(data, [
+    { key: "host", label: "Host Protein" },
+    { key: "degree", label: "Degree" },
+    { key: "centrality", label: "Centrality" }
+  ], "hub_proteins.csv");
 }
 
 document.addEventListener("DOMContentLoaded", initToolkit);

@@ -1,0 +1,7 @@
+[
+  {"stage_order": 0, "name": "Pre-phagocytosis", "time_range": "T=0", "ph_min": 7.2, "ph_max": 7.4, "ph_avg": 7.3},
+  {"stage_order": 1, "name": "Phagosome formation", "time_range": "0-2 min", "ph_min": 7.0, "ph_max": 7.2, "ph_avg": 7.1},
+  {"stage_order": 2, "name": "Early phagosome", "time_range": "2-15 min", "ph_min": 6.0, "ph_max": 6.5, "ph_avg": 6.25},
+  {"stage_order": 3, "name": "Late phagosome", "time_range": "15-45 min", "ph_min": 5.0, "ph_max": 5.5, "ph_avg": 5.25},
+  {"stage_order": 4, "name": "Phagolysosome", "time_range": ">45 min", "ph_min": 4.0, "ph_max": 5.0, "ph_avg": 4.5}
+]

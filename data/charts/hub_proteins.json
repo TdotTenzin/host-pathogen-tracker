@@ -1,0 +1,12 @@
+[
+  {"host": "Rab1", "degree": 6, "centrality": 0.1395},
+  {"host": "Actin", "degree": 2, "centrality": 0.0465},
+  {"host": "Cholesterol", "degree": 2, "centrality": 0.0465},
+  {"host": "Arp2/3", "degree": 2, "centrality": 0.0465},
+  {"host": "Cdc42", "degree": 1, "centrality": 0.0233},
+  {"host": "Rac1", "degree": 1, "centrality": 0.0233},
+  {"host": "PI(4,5)P2", "degree": 1, "centrality": 0.0233},
+  {"host": "SKIP", "degree": 1, "centrality": 0.0233},
+  {"host": "Kinesin-1", "degree": 1, "centrality": 0.0233},
+  {"host": "Rab7", "degree": 1, "centrality": 0.0233}
+]

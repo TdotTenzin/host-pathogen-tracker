@@ -45,16 +45,11 @@ class PhagosomeMaturation:
     """
 
     def __init__(self):
-        # Ordered list of stage names
-        rows = query(
-            "SELECT name FROM maturation_stages ORDER BY stage_order"
-        )
-        self.stage_names = [r["name"] for r in rows]
-
-        # Full stage metadata
+        # Full stage metadata (ordered)
         self.stages_df = to_df(
             "SELECT * FROM maturation_stages ORDER BY stage_order"
         )
+        self.stage_names = self.stages_df["name"].tolist()
 
         # Molecular marker profiles per stage
         self._profiles = _build_marker_profiles()

@@ -1,9 +1,12 @@
 {
-  "framework": null,
-  "buildCommand": null,
-  "installCommand": "echo 'Skipping install for static site'",
-  "outputDirectory": ".",
+  "buildCommand": "python src/hostpathogen/data/build_db.py",
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "src/**"
+    }
+  }
 }

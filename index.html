@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Host–Pathogen Trafficking Hub</title>
   <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -80,6 +81,14 @@
 
         <div class="trafficking-note">
           <strong>Why trafficking matters for pathogens:</strong> Intracellular pathogens survive by intercepting normal vesicular trafficking — blocking phagosome maturation, diverting membranes from the ER or mitochondria, or escaping into the cytosol entirely. Control of trafficking is synonymous with control of survival.
+        </div>
+
+        <div class="chart-section">
+          <h3 style="margin-bottom: 16px; font-size: 1rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">Evasion Strategies at a Glance</h3>
+          <div class="chart-container chart-container-sm">
+            <canvas id="chart-strategy"></canvas>
+          </div>
+          <p class="chart-caption">Distribution of immune evasion strategies across the five profiled pathogens. Hover for details.</p>
         </div>
 
         <h3 style="margin-bottom: 16px; font-size: 1rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">Canonical Trafficking Pathway</h3>
@@ -364,8 +373,16 @@
               </div>
             </div>
           </div>
-
         </div>
+
+        <div class="chart-section">
+          <h3 style="margin-bottom: 16px; font-size: 1rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">Effector Repertoire by Pathogen</h3>
+          <div class="chart-container chart-container-md">
+            <canvas id="chart-effectors"></canvas>
+          </div>
+          <p class="chart-caption">Number of known effectors each pathogen deploys to subvert host trafficking. Click a bar to load effector details in the Toolkit below.</p>
+        </div>
+
       </div>
     </section>
 
@@ -422,6 +439,7 @@
             <div class="detail-block">
               <div class="detail-block-title">Key Markers</div>
               <div id="detail-markers"></div>
+              <div id="marker-pathogen-info" class="marker-pathogen-info" style="display:none;"></div>
             </div>
             <div class="detail-block">
               <div class="detail-block-title">Functional Changes</div>
@@ -432,6 +450,14 @@
             <div class="detail-block-title">Pathogen Targeting — Who Acts Here?</div>
             <ul class="detail-changes" id="detail-pathogens"></ul>
           </div>
+        </div>
+
+        <div class="chart-section">
+          <h3 style="margin-bottom: 16px; font-size: 1rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">pH Trajectory of Phagosome Maturation</h3>
+          <div class="chart-container chart-container-lg">
+            <canvas id="chart-ph-timeline"></canvas>
+          </div>
+          <p class="chart-caption">Progressive acidification from extracellular pH (~7.4) to degradative pH (~4.5). Diamonds mark where each pathogen intervenes. Dashed lines show key thresholds.</p>
         </div>
 
       </div>
@@ -524,7 +550,9 @@
               <option value="">— Select a pathogen —</option>
             </select>
             <button class="tool-btn" onclick="loadPathogenEffectors()">Load Effectors</button>
+            <input id="effector-search" class="tool-input" type="text" placeholder="Filter effectors…" oninput="filterEffectors()" style="display:none;">
             <div id="pathogen-result" class="tool-result"></div>
+            <button class="tool-btn tool-btn-sm" onclick="downloadEffectorsCSV()" style="display:none;" id="dl-effectors-btn">Download CSV</button>
           </div>
 
           <!-- Tool 2: Stage Predictor -->
@@ -546,8 +574,12 @@
               <h3>Hub Proteins</h3>
             </div>
             <p>Top host proteins targeted by the most effectors (centrality hubs).</p>
-            <button class="tool-btn" onclick="loadHubProteins()">Load Top 10 Hubs</button>
+            <div class="chart-container chart-container-sm" style="margin-bottom: 12px;">
+              <canvas id="chart-hubs"></canvas>
+            </div>
+            <button class="tool-btn" onclick="loadHubProteins()">Show Full Table</button>
             <div id="hub-result" class="tool-result"></div>
+            <button class="tool-btn tool-btn-sm" onclick="downloadHubsCSV()" style="display:none;" id="dl-hubs-btn">Download CSV</button>
           </div>
 
           <!-- Tool 4: Strategy Predictor -->
@@ -607,5 +639,6 @@
 
   <script src="js/data.js"></script>
   <script src="js/script.js"></script>
+  <script src="js/charts.js"></script>
 </body>
 </html>

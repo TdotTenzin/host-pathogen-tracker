@@ -1,0 +1,7 @@
+[
+  {"pathogen": "Mycobacterium tuberculosis", "stage": "Early phagosome", "ph": 6.25, "action": "Arrests maturation"},
+  {"pathogen": "Salmonella enterica", "stage": "Late phagosome", "ph": 5.25, "action": "Modifies compartment"},
+  {"pathogen": "Listeria monocytogenes", "stage": "Early phagosome", "ph": 6.25, "action": "Escapes vacuole"},
+  {"pathogen": "Shigella flexneri", "stage": "Phagosome formation", "ph": 7.1, "action": "Lyses vacuole"},
+  {"pathogen": "Legionella pneumophila", "stage": "Phagosome formation", "ph": 7.1, "action": "Reroutes to ER"}
+]

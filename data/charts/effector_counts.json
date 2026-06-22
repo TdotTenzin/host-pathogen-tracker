@@ -1,0 +1,7 @@
+[
+  {"pathogen_name": "Salmonella enterica", "count": 7},
+  {"pathogen_name": "Legionella pneumophila", "count": 5},
+  {"pathogen_name": "Shigella flexneri", "count": 5},
+  {"pathogen_name": "Listeria monocytogenes", "count": 4},
+  {"pathogen_name": "Mycobacterium tuberculosis", "count": 4}
+]

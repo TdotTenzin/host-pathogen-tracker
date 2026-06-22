@@ -7,7 +7,6 @@ All other modules import from here rather than using sqlite3 directly.
 
 import sqlite3
 import pathlib
-
 import pandas as pd
 
 # Path to the pre-built database (relative to this file)
@@ -20,7 +19,16 @@ def get_connection() -> sqlite3.Connection:
     so rows can be accessed by column name (like a dict).
     """
     con = sqlite3.connect(str(DB_PATH))
+    """
+    sqlite3.Row is a row factory — it changes how rows behave 
+    so rows can be accessed by column name (like a dict).
+    """
     con.row_factory = sqlite3.Row
+    """
+    PRAGMA foreign_keys = ON enables foreign key constraints.
+    This ensures referential integrity — for example, you can't delete a pathogen
+    that has effectors referencing it.
+    """
     con.execute("PRAGMA foreign_keys = ON")
     return con
 
