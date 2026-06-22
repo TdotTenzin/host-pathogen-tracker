@@ -1,7 +1,4 @@
 {
-  "framework": null,
-  "outputDirectory": ".",
-  "buildCommand": "python src/hostpathogen/data/build_db.py",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index" },
     { "source": "/(.*)", "destination": "/index.html" }

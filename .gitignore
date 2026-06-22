@@ -6,8 +6,8 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 
-# Build artifacts
-src/hostpathogen/data/hostpathogen.db
+# Databases (uncomment to keep db out of git — Vercel deployment needs it committed)
+# src/hostpathogen/data/hostpathogen.db
 
 # misc
 npm-debug.log
