@@ -1,6 +1,22 @@
 [
-  {"strategy": "escape", "count": 2, "label": "Escape to Cytosol"},
-  {"strategy": "modified_compartment", "count": 1, "label": "Modified Compartment"},
-  {"strategy": "arrest", "count": 1, "label": "Maturation Arrest"},
-  {"strategy": "reroute", "count": 1, "label": "Vesicle Rerouting"}
+  {
+    "strategy": "extracellular",
+    "count": 21
+  },
+  {
+    "strategy": "escape",
+    "count": 11
+  },
+  {
+    "strategy": "modified_compartment",
+    "count": 8
+  },
+  {
+    "strategy": "arrest",
+    "count": 8
+  },
+  {
+    "strategy": "reroute",
+    "count": 6
+  }
 ]

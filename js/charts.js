@@ -1,50 +1,46 @@
-/* charts.js
-   Renders interactive Chart.js graphs from R-exported JSON data.
-   Falls back to TOOLKIT_DATA when JSON files are unavailable. */
-
-var PATHOGEN_COLORS = {
-  "Salmonella enterica":       "#ef4444",
-  "Listeria monocytogenes":    "#f97316",
-  "Mycobacterium tuberculosis":"#eab308",
-  "Legionella pneumophila":    "#22c55e",
-  "Shigella flexneri":         "#3b82f6"
-};
-
-var PATHOGEN_ORDER = [
-  "Salmonella enterica",
-  "Listeria monocytogenes",
-  "Mycobacterium tuberculosis",
-  "Legionella pneumophila",
-  "Shigella flexneri"
+var CHART_COLORS = [
+  "#ef4444","#f97316","#eab308","#22c55e","#3b82f6","#8b5cf6","#ec4899",
+  "#14b8a6","#f43f5e","#a855f7","#06b6d4","#84cc16","#d946ef","#0ea5e9",
+  "#10b981","#f59e0b","#6366f1","#d97706","#059669","#0284c7","#dc2626",
+  "#7c3aed","#db2777","#0891b2","#65a30d","#9333ea","#2563eb","#ca8a04",
+  "#16a34a","#4f46e5","#c026d3","#0d9488"
 ];
 
 var STRATEGY_LABELS = {
   "modified_compartment": "Modified Compartment",
-  "escape":               "Escape to Cytosol",
-  "arrest":               "Maturation Arrest",
-  "reroute":              "Vesicle Rerouting"
+  "escape": "Escape to Cytosol",
+  "arrest": "Maturation Arrest",
+  "reroute": "Vesicle Rerouting",
+  "extracellular": "Extracellular"
 };
 
 var STRATEGY_COLORS = {
   "modified_compartment": "#8b5cf6",
   "escape":               "#ef4444",
   "arrest":               "#eab308",
-  "reroute":              "#22c55e"
+  "reroute":              "#22c55e",
+  "extracellular":        "#3b82f6"
 };
 
-/* ---- Data helpers (always work — no fetch dependency) ---- */
+function _colorForPathogen(name, idx) {
+  if (typeof idx === "undefined") {
+    idx = (TOOLKIT_DATA.pathogens || []).findIndex(function(p) { return p.name === name; });
+  }
+  return CHART_COLORS[idx % CHART_COLORS.length];
+}
 
 function getEffectorData() {
   var map = {};
-  TOOLKIT_DATA.effectors.forEach(function (e) {
+  (TOOLKIT_DATA.effectors || []).forEach(function(e) {
     map[e.pathogen_name] = (map[e.pathogen_name] || 0) + 1;
   });
-  return PATHOGEN_ORDER.filter(function (p) { return map[p]; })
-    .map(function (p) { return { pathogen_name: p, count: map[p] }; });
+  return Object.keys(map).sort().map(function(name) {
+    return { pathogen_name: name, count: map[name] };
+  });
 }
 
 function getPhTimelineData() {
-  return TOOLKIT_DATA.maturation_stages.map(function (s) {
+  return (TOOLKIT_DATA.maturation_stages || []).map(function(s) {
     return {
       name: s.name,
       ph_min: s.ph_min,
@@ -55,38 +51,88 @@ function getPhTimelineData() {
 }
 
 function getHubData() {
-  return TOOLKIT_DATA.hubs;
+  return TOOLKIT_DATA.hubs || [];
 }
 
 function getStrategyData() {
   var map = {};
-  TOOLKIT_DATA.pathogens.forEach(function (p) {
+  (TOOLKIT_DATA.pathogens || []).forEach(function(p) {
     map[p.strategy] = (map[p.strategy] || 0) + 1;
   });
-  return Object.keys(map).map(function (k) {
+  return Object.keys(map).map(function(k) {
     return { strategy: k, count: map[k] };
   });
 }
 
 function getPathogenActions() {
-  return [
-    { pathogen: "Mycobacterium tuberculosis", stage: "Early phagosome", ph: 6.25, action: "Arrests maturation" },
-    { pathogen: "Salmonella enterica",        stage: "Late phagosome",  ph: 5.25, action: "Modifies compartment" },
-    { pathogen: "Listeria monocytogenes",     stage: "Early phagosome", ph: 6.25, action: "Escapes vacuole" },
-    { pathogen: "Shigella flexneri",          stage: "Phagosome formation", ph: 7.1, action: "Lyses vacuole" },
-    { pathogen: "Legionella pneumophila",     stage: "Phagosome formation", ph: 7.1, action: "Reroutes to ER" }
-  ];
+  if (TOOLKIT_DATA.pathogen_actions) return TOOLKIT_DATA.pathogen_actions;
+  // Generate actions from pathogen strategies if not pre-computed
+  var actions = [];
+  var stageLookup = {};
+  (TOOLKIT_DATA.maturation_stages || []).forEach(function(s) {
+    stageLookup[s.stage_order] = s;
+  });
+  var stageMap = { extracellular: 0, escape: 1, arrest: 2, modified_compartment: 3, reroute: 1 };
+  (TOOLKIT_DATA.pathogens || []).forEach(function(p) {
+    var order = stageMap[p.strategy] !== undefined ? stageMap[p.strategy] : 0;
+    var s = stageLookup[order];
+    if (s) {
+      actions.push({ pathogen: p.name, stage: s.name, ph: (s.ph_min + s.ph_max) / 2, action: p.strategy });
+    }
+  });
+  TOOLKIT_DATA.pathogen_actions = actions;
+  return actions;
 }
 
-/* ---- 1. Effector Counts (horizontal bar) ---- */
+function _strategyOrder(strat) {
+  var order = ["extracellular", "escape", "arrest", "modified_compartment", "reroute"];
+  var idx = order.indexOf(strat);
+  return idx >= 0 ? idx : 999;
+}
 
-function renderEffectorChart(data) {
+function _getGroupRanges(sortedLabels, sortMeta) {
+  var ranges = [];
+  var currentGroup = null;
+  var startIdx = 0;
+  for (var i = 0; i < sortMeta.length; i++) {
+    var g = sortMeta[i].strategy;
+    if (g !== currentGroup) {
+      if (currentGroup !== null) {
+        ranges.push({ strategy: currentGroup, start: startIdx, end: i - 1 });
+      }
+      currentGroup = g;
+      startIdx = i;
+    }
+  }
+  ranges.push({ strategy: currentGroup, start: startIdx, end: sortMeta.length - 1 });
+  return ranges;
+}
+
+function renderEffectorChart(rawData) {
   var canvas = document.getElementById("chart-effectors");
   if (!canvas) return;
 
-  var labels = data.map(function (d) { return d.pathogen_name; });
-  var counts = data.map(function (d) { return d.count; });
-  var colors = labels.map(function (l) { return PATHOGEN_COLORS[l] || "#6366f1"; });
+  // Sort: group by strategy, then by count descending
+  var pathogenMap = {};
+  (TOOLKIT_DATA.pathogens || []).forEach(function(p) { pathogenMap[p.name] = p; });
+  var sorted = rawData.slice().sort(function(a, b) {
+    var sa = pathogenMap[a.pathogen_name] ? pathogenMap[a.pathogen_name].strategy : "unknown";
+    var sb = pathogenMap[b.pathogen_name] ? pathogenMap[b.pathogen_name].strategy : "unknown";
+    var oa = _strategyOrder(sa), ob = _strategyOrder(sb);
+    if (oa !== ob) return oa - ob;
+    return b.count - a.count;
+  });
+
+  var labels = sorted.map(function(d) { return d.pathogen_name; });
+  var counts = sorted.map(function(d) { return d.count; });
+  var sortMeta = sorted.map(function(d) {
+    return { strategy: pathogenMap[d.pathogen_name] ? pathogenMap[d.pathogen_name].strategy : "unknown" };
+  });
+  var colors = sorted.map(function(d) {
+    var s = pathogenMap[d.pathogen_name] ? pathogenMap[d.pathogen_name].strategy : "unknown";
+    return STRATEGY_COLORS[s] || "#6366f1";
+  });
+  var groupRanges = _getGroupRanges(labels, sortMeta);
 
   new Chart(canvas, {
     type: "bar",
@@ -94,10 +140,10 @@ function renderEffectorChart(data) {
       labels: labels,
       datasets: [{
         data: counts,
-        backgroundColor: colors,
+        backgroundColor: colors.map(function(c) { return c + "CC"; }),
         borderColor: colors,
         borderWidth: 1,
-        borderRadius: 4
+        borderRadius: 3
       }]
     },
     options: {
@@ -108,12 +154,16 @@ function renderEffectorChart(data) {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            afterLabel: function (ctx) {
-              var rows = TOOLKIT_DATA.effectors.filter(function (e) {
+            label: function(ctx) {
+              var s = sortMeta[ctx.dataIndex] ? sortMeta[ctx.dataIndex].strategy : "";
+              return " " + ctx.raw + " effectors  [" + s + "]";
+            },
+            afterLabel: function(ctx) {
+              var rows = (TOOLKIT_DATA.effectors || []).filter(function(e) {
                 return e.pathogen_name === ctx.label;
               });
               if (!rows.length) return "";
-              return rows.map(function (r) { return "  " + r.effector_name; });
+              return rows.map(function(r) { return "  " + r.effector_name; });
             }
           }
         }
@@ -121,14 +171,17 @@ function renderEffectorChart(data) {
       scales: {
         x: {
           beginAtZero: true,
-          title: { display: true, text: "Number of Effectors", color: "#64748b" },
-          ticks: { stepSize: 1 }
+          title: { display: true, text: "Number of Effectors", color: "#64748b", font: { size: 12 } },
+          ticks: { stepSize: 1, font: { size: 11 } }
         },
         y: {
-          ticks: { font: { weight: "bold" } }
+          ticks: {
+            font: { size: 10 },
+            autoSkip: false
+          }
         }
       },
-      onClick: function (e, item) {
+      onClick: function(e, item) {
         if (item && item.length) {
           var name = this.data.labels[item[0].index];
           var sel = document.getElementById("pathogen-select");
@@ -142,17 +195,69 @@ function renderEffectorChart(data) {
       }
     },
     plugins: [{
-      id: "effectorLabels",
-      afterDatasetsDraw: function (chart) {
+      id: "effectorGroupHeaders",
+      beforeDraw: function(chart) {
         var ctx = chart.ctx;
-        chart.data.datasets.forEach(function (ds, i) {
+        var yScale = chart.scales.y;
+        var xScale = chart.scales.x;
+        var meta = chart.getDatasetMeta(0);
+
+        // Draw alternating group backgrounds
+        var bgColors = ["rgba(148,163,184,0.06)", "rgba(148,163,184,0.03)"];
+        groupRanges.forEach(function(grp, gi) {
+          var firstIdx = grp.start;
+          var lastIdx = grp.end;
+          if (firstIdx >= meta.data.length) return;
+          var top = meta.data[firstIdx].y - 6;
+          var bottom = meta.data[lastIdx].y + 6;
+          ctx.fillStyle = bgColors[gi % 2];
+          ctx.fillRect(xScale.left, top, xScale.right - xScale.left, bottom - top);
+        });
+
+        // Draw group separator lines
+        for (var si = 1; si < groupRanges.length; si++) {
+          var sepIdx = groupRanges[si].start;
+          if (sepIdx < meta.data.length) {
+            ctx.strokeStyle = "rgba(148,163,184,0.25)";
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(xScale.left, meta.data[sepIdx].y + 6);
+            ctx.lineTo(xScale.right, meta.data[sepIdx].y + 6);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+        }
+      },
+      afterDraw: function(chart) {
+        var ctx = chart.ctx;
+        var yScale = chart.scales.y;
+        var xScale = chart.scales.x;
+        var meta = chart.getDatasetMeta(0);
+
+        // Draw strategy group labels on the right margin
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        groupRanges.forEach(function(grp) {
+          var firstIdx = grp.start;
+          var lastIdx = grp.end;
+          if (firstIdx >= meta.data.length) return;
+          var midY = (meta.data[firstIdx].y + meta.data[lastIdx].y) / 2;
+          ctx.fillStyle = STRATEGY_COLORS[grp.strategy] || "#64748b";
+          ctx.font = "700 10px system-ui, sans-serif";
+          ctx.fillText(STRATEGY_LABELS[grp.strategy] || grp.strategy, chart.width - 8, midY);
+        });
+      },
+      afterDatasetsDraw: function(chart) {
+        var ctx = chart.ctx;
+        chart.data.datasets.forEach(function(ds, i) {
           var meta = chart.getDatasetMeta(i);
-          meta.data.forEach(function (bar, idx) {
+          meta.data.forEach(function(bar, idx) {
             ctx.fillStyle = "#1e293b";
-            ctx.font = "bold 13px system-ui, sans-serif";
+            ctx.font = "bold 11px system-ui, sans-serif";
             ctx.textAlign = "left";
             ctx.textBaseline = "middle";
-            ctx.fillText(ds.data[idx], bar.x + 6, bar.y);
+            ctx.fillText(ds.data[idx], bar.x + 4, bar.y);
           });
         });
       }
@@ -160,305 +265,195 @@ function renderEffectorChart(data) {
   });
 }
 
-/* ---- 2. pH Timeline (line chart with shaded range) ---- */
+function _pathogenStrategy(name) {
+  var p = (TOOLKIT_DATA.pathogens || []).find(function(x) { return x.name === name; });
+  return p ? p.strategy : "unknown";
+}
 
 function renderPhTimeline(stages, actions) {
   var canvas = document.getElementById("chart-ph-timeline");
   if (!canvas) return;
 
-  var labels = stages.map(function (s) { return s.name; });
-  var avg = stages.map(function (s) { return s.ph_avg; });
-  var minV = stages.map(function (s) { return s.ph_min; });
-  var maxV = stages.map(function (s) { return s.ph_max; });
-  var lysRef = new Array(stages.length).fill(4.5);
-  var earlyRef = new Array(stages.length).fill(6.5);
-  var annColors = ["#eab308", "#ef4444", "#f97316", "#3b82f6", "#22c55e"];
-  var stageShort = {
-    "Pre-phagocytosis": "Pre-phago.",
-    "Phagosome formation": "Formation",
-    "Early phagosome": "Early ph.",
-    "Late phagosome": "Late ph.",
-    "Phagolysosome": "Phagolysosome"
-  };
-  var annStage = actions.map(function (a) { return stageShort[a.stage] || a.stage; });
+  var stageNames = stages.map(function(s) { return s.name; });
+  var strategyKeys = ["extracellular", "escape", "arrest", "modified_compartment", "reroute"];
 
-  function makePH(tooltip) {
-    var el = document.getElementById("chart-tooltip-ph");
-    if (!el) {
-      el = document.createElement("div");
-      el.id = "chart-tooltip-ph";
-      el.style.cssText = "position:fixed;z-index:10000;background:#1e293b;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;line-height:1.6;pointer-events:none;opacity:0;transition:opacity 0.12s;box-shadow:0 6px 24px rgba(0,0,0,0.35);font-family:system-ui,sans-serif;max-width:320px;border:1px solid rgba(255,255,255,0.08);text-align:left;";
-      document.body.appendChild(el);
+  // Per-stage x per-strategy count
+  var countMap = {};
+  stages.forEach(function(s) {
+    countMap[s.name] = {};
+    strategyKeys.forEach(function(k) { countMap[s.name][k] = 0; });
+  });
+  actions.forEach(function(a) {
+    var strat = _pathogenStrategy(a.pathogen);
+    if (countMap[a.stage] && countMap[a.stage][strat] !== undefined) {
+      countMap[a.stage][strat]++;
     }
-    return el;
-  }
+  });
 
-  function showPH(el, html, ctx, t) {
-    el.innerHTML = html;
-    el.style.opacity = "1";
-    var rect = ctx.chart.canvas.getBoundingClientRect();
-    var cx = rect.left + t.caretX;
-    var cy = rect.top + t.caretY;
-    var tw = el.offsetWidth;
-    var th = el.offsetHeight;
-    var lx = Math.max(6, Math.min(cx - tw / 2, window.innerWidth - tw - 6));
-    var ly = cy - th - 14;
-    if (ly < 6) ly = cy + 14;
-    el.style.left = lx + "px";
-    el.style.top = ly + "px";
-  }
+  // One dataset per strategy (order matches legend)
+  var datasets = strategyKeys.filter(function(k) {
+    return stages.some(function(s) { return countMap[s.name][k] > 0; });
+  });
+  if (datasets.length === 0) datasets = strategyKeys.slice(0, 1);
+  var chartDatasets = datasets.map(function(key) {
+    return {
+      label: STRATEGY_LABELS[key] || key,
+      data: stages.map(function(s) { return countMap[s.name][key] || 0; }),
+      backgroundColor: STRATEGY_COLORS[key] || "#6366f1",
+      borderColor: "#ffffff",
+      borderWidth: 1,
+      borderRadius: 0
+    };
+  });
 
-  var D = {
-    RANGE_TOP: 0,
-    RANGE_BOT: 1,
-    AVG: 2,
-    LYS: 3,
-    ERLY: 4,
-    PATH: 5
-  };
+  // Total per stage
+  var stageTotals = stages.map(function(s) {
+    return strategyKeys.reduce(function(sum, k) { return sum + (countMap[s.name][k] || 0); }, 0);
+  });
+  var maxStageTotal = stageTotals.reduce(function(max, total) {
+    return total > max ? total : max;
+  }, 0);
+  var suggestedYMax = maxStageTotal > 0 ? maxStageTotal + Math.max(2, Math.ceil(maxStageTotal * 0.15)) : 5;
 
   new Chart(canvas, {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          label: "pH range top",
-          data: maxV,
-          borderWidth: 0,
-          pointRadius: 0,
-          fill: false
-        },
-        {
-          label: "pH range fill",
-          data: minV,
-          backgroundColor: "rgba(99,102,241,0.08)",
-          borderWidth: 0,
-          pointRadius: 0,
-          fill: "-1"
-        },
-        {
-          label: "pH (average)",
-          data: avg,
-          borderColor: "#6366f1",
-          borderWidth: 3,
-          pointBackgroundColor: "#6366f1",
-          pointBorderColor: "#ffffff",
-          pointBorderWidth: 2,
-          pointRadius: 6,
-          pointHoverRadius: 9,
-          pointHoverBorderWidth: 3,
-          tension: 0.35,
-          fill: false
-        },
-        {
-          label: "pH 4.5 — Phagolysosome",
-          data: lysRef,
-          borderColor: "#dc2626",
-          borderDash: [7, 5],
-          borderWidth: 1.5,
-          pointRadius: 0,
-          fill: false
-        },
-        {
-          label: "pH 6.5 — Early phagosome",
-          data: earlyRef,
-          borderColor: "#2563eb",
-          borderDash: [7, 5],
-          borderWidth: 1.5,
-          pointRadius: 0,
-          fill: false
-        },
-        {
-          label: "Pathogen intervention",
-          data: actions.map(function (a) {
-            return { x: a.stage, y: a.ph };
-          }),
-          backgroundColor: annColors.slice(0, actions.length),
-          borderColor: annColors.slice(0, actions.length),
-          borderWidth: 2,
-          pointRadius: 8,
-          pointHoverRadius: 12,
-          pointHoverBorderWidth: 3,
-          pointHoverBorderColor: "#ffffff",
-          pointStyle: "rectRot",
-          fill: false
-        }
-      ]
-    },
+    type: "bar",
+    data: { labels: stageNames, datasets: chartDatasets },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: { duration: 600, easing: "easeOutQuart" },
-      hover: {
-        mode: "nearest",
-        intersect: true
+      responsive: true, maintainAspectRatio: false,
+      layout: {
+        padding: {
+          top: 18,
+          bottom: 26
+        }
       },
       plugins: {
         legend: {
-          labels: {
-            filter: function (item) {
-              return item.text.indexOf("pH range") === -1;
-            },
-            font: { size: 11 },
-            padding: 14,
-            usePointStyle: true,
-            pointStyle: "line"
-          }
+          position: "bottom",
+          labels: { font: { size: 11 }, padding: 14, usePointStyle: true, pointStyle: "rectRounded" }
         },
         tooltip: {
-          enabled: false,
-          external: function (ctx) {
-            var el = makePH(ctx);
-            var t = ctx.tooltip;
-            if (t.opacity === 0) { el.style.opacity = "0"; return; }
-            var dp = t.dataPoints && t.dataPoints[0];
-            if (!dp) return;
-            var di = dp.datasetIndex;
-            var idx = dp.dataIndex;
-            var html = "";
-            if (di === D.PATH) {
-              var a = actions[idx];
-              if (a) {
-                var effs = TOOLKIT_DATA.effectors.filter(function (e) {
-                  return e.pathogen_name === a.pathogen;
-                }).map(function (e) { return e.effector_name; }).join(", ");
-                html = "<b>" + a.pathogen + "</b><br>"
-                  + "<span style=\"color:#94a3b8\">" + a.stage + " &middot; pH " + a.ph + "</span><br>"
-                  + a.action
-                  + (effs ? "<br><span style=\"font-size:11px;color:#94a3b8\">Effectors: " + effs + "</span>" : "");
-              }
-            } else if (di === D.LYS) {
-              html = "Phagolysosome pH 4.5";
-            } else if (di === D.ERLY) {
-              html = "Early phagosome pH 6.5";
-            } else if (di === D.AVG) {
-              var s = stages[idx];
-              if (s) html = "<b>" + s.name + "</b><br>pH " + s.ph_min + " \u2013 " + s.ph_max;
+          callbacks: {
+            title: function(items) { return items[0].label; },
+            label: function(ctx) {
+              var total = stageTotals[ctx.dataIndex];
+              var pct = total > 0 ? " (" + Math.round(ctx.raw / total * 100) + "%)" : "";
+              return ctx.dataset.label + ": " + ctx.raw + pct;
+            },
+            afterFooter: function(items) {
+              var idx = items[0].dataIndex;
+              var total = stageTotals[idx];
+              return "Total: " + total + " pathogens";
             }
-            if (html) showPH(el, html, ctx, t);
           }
         }
       },
       scales: {
-        y: {
-          min: 3.5,
-          max: 8.0,
-          title: {
-            display: true,
-            text: "pH",
-            color: "#64748b",
-            font: { size: 13, weight: "600" }
-          },
-          ticks: {
-            callback: function (v) { return v.toFixed(1); },
-            color: "#94a3b8",
-            font: { size: 11 }
-          },
-          grid: {
-            color: "rgba(148,163,184,0.12)",
-            drawBorder: false
-          }
-        },
         x: {
+          stacked: true,
           ticks: {
             font: { size: 10, weight: "600" },
             color: "#64748b",
-            maxRotation: 25,
-            minRotation: 20
+            maxRotation: 15,
+            minRotation: 15
           },
           grid: { display: false }
+        },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          suggestedMax: suggestedYMax,
+          title: { display: true, text: "Number of pathogens", color: "#64748b", font: { size: 12 } },
+          ticks: { stepSize: 1, font: { size: 11 } },
+          grid: { color: "rgba(148,163,184,0.12)", drawBorder: false }
         }
       }
     },
     plugins: [{
-      id: "phLabels",
-      afterDraw: function (chart) {
+      id: "phTotalLabels",
+      afterDraw: function(chart) {
         var ctx = chart.ctx;
-        var meta = chart.getDatasetMeta(D.PATH);
-        if (!meta || !meta.data) return;
-
-        var groups = {};
-        meta.data.forEach(function (pt, i) {
-          var xKey = Math.round(pt.x);
-          if (!groups[xKey]) groups[xKey] = [];
-          groups[xKey].push({ pt: pt, i: i });
+        var xScale = chart.scales.x;
+        var yScale = chart.scales.y;
+        ctx.font = "700 12px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        stages.forEach(function(s, i) {
+          var total = stageTotals[i];
+          var xPos = xScale.getPixelForValue(i);
+          if (total > 0) {
+            var topY = null;
+            chartDatasets.forEach(function(ds, di) {
+              var meta = chart.getDatasetMeta(di);
+              if (meta && meta.data[i]) {
+                var bt = meta.data[i].y;
+                if (topY === null || bt < topY) topY = bt;
+              }
+            });
+            if (topY !== null) {
+              ctx.fillStyle = "#1e293b";
+              ctx.fillText(total + " pathogens", xPos, topY - 6);
+            }
+          } else {
+            // Empty stage — dim "0" at baseline
+            ctx.fillStyle = "#94a3b8";
+            ctx.font = "700 11px system-ui, sans-serif";
+            ctx.textBaseline = "bottom";
+            ctx.fillText("No intervention", xPos, yScale.bottom - 4);
+            ctx.font = "700 12px system-ui, sans-serif";
+          }
         });
 
+        // Draw pH range below each x-axis tick label
+        ctx.font = "9px system-ui, sans-serif";
         ctx.textAlign = "center";
-
-        Object.keys(groups).forEach(function (xKey) {
-          var items = groups[xKey];
-          var stageText = annStage[items[0].i];
-          var topY = Infinity;
-          items.forEach(function (item) {
-            if (item.pt.y < topY) topY = item.pt.y;
-          });
-          ctx.font = "700 11px system-ui, sans-serif";
-          ctx.fillStyle = "#334155";
-          ctx.textBaseline = "bottom";
-          ctx.fillText(stageText, items[0].pt.x, topY - 10);
+        ctx.textBaseline = "top";
+        ctx.fillStyle = "#64748b";
+        stages.forEach(function(s, i) {
+          var xPos = xScale.getPixelForValue(i);
+          var tickBottom = chart.chartArea.bottom + 28;
+          ctx.fillText("pH " + s.ph_min.toFixed(1) + "\u2013" + s.ph_max.toFixed(1), xPos, tickBottom);
         });
       }
     }]
   });
 }
-
-/* ---- 3. Hub Proteins (horizontal bar) ---- */
 
 function renderHubChart(data) {
   var canvas = document.getElementById("chart-hubs");
   if (!canvas) return;
-
   var top6 = data.slice(0, 6);
-  var labels = top6.map(function (d) { return d.host; });
-  var vals = top6.map(function (d) { return d.degree; });
-
+  var labels = top6.map(function(d) { return d.host; });
+  var vals = top6.map(function(d) { return d.degree; });
   new Chart(canvas, {
-    type: "bar",
-    data: {
-      labels: labels,
-      datasets: [{
-        data: vals,
-        backgroundColor: "#6366f1",
-        borderRadius: 4
-      }]
-    },
+    type: "bar", data: { labels: labels, datasets: [{ data: vals, backgroundColor: "#6366f1", borderRadius: 4 }] },
     options: {
-      indexAxis: "y",
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function (ctx) { return "Targeted by " + ctx.raw + " effectors"; }
-          }
+      indexAxis: "y", responsive: true, maintainAspectRatio: false,
+      layout: {
+        padding: {
+          right: 28
         }
       },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(ctx) { return "Targeted by " + ctx.raw + " effectors"; } } } },
       scales: {
-        x: {
-          beginAtZero: true,
-          title: { display: true, text: "Effectors Targeting", color: "#64748b" },
-          ticks: { stepSize: 1 }
-        },
-        y: {
-          ticks: { font: { weight: "bold" } }
-        }
+        x: { beginAtZero: true, title: { display: true, text: "Effectors Targeting", color: "#64748b" }, ticks: { stepSize: 1 } },
+        y: { ticks: { font: { weight: "bold" } } }
       }
     },
     plugins: [{
       id: "hubLabels",
-      afterDatasetsDraw: function (chart) {
+      afterDatasetsDraw: function(chart) {
         var ctx = chart.ctx;
-        chart.data.datasets.forEach(function (ds, i) {
+        chart.data.datasets.forEach(function(ds, i) {
           var meta = chart.getDatasetMeta(i);
-          meta.data.forEach(function (bar, idx) {
+          meta.data.forEach(function(bar, idx) {
             ctx.fillStyle = "#1e293b";
             ctx.font = "bold 13px system-ui, sans-serif";
             ctx.textAlign = "left";
             ctx.textBaseline = "middle";
-            ctx.fillText(ds.data[idx], bar.x + 6, bar.y);
+            var label = String(ds.data[idx]);
+            var labelWidth = ctx.measureText(label).width;
+            var x = Math.min(bar.x + 6, chart.chartArea.right - labelWidth - 4);
+            ctx.fillText(label, x, bar.y);
           });
         });
       }
@@ -466,43 +461,26 @@ function renderHubChart(data) {
   });
 }
 
-/* ---- 4. Strategy Distribution (doughnut) ---- */
-
 function renderStrategyChart(data) {
   var canvas = document.getElementById("chart-strategy");
   if (!canvas) return;
-
-  var labels = data.map(function (d) { return STRATEGY_LABELS[d.strategy] || d.strategy; });
-  var counts = data.map(function (d) { return d.count; });
-  var colors = data.map(function (d) { return STRATEGY_COLORS[d.strategy] || "#6366f1"; });
-
+  var labels = data.map(function(d) { return STRATEGY_LABELS[d.strategy] || d.strategy; });
+  var counts = data.map(function(d) { return d.count; });
+  var colors = data.map(function(d) { return STRATEGY_COLORS[d.strategy] || "#6366f1"; });
   new Chart(canvas, {
     type: "doughnut",
-    data: {
-      labels: labels,
-      datasets: [{
-        data: counts,
-        backgroundColor: colors,
-        borderColor: "#ffffff",
-        borderWidth: 3
-      }]
-    },
+    data: { labels: labels, datasets: [{ data: counts, backgroundColor: colors, borderColor: "#ffffff", borderWidth: 3 }] },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: "55%",
+      responsive: true, maintainAspectRatio: false, cutout: "55%",
       plugins: {
-        legend: {
-          position: "bottom",
-          labels: { padding: 16, font: { size: 12 } }
-        },
+        legend: { position: "bottom", labels: { padding: 16, font: { size: 12 } } },
         tooltip: {
           callbacks: {
-            afterLabel: function (ctx) {
+            afterLabel: function(ctx) {
               var strategyKey = data[ctx.dataIndex].strategy;
-              return TOOLKIT_DATA.pathogens
-                .filter(function (p) { return p.strategy === strategyKey; })
-                .map(function (p) { return "  " + p.name; })
+              return (TOOLKIT_DATA.pathogens || [])
+                .filter(function(p) { return p.strategy === strategyKey; })
+                .map(function(p) { return "  " + p.name; })
                 .join("\n");
             }
           }
@@ -512,14 +490,11 @@ function renderStrategyChart(data) {
   });
 }
 
-/* ---- Init ---- */
-
 function initCharts() {
   if (typeof Chart === "undefined") {
-    console.warn("Chart.js not loaded — skipping interactive graphs");
+    console.warn("Chart.js not loaded \u2014 skipping interactive graphs");
     return;
   }
-
   try {
     renderEffectorChart(getEffectorData());
     renderPhTimeline(getPhTimelineData(), getPathogenActions());
@@ -528,10 +503,4 @@ function initCharts() {
   } catch (e) {
     console.error("Chart render error:", e);
   }
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initCharts);
-} else {
-  initCharts();
 }

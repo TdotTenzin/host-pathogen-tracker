@@ -202,7 +202,8 @@ var _proteinPathogens = null;
 function _getProteinPathogens() {
   if (_proteinPathogens) return _proteinPathogens;
   _proteinPathogens = {};
-  TOOLKIT_DATA.effectors.forEach(function(e) {
+  var effs = TOOLKIT_DATA.effectors || [];
+  effs.forEach(function(e) {
     var targets = [e.host_target];
     // Some effectors list multiple targets separated by " / " or "and"
     if (e.host_target) {
@@ -279,7 +280,8 @@ function initToolkit() {
   var mSel = document.getElementById("ml-pathogen-select");
   if (!pSel && !mSel) return;
 
-  var opts = TOOLKIT_DATA.pathogens.map(function(p) {
+  var pathogenList = TOOLKIT_DATA.pathogens || [];
+  var opts = pathogenList.map(function(p) {
     return '<option value="' + p.name + '">' + p.name + ' (' + p.strategy + ')</option>';
   }).join("");
   if (pSel) pSel.insertAdjacentHTML("beforeend", opts);
@@ -404,14 +406,14 @@ function predictStage() {
   });
 }
 
-function loadHubProteins() {
-  var data = TOOLKIT_DATA.hubs;
-  var el = document.getElementById("hub-result");
-  if (!el) return;
-  if (!data.length) { el.innerHTML = "<em>No hub data available.</em>"; return; }
+function _renderHubTable(data, el) {
+  if (!data || !data.length) {
+    el.innerHTML = "<em>No hub data available.</em>";
+    return;
+  }
   var html = "<table><thead><tr><th>#</th><th>Host Protein</th><th>Degree</th><th>Centrality</th></tr></thead><tbody>";
-  data.forEach(function(h, i) {
-    html += "<tr><td>" + (i+1) + "</td><td>" + h.host + "</td><td>" + h.degree + "</td><td>" + h.centrality.toFixed(4) + "</td></tr>";
+  data.forEach(function (h, i) {
+    html += "<tr><td>" + (i + 1) + "</td><td>" + h.host + "</td><td>" + h.degree + "</td><td>" + h.centrality.toFixed(4) + "</td></tr>";
   });
   html += "</tbody></table>";
   el.innerHTML = html;
@@ -419,29 +421,66 @@ function loadHubProteins() {
   if (dlBtn) dlBtn.style.display = "inline-block";
 }
 
+function loadHubProteins() {
+  var el = document.getElementById("hub-result");
+  if (!el) return;
+  el.innerHTML = "<em>Loading…</em>";
+
+  fetch("/api/interactome/hubs?top_n=10")
+    .then(function (r) {
+      if (!r.ok) throw new Error("Hub API unavailable");
+      return r.json();
+    })
+    .then(function (data) {
+      // Persist live data so download uses fresh values
+      TOOLKIT_DATA.hubs = data;
+      _renderHubTable(data, el);
+    })
+    .catch(function () {
+      _renderHubTable(TOOLKIT_DATA.hubs, el);
+    });
+}
+
 function predictStrategy() {
   var sel = document.getElementById("ml-pathogen-select");
   var name = sel ? sel.value : "";
   if (!name) { showError("ml-result", "Select a pathogen first."); return; }
 
-  var match = null;
-  for (var i = 0; i < TOOLKIT_DATA.ml_predictions.length; i++) {
-    if (TOOLKIT_DATA.ml_predictions[i].pathogen === name) {
-      match = TOOLKIT_DATA.ml_predictions[i];
-      break;
-    }
-  }
-
   var el = document.getElementById("ml-result");
   if (!el) return;
-  if (!match) { el.innerHTML = "<em>No prediction available for " + name + ".</em>"; return; }
+  el.innerHTML = "<em>Predicting…</em>";
 
-  var predicted = match.predicted;
-  var actual = match.actual;
-  var ok = predicted === actual ? "green" : "red";
-  el.innerHTML = "<strong>Predicted:</strong> <span class='badge badge-" + ok + "'>" + predicted + "</span>"
-    + " &nbsp;| <strong>Actual:</strong> <span class='badge badge-blue'>" + actual + "</span>"
-    + " &nbsp;(confidence: " + (match.confidence * 100).toFixed(0) + "%)";
+  fetch("/api/ml/predict/" + encodeURIComponent(name))
+    .then(function (r) {
+      if (!r.ok) throw new Error("ML API unavailable");
+      return r.json();
+    })
+    .then(function (data) {
+      var predicted = data.predicted_strategy;
+      var actual = data.actual_strategy;
+      var ok = predicted === actual ? "green" : "red";
+      var pct = data.confidence ? (data.confidence * 100).toFixed(0) + "%" : "N/A";
+      el.innerHTML = "<strong>Predicted:</strong> <span class='badge badge-" + ok + "'>" + predicted + "</span>"
+        + " &nbsp;| <strong>Actual:</strong> <span class='badge badge-blue'>" + actual + "</span>"
+        + " &nbsp;(confidence: " + pct + ")";
+    })
+    .catch(function () {
+      // Fall back to static data
+      var match = null;
+      for (var i = 0; i < TOOLKIT_DATA.ml_predictions.length; i++) {
+        if (TOOLKIT_DATA.ml_predictions[i].pathogen === name) {
+          match = TOOLKIT_DATA.ml_predictions[i];
+          break;
+        }
+      }
+      if (!match) { el.innerHTML = "<em>No prediction available for " + name + ".</em>"; return; }
+      var predicted = match.predicted;
+      var actual = match.actual;
+      var ok = predicted === actual ? "green" : "red";
+      el.innerHTML = "<strong>Predicted:</strong> <span class='badge badge-" + ok + "'>" + predicted + "</span>"
+        + " &nbsp;| <strong>Actual:</strong> <span class='badge badge-blue'>" + actual + "</span>"
+        + " &nbsp;(confidence: " + (match.confidence * 100).toFixed(0) + "%)";
+    });
 }
 
 function _downloadCSV(rows, columns, filename) {
@@ -480,4 +519,167 @@ function downloadHubsCSV() {
   ], "hub_proteins.csv");
 }
 
-document.addEventListener("DOMContentLoaded", initToolkit);
+/* ---------------------------------------------------------------------------
+   All 54 Pathogens — dynamic grid
+   --------------------------------------------------------------------------- */
+
+var _allPathogensData = [];
+
+function renderAllPathogens() {
+  var container = document.getElementById("all-pathogens-container");
+  if (!container) return;
+  var list = TOOLKIT_DATA.pathogens || [];
+  var effMap = {};
+  (TOOLKIT_DATA.effectors || []).forEach(function(e) {
+    effMap[e.pathogen_name] = (effMap[e.pathogen_name] || 0) + 1;
+  });
+  _allPathogensData = list.slice();
+  _renderPathogenGrid(list, effMap, container);
+  var cnt = document.getElementById("all-pathogen-count");
+  if (cnt) cnt.textContent = list.length;
+}
+
+function _strategyBorder(strat) {
+  if (strat === "escape") return "ap-border-escape";
+  if (strat === "arrest") return "ap-border-arrest";
+  if (strat === "reroute") return "ap-border-reroute";
+  if (strat === "modified_compartment") return "ap-border-modified";
+  return "ap-border-extracellular";
+}
+
+function _renderPathogenGrid(list, effMap, container) {
+  var html = "";
+  for (var i = 0; i < list.length; i++) {
+    var p = list[i];
+    var nEff = effMap[p.name] || p.n_effectors || "?";
+    var gramBadge = "badge-blue";
+    if (p.gram_stain === "Gram-positive") gramBadge = "badge-amber";
+    else if (p.gram_stain === "Acid-fast") gramBadge = "badge-acid";
+    else if (p.gram_stain === "Gram-negative") gramBadge = "badge-purple";
+    var stratBadge = "badge-gray";
+    if (p.strategy === "escape") stratBadge = "badge-red";
+    else if (p.strategy === "arrest") stratBadge = "badge-amber";
+    else if (p.strategy === "reroute") stratBadge = "badge-green";
+    else if (p.strategy === "modified_compartment") stratBadge = "badge-purple";
+    var cardId = "ap-card-" + i;
+    var borderCls = _strategyBorder(p.strategy);
+    html += '<div class="pathogen-card pathogen-card-sm ' + borderCls + '" id="' + cardId + '">'
+      + '<div class="pathogen-card-top" onclick="toggleAPCard(\'' + cardId + '\',\'' + p.name.replace(/'/g, "\\'") + '\')">'
+      + '<div class="pathogen-meta">'
+      + '<span class="badge ' + gramBadge + '">' + (p.gram_stain || "—") + '</span>'
+      + '<span class="badge ' + stratBadge + '">' + (p.strategy || "—") + '</span>'
+      + '<span class="badge badge-gray">' + nEff + ' effectors</span>'
+      + '</div>'
+      + '<div class="pathogen-name">' + p.name + '</div>'
+      + '<div class="pathogen-class">' + (p.species || "") + '</div>'
+      + '<div class="pathogen-desc">' + (p.description || "") + '</div>'
+      + (p.reference ? '<div class="pathogen-ref">DOI: <a href="https://doi.org/' + p.reference + '" target="_blank" rel="noopener noreferrer">' + p.reference + '</a></div>' : '')
+      + '</div>'
+      + '<div class="pathogen-toggle" onclick="toggleAPCard(\'' + cardId + '\',\'' + p.name.replace(/'/g, "\\'") + '\')"><span>Read Article <span class="toggle-arrow">&#9654;</span></span></div>'
+      + '<div class="pathogen-panel"><div class="panel-article" id="' + cardId + '-article"><em>Loading…</em></div></div>'
+      + '</div>';
+  }
+  container.innerHTML = html;
+}
+
+function toggleAPCard(cardId, name) {
+  var card = document.getElementById(cardId);
+  if (!card) return;
+  var wasExpanded = card.classList.contains("expanded");
+  card.classList.toggle("expanded");
+  if (!wasExpanded) {
+    var articleDiv = document.getElementById(cardId + "-article");
+    if (articleDiv && articleDiv.innerHTML.indexOf("Loading") !== -1) {
+      var p = null;
+      var allP = TOOLKIT_DATA.pathogens || [];
+      for (var pi = 0; pi < allP.length; pi++) {
+        if (allP[pi].name === name) { p = allP[pi]; break; }
+      }
+      var effs = (TOOLKIT_DATA.effectors || []).filter(function(e) { return e.pathogen_name === name; });
+      var targets = {};
+      effs.forEach(function(e) {
+        if (e.host_target) {
+          var parts = e.host_target.split(/ \/ | and /);
+          parts.forEach(function(t) { var k = t.trim(); if (k) targets[k] = (targets[k] || 0) + 1; });
+        }
+      });
+      var targetKeys = Object.keys(targets);
+      var mlPred = null;
+      var mlAll = TOOLKIT_DATA.ml_predictions || [];
+      for (var mi = 0; mi < mlAll.length; mi++) {
+        if (mlAll[mi].pathogen === name) { mlPred = mlAll[mi]; break; }
+      }
+
+      var html = '<div class="panel-title">' + name + ' — Pathogen Article</div>';
+
+      // Description section
+      html += '<div class="article-section"><h4>Overview</h4><p>' + (p ? p.description : "") + '</p></div>';
+
+      // Classification
+      html += '<div class="article-section"><h4>Classification</h4><p><strong>Gram stain:</strong> ' + (p ? p.gram_stain : "—")
+        + ' &nbsp;|&nbsp; <strong>Strategy:</strong> ' + (p ? p.strategy : "—")
+        + ' &nbsp;|&nbsp; <strong>Effectors:</strong> ' + effs.length
+        + (p && p.reference ? ' &nbsp;|&nbsp; <strong>DOI:</strong> <a href="https://doi.org/' + p.reference + '" target="_blank" rel="noopener noreferrer">' + p.reference + '</a>' : '')
+        + '</p></div>';
+
+      // Host targets
+      if (targetKeys.length) {
+        html += '<div class="article-section"><h4>Host Targets <span class="badge badge-gray">' + targetKeys.length + ' unique</span></h4><ul class="target-list">';
+        targetKeys.sort().forEach(function(t) {
+          html += '<li><span class="target-protein">' + t + '</span> <span class="target-count">(' + targets[t] + ' effectors)</span></li>';
+        });
+        html += '</ul></div>';
+      }
+
+      // Effectors table
+      if (effs.length) {
+        html += '<div class="article-section"><h4>Effector Repertoire</h4><table><thead><tr><th>Effector</th><th>Type</th><th>Host Target</th><th>Mechanism</th></tr></thead><tbody>';
+        effs.forEach(function(e) {
+          html += "<tr><td>" + e.effector_name + "</td><td>" + (e.type || "—") + "</td><td>" + (e.host_target || "—") + "</td><td>" + (e.mechanism || "—") + "</td></tr>";
+        });
+        html += '</tbody></table></div>';
+      }
+
+      // ML prediction
+      if (mlPred) {
+        var ok = mlPred.predicted === mlPred.actual ? "green" : "red";
+        html += '<div class="article-section"><h4>ML Strategy Prediction</h4><p>'
+          + 'Predicted: <span class="badge badge-' + ok + '">' + mlPred.predicted + '</span>'
+          + ' &nbsp;|&nbsp; Actual: <span class="badge badge-blue">' + mlPred.actual + '</span>'
+          + ' &nbsp;|&nbsp; Confidence: ' + (mlPred.confidence * 100).toFixed(0) + '%'
+          + '</p></div>';
+      }
+
+      articleDiv.innerHTML = html;
+    }
+  }
+}
+
+function filterAllPathogens() {
+  var q = (document.getElementById("ap-search").value || "").toLowerCase();
+  var strat = document.getElementById("ap-strategy").value;
+  var gram = document.getElementById("ap-gram").value;
+  var filtered = _allPathogensData.filter(function(p) {
+    if (q && p.name.toLowerCase().indexOf(q) === -1
+      && (p.species || "").toLowerCase().indexOf(q) === -1
+      && (p.description || "").toLowerCase().indexOf(q) === -1) return false;
+    if (strat && p.strategy !== strat) return false;
+    if (gram && p.gram_stain !== gram) return false;
+    return true;
+  });
+  var effMap = {};
+  (TOOLKIT_DATA.effectors || []).forEach(function(e) {
+    effMap[e.pathogen_name] = (effMap[e.pathogen_name] || 0) + 1;
+  });
+  var container = document.getElementById("all-pathogens-container");
+  if (container) _renderPathogenGrid(filtered, effMap, container);
+}
+
+// Hook into the existing init
+var _origInitToolkit = initToolkit;
+initToolkit = function() {
+  if (_origInitToolkit) _origInitToolkit();
+  renderAllPathogens();
+};
+
+// Init is now triggered by data-loader.js after API data is fetched

@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src/hostpathogen/data:/app/src/hostpathogen/data
+    environment:
+      - PYTHONUNBUFFERED=1

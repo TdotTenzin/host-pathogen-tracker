@@ -18,9 +18,10 @@ from hostpathogen.data.loader import query, to_df
 
 app = FastAPI(
     title="Host-Pathogen Omics Explorer API",
-    version="0.1.0",
+    version="0.2.0",
     description="REST API for host-pathogen interaction analysis — pathogens, "
-    "effectors, trafficking networks, enrichment, and ML prediction.",
+    "effectors, trafficking networks, enrichment, and ML prediction. "
+    "Database expanded to 54 pathogens with DOI references.",
 )
 
 # ---------------------------------------------------------------------------
@@ -53,13 +54,99 @@ async def health():
 
 
 # ---------------------------------------------------------------------------
+# Search & filter
+# ---------------------------------------------------------------------------
+
+
+@app.get("/api/search")
+async def search(
+    q: str = Query("", description="Search term matching pathogen name, species, or description"),
+    strategy: str | None = Query(None, description="Filter by evasion strategy"),
+    gram_stain: str | None = Query(None, description="Filter by Gram stain result"),
+    min_effectors: int | None = Query(None, description="Minimum number of effectors"),
+    max_effectors: int | None = Query(None, description="Maximum number of effectors"),
+    limit: int = Query(50, description="Max results"),
+):
+    sql = """
+        SELECT p.*, COUNT(e.id) AS n_effectors
+        FROM pathogens p
+        LEFT JOIN effectors e ON e.pathogen_id = p.id
+    """
+    conditions = []
+    params = []
+
+    if q:
+        conditions.append("(p.name LIKE ? OR p.species LIKE ? OR p.description LIKE ?)")
+        params.extend([f"%{q}%", f"%{q}%", f"%{q}%"])
+
+    if strategy:
+        conditions.append("p.strategy = ?")
+        params.append(strategy)
+
+    if gram_stain:
+        conditions.append("p.gram_stain = ?")
+        params.append(gram_stain)
+
+    if conditions:
+        sql += " WHERE " + " AND ".join(conditions)
+
+    sql += " GROUP BY p.id ORDER BY p.name"
+
+    if min_effectors is not None or max_effectors is not None:
+        having_clauses = []
+        if min_effectors is not None:
+            having_clauses.append(f"COUNT(e.id) >= ?")
+            params.append(min_effectors)
+        if max_effectors is not None:
+            having_clauses.append(f"COUNT(e.id) <= ?")
+            params.append(max_effectors)
+        sql += " HAVING " + " AND ".join(having_clauses)
+
+    sql += " LIMIT ?"
+    params.append(limit)
+
+    return [dict(r) for r in query(sql, tuple(params))]
+
+
+@app.get("/api/stats")
+async def database_stats():
+    """Return summary statistics about the database."""
+    return {
+        "pathogens": query("SELECT COUNT(*) AS n FROM pathogens")[0]["n"],
+        "effectors": query("SELECT COUNT(*) AS n FROM effectors")[0]["n"],
+        "host_proteins": query("SELECT COUNT(*) AS n FROM host_proteins")[0]["n"],
+        "effector_targets": query("SELECT COUNT(*) AS n FROM effector_targets")[0]["n"],
+        "maturation_stages": query("SELECT COUNT(*) AS n FROM maturation_stages")[0]["n"],
+        "strategies": [dict(r) for r in query("SELECT strategy, COUNT(*) AS n FROM pathogens GROUP BY strategy ORDER BY n DESC")],
+        "gram_stains": [dict(r) for r in query("SELECT gram_stain, COUNT(*) AS n FROM pathogens GROUP BY gram_stain ORDER BY n DESC")],
+    }
+
+
+# ---------------------------------------------------------------------------
 # Pathogens
 # ---------------------------------------------------------------------------
 
 
 @app.get("/api/pathogens")
-async def list_pathogens():
-    return [dict(r) for r in query("SELECT * FROM pathogens ORDER BY name")]
+async def list_pathogens(
+    strategy: str | None = Query(None, description="Filter by evasion strategy"),
+    gram_stain: str | None = Query(None, description="Filter by Gram stain"),
+    limit: int = Query(100, description="Max results"),
+):
+    sql = "SELECT * FROM pathogens"
+    conditions = []
+    params = []
+    if strategy:
+        conditions.append("strategy = ?")
+        params.append(strategy)
+    if gram_stain:
+        conditions.append("gram_stain = ?")
+        params.append(gram_stain)
+    if conditions:
+        sql += " WHERE " + " AND ".join(conditions)
+    sql += " ORDER BY name LIMIT ?"
+    params.append(limit)
+    return [dict(r) for r in query(sql, tuple(params))]
 
 
 @app.get("/api/pathogens/{name}")
@@ -67,7 +154,11 @@ async def get_pathogen(name: str):
     rows = query("SELECT * FROM pathogens WHERE name = ?", (name,))
     if not rows:
         raise HTTPException(status_code=404, detail="Pathogen not found")
-    return dict(rows[0])
+    result = dict(rows[0])
+    # Include effector count
+    cnt = query("SELECT COUNT(*) AS n FROM effectors WHERE pathogen_id = ?", (result["id"],))[0]["n"]
+    result["n_effectors"] = cnt
+    return result
 
 
 @app.get("/api/pathogens/{name}/effectors")
@@ -95,28 +186,36 @@ async def pathogen_effectors(name: str):
 @app.get("/api/effectors")
 async def list_effectors(
     pathogen: str | None = Query(None, description="Filter by pathogen name"),
+    effector_type: str | None = Query(None, description="Filter by effector type (e.g. T3SS, T4SS, Toxin)"),
+    host_target: str | None = Query(None, description="Filter by host target protein"),
+    search: str | None = Query(None, description="Search effectors by name or mechanism"),
+    limit: int = Query(500, description="Max results"),
 ):
+    conditions = []
+    params = []
     if pathogen:
-        rows = query(
-            """
-            SELECT p.name AS pathogen, e.name AS effector, e.type, e.host_target, e.mechanism
-            FROM effectors e
-            JOIN pathogens p ON e.pathogen_id = p.id
-            WHERE p.name = ?
-            ORDER BY e.name
-            """,
-            (pathogen,),
-        )
-    else:
-        rows = query(
-            """
-            SELECT p.name AS pathogen, e.name AS effector, e.type, e.host_target, e.mechanism
-            FROM effectors e
-            JOIN pathogens p ON e.pathogen_id = p.id
-            ORDER BY p.name, e.name
-            """
-        )
-    return [dict(r) for r in rows]
+        conditions.append("p.name = ?")
+        params.append(pathogen)
+    if effector_type:
+        conditions.append("e.type LIKE ?")
+        params.append(f"%{effector_type}%")
+    if host_target:
+        conditions.append("e.host_target = ?")
+        params.append(host_target)
+    if search:
+        conditions.append("(e.name LIKE ? OR e.mechanism LIKE ?)")
+        params.extend([f"%{search}%", f"%{search}%"])
+
+    sql = """
+        SELECT p.name AS pathogen, e.name AS effector, e.type, e.host_target, e.mechanism
+        FROM effectors e
+        JOIN pathogens p ON e.pathogen_id = p.id
+    """
+    if conditions:
+        sql += " WHERE " + " AND ".join(conditions)
+    sql += " ORDER BY p.name, e.name LIMIT ?"
+    params.append(limit)
+    return [dict(r) for r in query(sql, tuple(params))]
 
 
 # ---------------------------------------------------------------------------
@@ -125,8 +224,25 @@ async def list_effectors(
 
 
 @app.get("/api/host-proteins")
-async def list_host_proteins():
-    return [dict(r) for r in query("SELECT * FROM host_proteins ORDER BY name")]
+async def list_host_proteins(
+    search: str | None = Query(None, description="Search by name or full_name"),
+    pathway: str | None = Query(None, description="Filter by pathway"),
+    limit: int = Query(100, description="Max results"),
+):
+    sql = "SELECT * FROM host_proteins"
+    conditions = []
+    params = []
+    if search:
+        conditions.append("(name LIKE ? OR full_name LIKE ?)")
+        params.extend([f"%{search}%", f"%{search}%"])
+    if pathway:
+        conditions.append("pathway = ?")
+        params.append(pathway)
+    if conditions:
+        sql += " WHERE " + " AND ".join(conditions)
+    sql += " ORDER BY name LIMIT ?"
+    params.append(limit)
+    return [dict(r) for r in query(sql, tuple(params))]
 
 
 @app.get("/api/host-proteins/{name}")
@@ -306,6 +422,8 @@ async def predict_strategy(pathogen_name: str):
     idx = names.index(pathogen_name)
     features = X.iloc[[idx]]
     pred = model.predict(features)[0]
+    proba = model.predict_proba(features)[0]
+    confidence = round(float(max(proba)), 4)
 
     importances = [
         {"feature": col, "importance": round(float(imp), 4)}
@@ -317,6 +435,7 @@ async def predict_strategy(pathogen_name: str):
         "pathogen": pathogen_name,
         "predicted_strategy": str(pred),
         "actual_strategy": str(y.iloc[idx]),
+        "confidence": confidence,
         "feature_importances": importances,
     }
 
@@ -396,3 +515,36 @@ async def grid_search():
     from hostpathogen.ml.classifier import grid_search_rf
 
     return grid_search_rf()
+
+
+# ---------------------------------------------------------------------------
+# Local development — serve static frontend files via middleware
+# ---------------------------------------------------------------------------
+
+import os
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+@app.middleware("http")
+async def _spa_static_middleware(request, call_next):
+    """Fall through to FastAPI routes first; if they return 404,
+    serve static files or index.html for local development."""
+    response = await call_next(request)
+    if response.status_code == 404:
+        path = request.url.path
+        if not path.startswith("/api/"):
+            from fastapi.responses import FileResponse
+
+            file_path = PROJECT_ROOT / path.lstrip("/")
+            if file_path.is_file():
+                return FileResponse(str(file_path))
+            index_path = PROJECT_ROOT / "index.html"
+            return FileResponse(str(index_path))
+    return response
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("api.index:app", host="0.0.0.0", port=8000, reload=True)

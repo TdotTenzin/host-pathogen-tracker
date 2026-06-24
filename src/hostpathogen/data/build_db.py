@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS pathogens (
     species TEXT,
     gram_stain TEXT,
     strategy TEXT,
-    description TEXT
+    description TEXT,
+    reference TEXT
 );
 
 CREATE TABLE IF NOT EXISTS host_proteins (
@@ -94,8 +95,8 @@ def build():
 
     pathogens = load_csv("pathogens.csv")
     con.executemany(
-        "INSERT INTO pathogens (name, species, gram_stain, strategy, description) "
-        "VALUES (:name, :species, :gram_stain, :strategy, :description)",
+        "INSERT INTO pathogens (name, species, gram_stain, strategy, description, reference) "
+        "VALUES (:name, :species, :gram_stain, :strategy, :description, :reference)",
         pathogens,
     )
 

@@ -1,33 +1,73 @@
 name,full_name,function,localization,pathway
-Rab5,Ras-related protein Rab-5A,Early endosome identity; recruits effectors for fusion and PI3P production,Early endosome,Endocytosis
-Rab7,Ras-related protein Rab-7A,Late endosome identity; recruits RILP for dynein-mediated lysosome transport,Late endosome / Lysosome,Endocytosis
-Rab1,Ras-related protein Rab-1A,ER-to-Golgi vesicular transport,ER / Golgi,Secretory pathway
-Rab9,Ras-related protein Rab-9A,M6PR recycling from late endosomes to TGN,Late endosome,Retrograde transport
-Rab35,Ras-related protein Rab-35,Endocytic recycling and actin dynamics,Plasma membrane / Endosome,Endocytic recycling
-LAMP1,Lysosomal-associated membrane protein 1,Lysosomal membrane integrity and stability,Lysosome,Lysosome biogenesis
-EEA1,Early endosome antigen 1,PI3P-binding tethering factor for early endosome fusion,Early endosome,Endocytosis
-RILP,Rab7-interacting lysosomal protein,Rab7 effector recruiting dynein-dynactin motors,Late endosome,Endocytosis
-SKIP,PLEKHM2 (SifA and kinesin-interacting protein),Adaptor linking kinesin-1 and Rab9; target of Salmonella SifA,Late endosome,Vesicular transport
-V-ATPase,Vacuolar-type H+-ATPase,Proton pump that acidifies phagosomes and lysosomes,Phagosome / Lysosome,Acidification
-PI3P,Phosphatidylinositol 3-phosphate,Signaling lipid marking early endosome identity,Endosome membrane,Phosphoinositide signaling
-Vps34,Class III PI3-kinase,Produces PI3P on early endosomes; recruited by Rab5,Early endosome,Phosphoinositide signaling
-M6PR,Mannose-6-phosphate receptor,Transports hydrolases from Golgi to lysosomes,Golgi / Late endosome,Lysosome biogenesis
-E-cadherin,Cadherin-1,Cell-cell adhesion molecule; used by Listeria InlA for entry,Plasma membrane,Cell adhesion
-Met receptor,Hepatocyte growth factor receptor,Receptor tyrosine kinase; used by Listeria InlB for entry,Plasma membrane,Receptor signaling
-CR3,Complement receptor 3 (integrin alpha-M beta-2),Phagocytic receptor used by M. tuberculosis for entry,Plasma membrane,Phagocytosis
-Mannose receptor,C-type lectin receptor,Recognizes mannosylated ligands; alternative M. tuberculosis entry route,Plasma membrane,Phagocytosis
-ORP1L,Oxysterol-binding protein-related protein 1,Rab7 effector; cholesterol sensing at ER contacts,Late endosome,Cholesterol metabolism
-Arp2/3,Actin-related protein 2/3 complex,Nucleates branched actin filaments; hijacked by Listeria ActA and Shigella IcsA,Cytoskeleton,Actin polymerization
-Actin,Beta-actin,Globular protein polymerizing into filaments; major cytoskeleton component,Cytoskeleton,Actin polymerization
-N-WASP,Neural Wiskott-Aldrich syndrome protein,Activates Arp2/3; recruited by Shigella IcsA for actin motility,Cytoskeleton,Actin polymerization
-Cdc42,Cell division control protein 42,Rho-family GTPase regulating actin dynamics and cell polarity,Plasma membrane / Cytosol,Rho signaling
-Rac1,Ras-related C3 botulinum toxin substrate 1,Rho-family GTPase regulating actin polymerization and membrane ruffling,Plasma membrane / Cytosol,Rho signaling
-Kinesin-1,Kinesin heavy chain,Plus-end-directed microtubule motor; recruited by PipB2 for SIF extension,Microtubule,Vesicular transport
-Nucleolin,Nucleolin,Multifunctional protein; binds IcsA?,Nucleus / Cytosol,—
-Cholesterol,Cholesterol,Membrane lipid; target of LLO pore formation and SseJ esterification,Membrane,Lipid metabolism
-Vacuolar membrane,Vacuolar membrane,Generic term for the phagosomal membrane targeted by IpaB pore formation,Phagosome,—
-Septin,Septin family,GTP-binding cytoskeletal proteins forming cage-like structures; entrap cytosolic Shigella,Cytoskeleton,Autophagy / cytoskeleton
-LC3,MAP1LC3B,Autophagy receptor recruited to ubiquitin-coated pathogens; marker for xenophagy,Cytosol,Autophagy
-Galectin-3,LGALS3,Binds exposed beta-galactosides on damaged vacuolar membranes,Cytosol / Nucleus,Membrane damage response
-"PI(4,5)P2","Phosphatidylinositol 4,5-bisphosphate",Plasma membrane signaling lipid; hydrolyzed during phagocytosis,Plasma membrane,Phosphoinositide signaling
-"PI(3,5)P2","Phosphatidylinositol 3,5-bisphosphate",Late endosome signaling lipid; hydrolyzed by MptpB,Late endosome membrane,Phosphoinositide signaling
+Cdc42,Cell division control protein 42,Rho GTPase regulating actin dynamics,Cytosol/membrane,Actin polymerization
+Rac1,Ras-related C3 botulinum toxin substrate 1,Regulates membrane ruffling and cell motility,Membrane,Actin polymerization
+Actin,Actin,Cytoskeletal protein forming microfilaments,Cytoskeleton,Actin polymerization
+"PI(4,5)P2","Phosphatidylinositol 4,5-bisphosphate",Membrane signaling phospholipid,Plasma membrane,Phosphoinositide signaling
+SKIP,SifA and kinesin-interacting protein,Plekhm1; regulates Rab9 localization,Cytosol,Vesicular transport
+Kinesin-1,Kinesin heavy chain,Microtubule motor protein,Microtubules,Vesicular transport
+Cholesterol,Cholesterol,Membrane lipid; enriched in lipid rafts,Membrane,Lipid metabolism
+Rab7,Ras-related protein Rab-7,Late endosome GTPase regulating lysosomal fusion,Late endosomes,Vesicular transport
+Arp2/3,Actin-related protein 2/3 complex,Actin nucleation complex,Cytoskeleton,Actin polymerization
+E-cadherin,Epithelial cadherin,Cell-cell adhesion glycoprotein,Adherens junctions,Cell adhesion
+Met receptor,Hepatocyte growth factor receptor,Receptor tyrosine kinase,Plasma membrane,Receptor signaling
+Vps34,Phosphatidylinositol 3-kinase class III,Generates PI3P for phagosome maturation,Endosomes,Phosphoinositide signaling
+PI3P,Phosphatidylinositol 3-phosphate,Early endosome signaling lipid,Early endosomes,Phosphoinositide signaling
+V-ATPase,Vacuolar-type H+-ATPase,Proton pump for phagosomal acidification,Phagosome/lysosome,Acidification
+"PI(3,5)P2","Phosphatidylinositol 3,5-bisphosphate",Late endosome signaling lipid,Late endosomes,Phosphoinositide signaling
+Rab1,Ras-related protein Rab-1,ER-to-Golgi vesicular transport GTPase,ER/Golgi,Vesicular transport
+Rab35,Ras-related protein Rab-35,Endocytic recycling GTPase,Plasma membrane/endosomes,Endocytic recycling
+N-WASP,Neural Wiskott-Aldrich syndrome protein,Actin nucleation promoter,Cytosol,Actin polymerization
+LC3,Microtubule-associated protein 1A/1B-light chain 3,Autophagosomal marker protein,Autophagosome,Autophagy
+EEA1,Early endosome antigen 1,Early endosome tethering factor,Early endosomes,Vesicular transport
+Rab5,Ras-related protein Rab-5,Early endosome GTPase,Early endosomes,Vesicular transport
+LAMP1,Lysosomal-associated membrane protein 1,Lysosomal membrane glycoprotein,Lysosomes,Lysosome biogenesis
+RILP,Rab-interacting lysosomal protein,Regulates lysosomal positioning,Late endosomes/lysosomes,Vesicular transport
+M6PR,Mannose-6-phosphate receptor,Lysosomal enzyme trafficking,Trans-Golgi/endosomes,Endocytic recycling
+VAMP8,Vesicle-associated membrane protein 8,Endosomal/vacuolar SNARE,Lysosomes,Vesicular transport
+PIKfyve,FYVE finger-containing phosphoinositide kinase,"Generates PI(3,5)P2 from PI3P",Endosomes,Phosphoinositide signaling
+SNAP-29,Synaptosomal-associated protein 29,Autophagosome-lysosome SNARE,Cytosol,Vesicular transport
+Cathepsin D,Cathepsin D,Lysosomal aspartyl protease,Lysosomes,Proteolysis
+NADPH oxidase,NADPH oxidase 2 (gp91phox),Superoxide-generating enzyme,Phagosome membrane,Oxidative burst
+Rab9,Ras-related protein Rab-9,Late endosome-to-Golgi transport GTPase,Late endosomes,Retrograde transport
+TNF-alpha,Tumor necrosis factor alpha,Pro-inflammatory cytokine,Secreted,Immune signaling
+IL-1beta,Interleukin-1 beta,Pro-inflammatory cytokine,Secreted,Immune signaling
+RhoA,Ras homolog family member A,Rho GTPase; stress fiber formation,Cytosol/membrane,Actin polymerization
+FAK,Focal adhesion kinase,Tyrosine kinase; integrin signaling,Focal adhesions,Cell adhesion
+p130Cas,Crk-associated substrate,Focal adhesion adaptor protein,Focal adhesions,Cell adhesion
+MAPKK,MAPK kinase,ERK/JNK/p38 pathway kinase,Cytosol,Receptor signaling
+IKK,I-kappa-B kinase,NF-kB pathway kinase,Cytosol,Immune signaling
+TLR2,Toll-like receptor 2,Pattern recognition receptor,Plasma membrane,Immune signaling
+TLR4,Toll-like receptor 4,Pattern recognition receptor for LPS,Plasma membrane,Immune signaling
+TLR5,Toll-like receptor 5,Flagellin receptor,Plasma membrane,Immune signaling
+ADAM10,A disintegrin and metalloprotease domain 10,Metalloprotease; Hla receptor,Plasma membrane,Receptor signaling
+C5aR,C5 anaphylatoxin receptor (CD88),Complement receptor,Plasma membrane,Immune signaling
+Factor H,Complement factor H,Complement pathway regulator,Serum,Immune signaling
+C4BP,C4b-binding protein,Complement pathway inhibitor,Serum,Immune signaling
+SHP-2,SH2 domain-containing tyrosine phosphatase 2,Tyrosine phosphatase,Cytosol,Receptor signaling
+EF-2,Elongation factor 2,Ribosomal translocation during protein synthesis,Cytosol,Protein synthesis
+CaM,Calmodulin,Calcium-binding messenger protein,Cytosol,Calcium signaling
+Sphingomyelin,Sphingomyelin,Membrane lipid,Membrane,Lipid metabolism
+Claudins,Claudin family,Tight junction transmembrane proteins,Tight junctions,Cell adhesion
+ICAM-1,Intercellular adhesion molecule 1,Leukocyte adhesion receptor,Plasma membrane,Cell adhesion
+CD46,Membrane cofactor protein (CD46),Complement regulatory protein,Plasma membrane,Immune signaling
+CEACAM,Carcinoembryonic antigen-related cell adhesion molecule,Cell adhesion molecule,Plasma membrane,Cell adhesion
+Vimentin,Vimentin,Intermediate filament protein,Cytoskeleton,Cytoskeletal organization
+GPI anchor,Glycosylphosphatidylinositol anchor,Membrane anchoring mechanism,Plasma membrane,Membrane anchoring
+Golgi,Golgi apparatus,Secretory pathway organelle,Golgi,Secretory pathway
+ER membrane,Endoplasmic reticulum membrane,ER-derived membrane compartment,ER,Secretory pathway
+Mitochondria,Mitochondrion,Mitochondrial membrane and matrix,Mitochondria,Apoptosis
+Host DNA,Host genomic DNA,DNA damage target,Nucleus,Cell cycle
+Extracellular matrix,Extracellular matrix proteins,ECM structural components,ECM,Cell adhesion
+Fibrinogen,Fibrinogen,Blood coagulation factor,Serum,Immune evasion
+Lactoferrin,Lactoferrin,Iron-binding glycoprotein,Secreted,Iron homeostasis
+Host cells,Host cell surface receptors,General host cell targets,Plasma membrane,Cell adhesion
+MHC II,Major histocompatibility complex class II,Antigen presentation,Plasma membrane/endosomes,Immune signaling
+Host membranes,Host cell membranes,General membrane disruption targets,Membrane,Membrane disruption
+Host immune,Host immune system,Immune evasion targets,Various,Immune signaling
+Host signaling,Host cell signaling pathways,Signaling pathway modulation,Cytosol/nucleus,Receptor signaling
+Host iron,Host iron/heme compounds,Iron acquisition targets,Serum/tissues,Iron homeostasis
+Collagen,Collagen,Extracellular matrix structural protein,ECM,Cell adhesion
+Microtubules,Microtubules,Cytoskeletal filaments for vesicular transport,Cytoskeleton,Vesicular transport
+Ubiquitin,Ubiquitin,Protein degradation tag; autophagy signaling,Cytosol/nucleus,Autophagy
+Notch,Notch receptor,Cell-fate determination receptor,Plasma membrane,Receptor signaling
+Wnt,Wnt signaling components,Developmental signaling pathway,Cytosol/nucleus,Receptor signaling

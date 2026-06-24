@@ -6,6 +6,7 @@
   <title>Host–Pathogen Trafficking Hub</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script>if (typeof Chart === "undefined") { document.write('<script src="js/chart.umd.min.js"><\/script>'); }</script>
 </head>
 <body>
 
@@ -15,6 +16,7 @@
       <ul class="nav-links">
         <li><a href="#intro">Concepts</a></li>
         <li><a href="#pathogens">Pathogens</a></li>
+        <li><a href="#all-pathogens">Articles</a></li>
         <li><a href="#timeline">Timeline</a></li>
         <li><a href="#microscopy">Microscopy</a></li>
         <li><a href="#inspiration">Research</a></li>
@@ -49,7 +51,7 @@
 
           <div class="glossary-card">
             <p class="gterm">Phagocytosis</p>
-            <p class="gdef">The process by which host cells (e.g., macrophages, neutrophils) engulf large particles (&gt;0.5 µm), including bacteria, dead cells, and debris, via actin-driven membrane extension and remodeling.</p>
+            <p class="gdef">The process by which host cells (e.g., macrophages, neutrophils) engulf large particles (&gt;0.5 &micro;m), including bacteria, dead cells, and debris, via actin-driven membrane extension and remodeling.</p>
           </div>
 
           <div class="glossary-card">
@@ -84,14 +86,14 @@
         </div>
 
         <div class="chart-section">
-          <h3 style="margin-bottom: 16px; font-size: 1rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">Evasion Strategies at a Glance</h3>
+          <h3 class="chart-heading">Evasion Strategies at a Glance</h3>
           <div class="chart-container chart-container-sm">
             <canvas id="chart-strategy"></canvas>
           </div>
-          <p class="chart-caption">Distribution of immune evasion strategies across the five profiled pathogens. Hover for details.</p>
+          <p class="chart-caption">Distribution of immune evasion strategies across all profiled pathogens. Hover for details.</p>
         </div>
 
-        <h3 style="margin-bottom: 16px; font-size: 1rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">Canonical Trafficking Pathway</h3>
+        <h3 class="chart-heading">Canonical Trafficking Pathway</h3>
         <div class="diagram-wrapper">
           <div class="diagram">
 
@@ -164,8 +166,9 @@
     <section class="section section-alt" id="pathogens">
       <div class="container">
         <p class="section-label">Pathogen Profiles</p>
-        <h2 class="section-title">Five Intracellular Pathogens</h2>
-        <p class="section-subtitle">Click any card to reveal deeper mechanistic insights. Each pathogen has evolved a distinct strategy to subvert host trafficking.</p>
+        <h2 class="section-title">Five Featured Pathogens</h2>
+        <p class="section-subtitle">Click any card to reveal deeper mechanistic insights. Each featured pathogen has evolved a distinct strategy to subvert host trafficking.
+          <br><small class="text-muted">Database contains <strong>54</strong> total pathogens — explore them all in the <a href="#toolkit">Bioinformatics Toolkit</a> below.</small></p>
 
         <div class="pathogen-grid">
 
@@ -194,7 +197,7 @@
             <div class="pathogen-toggle">
               <span>Mechanistic Insights</span>
               <span class="toggle-icon">
-                <svg viewBox="0 0 12 12"><path d="M3 5l3 3 3-3"/></svg>
+                <svg viewBox="0 0 12 12" role="img" aria-label="Toggle details"><path d="M3 5l3 3 3-3"/></svg>
               </span>
             </div>
             <div class="pathogen-panel">
@@ -235,7 +238,7 @@
             <div class="pathogen-toggle">
               <span>Mechanistic Insights</span>
               <span class="toggle-icon">
-                <svg viewBox="0 0 12 12"><path d="M3 5l3 3 3-3"/></svg>
+                <svg viewBox="0 0 12 12" role="img" aria-label="Toggle details"><path d="M3 5l3 3 3-3"/></svg>
               </span>
             </div>
             <div class="pathogen-panel">
@@ -276,7 +279,7 @@
             <div class="pathogen-toggle">
               <span>Mechanistic Insights</span>
               <span class="toggle-icon">
-                <svg viewBox="0 0 12 12"><path d="M3 5l3 3 3-3"/></svg>
+                <svg viewBox="0 0 12 12" role="img" aria-label="Toggle details"><path d="M3 5l3 3 3-3"/></svg>
               </span>
             </div>
             <div class="pathogen-panel">
@@ -317,7 +320,7 @@
             <div class="pathogen-toggle">
               <span>Mechanistic Insights</span>
               <span class="toggle-icon">
-                <svg viewBox="0 0 12 12"><path d="M3 5l3 3 3-3"/></svg>
+                <svg viewBox="0 0 12 12" role="img" aria-label="Toggle details"><path d="M3 5l3 3 3-3"/></svg>
               </span>
             </div>
             <div class="pathogen-panel">
@@ -358,7 +361,7 @@
             <div class="pathogen-toggle">
               <span>Mechanistic Insights</span>
               <span class="toggle-icon">
-                <svg viewBox="0 0 12 12"><path d="M3 5l3 3 3-3"/></svg>
+                <svg viewBox="0 0 12 12" role="img" aria-label="Toggle details"><path d="M3 5l3 3 3-3"/></svg>
               </span>
             </div>
             <div class="pathogen-panel">
@@ -376,13 +379,41 @@
         </div>
 
         <div class="chart-section">
-          <h3 style="margin-bottom: 16px; font-size: 1rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">Effector Repertoire by Pathogen</h3>
-          <div class="chart-container chart-container-md">
+          <h3 class="chart-heading">Effector Repertoire by Pathogen</h3>
+          <div class="chart-container chart-container-xl">
             <canvas id="chart-effectors"></canvas>
           </div>
           <p class="chart-caption">Number of known effectors each pathogen deploys to subvert host trafficking. Click a bar to load effector details in the Toolkit below.</p>
         </div>
 
+      </div>
+    </section>
+
+    <section class="section section-alt" id="all-pathogens">
+      <div class="container">
+        <p class="section-label">Pathogen Articles</p>
+        <h2 class="section-title">All <span id="all-pathogen-count">54</span> Pathogens</h2>
+        <p class="section-subtitle">A comprehensive, curated collection of bacterial pathogens with mechanistic detail. Click any card to open its full article — including effector repertoire, host targets, and ML strategy prediction.</p>
+
+        <div class="all-pathogens-filter">
+          <input id="ap-search" class="tool-input" type="text" placeholder="Search by name, species, or description…" oninput="filterAllPathogens()">
+          <select id="ap-strategy" class="tool-select" onchange="filterAllPathogens()">
+            <option value="">All strategies</option>
+            <option value="extracellular">Extracellular</option>
+            <option value="escape">Escape</option>
+            <option value="arrest">Arrest</option>
+            <option value="modified_compartment">Modified Compartment</option>
+            <option value="reroute">Reroute</option>
+          </select>
+          <select id="ap-gram" class="tool-select" onchange="filterAllPathogens()">
+            <option value="">All Gram stains</option>
+            <option value="Gram-negative">Gram-negative</option>
+            <option value="Gram-positive">Gram-positive</option>
+            <option value="Acid-fast">Acid-fast</option>
+          </select>
+        </div>
+
+        <div id="all-pathogens-container" class="pathogen-grid"></div>
       </div>
     </section>
 
@@ -439,25 +470,25 @@
             <div class="detail-block">
               <div class="detail-block-title">Key Markers</div>
               <div id="detail-markers"></div>
-              <div id="marker-pathogen-info" class="marker-pathogen-info" style="display:none;"></div>
+              <div id="marker-pathogen-info" class="marker-pathogen-info hidden"></div>
             </div>
             <div class="detail-block">
               <div class="detail-block-title">Functional Changes</div>
               <ul class="detail-changes" id="detail-changes"></ul>
             </div>
           </div>
-          <div class="detail-block" style="margin-top: 14px;">
+          <div class="detail-block mt-14">
             <div class="detail-block-title">Pathogen Targeting — Who Acts Here?</div>
             <ul class="detail-changes" id="detail-pathogens"></ul>
           </div>
         </div>
 
         <div class="chart-section">
-          <h3 style="margin-bottom: 16px; font-size: 1rem; color: var(--color-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;">pH Trajectory of Phagosome Maturation</h3>
+          <h3 class="chart-heading">pH Trajectory of Phagosome Maturation</h3>
           <div class="chart-container chart-container-lg">
             <canvas id="chart-ph-timeline"></canvas>
           </div>
-          <p class="chart-caption">Progressive acidification from extracellular pH (~7.4) to degradative pH (~4.5). Diamonds mark where each pathogen intervenes. Dashed lines show key thresholds.</p>
+          <p class="chart-caption">Number of pathogens intervening at each maturation stage, stacked by immune evasion strategy. The pH range of each stage is shown below its label.</p>
         </div>
 
       </div>
@@ -497,7 +528,7 @@
 
         </div>
 
-        <h3 style="margin-bottom: 16px; font-size: 1rem;">Reading the Data: Interpretation Examples</h3>
+        <h3 class="mb-16" style="font-size: 1rem;">Reading the Data: Interpretation Examples</h3>
         <div class="interp-grid">
 
           <div class="interp-box green">
@@ -574,7 +605,7 @@
               <h3>Hub Proteins</h3>
             </div>
             <p>Top host proteins targeted by the most effectors (centrality hubs).</p>
-            <div class="chart-container chart-container-sm" style="margin-bottom: 12px;">
+            <div class="chart-container chart-container-sm mb-12">
               <canvas id="chart-hubs"></canvas>
             </div>
             <button class="tool-btn" onclick="loadHubProteins()">Show Full Table</button>
@@ -603,7 +634,7 @@
     <section class="section" id="inspiration">
       <div class="container">
         <p class="section-label">Research Inspiration</p>
-        <h2 class="section-title" style="margin-bottom: 28px;">Inspired by Foundational Work</h2>
+        <h2 class="section-title mb-28">Inspired by Foundational Work</h2>
 
         <div class="callout">
           <div class="callout-icon"><img src="img/icon-telescope.svg" alt="Research" /></div>
@@ -638,6 +669,7 @@
   </footer>
 
   <script src="js/data.js"></script>
+  <script src="js/data-loader.js"></script>
   <script src="js/script.js"></script>
   <script src="js/charts.js"></script>
 </body>
