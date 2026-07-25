@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Host–Pathogen Trafficking Hub</title>
+  <link rel="icon" type="image/png" href="img/content-cutout.png" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script>if (typeof Chart === "undefined") { document.write('<script src="js/chart.umd.min.js"><\/script>'); }</script>
@@ -13,16 +14,21 @@
   <nav>
     <div class="container nav-inner">
       <a class="nav-brand" href="#hero">Host–Pathogen Hub</a>
-      <ul class="nav-links">
-        <li><a href="#intro">Concepts</a></li>
-        <li><a href="#pathogens">Pathogens</a></li>
-        <li><a href="#all-pathogens">Articles</a></li>
-        <li><a href="#timeline">Timeline</a></li>
-        <li><a href="#microscopy">Microscopy</a></li>
-        <li><a href="#inspiration">Research</a></li>
-        <li><a href="#toolkit">Tools</a></li>
+      <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#intro" onclick="closeMobileNav()">Concepts</a></li>
+        <li><a href="#pathogens" onclick="closeMobileNav()">Pathogens</a></li>
+        <li><a href="#all-pathogens" onclick="closeMobileNav()">Articles</a></li>
+        <li><a href="#timeline" onclick="closeMobileNav()">Timeline</a></li>
+        <li><a href="#microscopy" onclick="closeMobileNav()">Microscopy</a></li>
+        <li><a href="#inspiration" onclick="closeMobileNav()">Research</a></li>
+        <li><a href="#toolkit" onclick="closeMobileNav()">Tools</a></li>
       </ul>
+      <button class="dark-toggle" id="dark-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode" title="Toggle dark mode">&#9790;</button>
     </div>
+    <div class="mobile-overlay" id="mobile-overlay" onclick="closeMobileNav()"></div>
   </nav>
 
   <main>

@@ -117,6 +117,7 @@
     loadLiveData().then(function() {
       if (typeof initToolkit === "function") initToolkit();
       if (typeof initCharts === "function") initCharts();
+      if (typeof handleDeepLink === "function") handleDeepLink();
     });
   }
 

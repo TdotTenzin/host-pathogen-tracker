@@ -1,3 +1,76 @@
+/* ---------------------------------------------------------------------------
+   Dark Mode
+   --------------------------------------------------------------------------- */
+function toggleDarkMode() {
+  var isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  if (isDark) {
+    document.documentElement.removeAttribute("data-theme");
+    localStorage.removeItem("theme");
+    document.getElementById("dark-toggle").innerHTML = "&#9790;";
+  } else {
+    document.documentElement.setAttribute("data-theme", "dark");
+    localStorage.setItem("theme", "dark");
+    document.getElementById("dark-toggle").innerHTML = "&#9728;";
+  }
+}
+
+(function initTheme() {
+  var saved = localStorage.getItem("theme");
+  var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  if (saved === "dark" || (!saved && prefersDark)) {
+    document.documentElement.setAttribute("data-theme", "dark");
+    setTimeout(function() {
+      var btn = document.getElementById("dark-toggle");
+      if (btn) btn.innerHTML = "&#9728;";
+    }, 0);
+  }
+})();
+
+/* ---------------------------------------------------------------------------
+   Mobile Navigation
+   --------------------------------------------------------------------------- */
+function toggleMobileNav() {
+  var links = document.getElementById("nav-links");
+  var burger = document.getElementById("hamburger");
+  var overlay = document.getElementById("mobile-overlay");
+  links.classList.toggle("open");
+  burger.classList.toggle("open");
+  overlay.classList.toggle("open");
+}
+
+function closeMobileNav() {
+  var links = document.getElementById("nav-links");
+  var burger = document.getElementById("hamburger");
+  var overlay = document.getElementById("mobile-overlay");
+  links.classList.remove("open");
+  burger.classList.remove("open");
+  overlay.classList.remove("open");
+}
+
+/* ---------------------------------------------------------------------------
+   URL Deep-linking — ?pathogen=Name
+   --------------------------------------------------------------------------- */
+function handleDeepLink() {
+  var params = new URLSearchParams(window.location.search);
+  var name = params.get("pathogen");
+  if (!name) return;
+  var cards = document.querySelectorAll(".pathogen-card-sm");
+  for (var i = 0; i < cards.length; i++) {
+    var nameEl = cards[i].querySelector(".pathogen-name");
+    if (nameEl && nameEl.textContent.trim().toLowerCase() === name.toLowerCase()) {
+      var cardId = cards[i].id;
+      setTimeout(function() {
+        toggleAPCard(cardId, name);
+        cards[i].scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 600);
+      break;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Card toggling (featured pathogens)
+   --------------------------------------------------------------------------- */
 function toggleCard(cardId) {
   var card = document.getElementById(cardId);
   if (!card) return;
