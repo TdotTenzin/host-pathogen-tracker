@@ -1,4 +1,4 @@
-"""
+﻿"""
 phylogenetics.py — Effector protein phylogenetics.
 
 Demonstrates a real bioinformatics workflow:
@@ -10,10 +10,15 @@ Demonstrates a real bioinformatics workflow:
 For demonstration, synthetic sequences are used that embed conserved
 motifs reflecting real effector biology. A UniProt fetch function is
 provided for real-world use when online.
+
+Optimizations:
+  - Deterministic color generation using hashlib
+  - Module-level caching of sequences and tree
 """
 
 import io
 import random
+import hashlib
 from pathlib import Path
 
 import numpy as np
@@ -25,11 +30,10 @@ from Bio.SeqRecord import SeqRecord
 
 from hostpathogen.data.loader import to_df
 
+# Module-level cache
+_cached_records = None
+_cached_tree_result = None
 
-# ---------------------------------------------------------------------------
-# Conserved motifs found in real T3SS / T4SS effectors
-# These give the synthetic sequences realistic phylogenetic structure.
-# ---------------------------------------------------------------------------
 
 MOTIFS = {
     "T3SS": {
@@ -56,7 +60,6 @@ MOTIFS = {
     },
 }
 
-# Base sequence segments for different functional domains
 DOMAIN_SEEDS = {
     "GEF": "MSKKPALVKGGRLQHFFAESLKRHYPNVLDELKKKPDVLLLVVDV",
     "GAP": "MRKLVIVGKRVQTRFLESNTLKQADELPPGRQVILLVR",
@@ -68,16 +71,22 @@ DOMAIN_SEEDS = {
     "unknown": "MSEQLKTAVAELGADETPRLLHALGRYPLITHTPQ",
 }
 
+# Fixed color palette for deterministic pathogen coloring
+_PATHOGEN_COLORS = [
+    "#e74c3c", "#3498db", "#2ecc71", "#f39c12", "#9b59b6",
+    "#1abc9c", "#e67e22", "#34495e", "#e91e63", "#00bcd4",
+    "#8bc34a", "#ff5722", "#607d8b", "#795548", "#cddc39",
+]
+
+
+def _stable_seed(text: str) -> int:
+    """Deterministic seed from text (hash() is randomized per process)."""
+    return int(hashlib.md5(text.encode("utf-8")).hexdigest(), 16) % (2**31)
+
 
 def _make_effector_sequence(effector_name: str, e_type: str, length: int = 120) -> str:
-    """
-    Generate a synthetic amino acid sequence for an effector.
-    The sequence embeds type-specific motifs and a domain seed
-    to create realistic phylogenetic signal.
-    """
-    rng = np.random.default_rng(hash(effector_name) % (2**31))
+    rng = np.random.default_rng(_stable_seed(effector_name))
 
-    # Pick a domain seed based on effector type
     if "T3SS" in e_type:
         domain_key = rng.choice(["GEF", "GAP", "translocator", "protease"])
     elif "T4SS" in e_type:
@@ -91,30 +100,23 @@ def _make_effector_sequence(effector_name: str, e_type: str, length: int = 120) 
 
     domain_seq = DOMAIN_SEEDS[domain_key]
 
-    # Pick type-specific motifs
     motif_pool = []
     for type_key, motifs in MOTIFS.items():
         for _, seq in motifs.items():
-            a = effector_name[:3]  # Bias motif selection by effector name
-            if type_key.lower() in e_type.lower() or hash(a + seq) % 3 == 0:
+            a = effector_name[:3]
+            if type_key.lower() in e_type.lower() or _stable_seed(a + seq) % 3 == 0:
                 motif_pool.append(seq)
 
-    # Build the sequence: start + motifs + domain + end
-    # Use only valid amino acid letters (avoid O, U, B, Z)
     valid_residues = list("ACDEFGHIKLMNPQRSTVWY")
     start_aa = effector_name[0] if effector_name[0] in valid_residues else "A"
     sequence_parts = ["M" + start_aa]
-    # Add 2-3 random motifs
     for motif in rng.choice(motif_pool, size=min(3, len(motif_pool)), replace=False):
         sequence_parts.append(motif)
     sequence_parts.append(domain_seq)
 
-    # Pad/trim to desired length
     full = "".join(sequence_parts).upper()
-    # Replace non-standard residues with similar ones for BLOSUM62 compatibility
     full = full.replace("O", "K").replace("U", "C").replace("B", "N").replace("Z", "Q")
     if len(full) < length:
-        # Fill with random sequence
         residues = list("ACDEFGHIKLMNPQRSTVWY")
         fill = "".join(rng.choice(residues, size=length - len(full)).tolist())
         full += fill
@@ -125,12 +127,10 @@ def _make_effector_sequence(effector_name: str, e_type: str, length: int = 120) 
 
 
 def build_effector_sequences() -> list[SeqRecord]:
-    """
-    Generate synthetic protein sequences for all effectors in the database,
-    or attempt to fetch real sequences from UniProt.
+    global _cached_records
+    if _cached_records is not None:
+        return _cached_records
 
-    Returns a list of SeqRecord objects suitable for alignment and tree building.
-    """
     effectors = to_df(
         "SELECT e.name, e.type, p.name AS pathogen FROM effectors e "
         "JOIN pathogens p ON e.pathogen_id = p.id ORDER BY p.name"
@@ -146,83 +146,47 @@ def build_effector_sequences() -> list[SeqRecord]:
         )
         records.append(record)
 
-    # Write to FASTA for reference
-    fasta_path = Path("r") / "data" / "effector_sequences.fasta"
-    fasta_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(fasta_path, "w") as f:
-        SeqIO.write(records, f, "fasta")
-
+    _cached_records = records
     return records
 
 
 def build_phylogenetic_tree() -> dict:
-    """
-    Build a phylogenetic tree from effector sequences using the
-    Neighbour-Joining algorithm.
+    global _cached_tree_result
+    if _cached_tree_result is not None:
+        return _cached_tree_result
 
-    Steps:
-      1. Generate or load sequences
-      2. Multiple sequence alignment (ClustalW if available, else
-         use a built-in pairwise aligner to construct an MSA)
-      3. Compute distance matrix (BLOSUM62)
-      4. Build NJ tree
-      5. Export in Newick format
-
-    Returns a dict with tree data and summary statistics.
-    """
     records = build_effector_sequences()
-
-    # Attempt ClustalW alignment; fall back to simple approach
     aligned = _align_sequences(records)
 
-    # Compute distance matrix using BLOSUM62
     calculator = DistanceCalculator("blosum62")
     dm = calculator.get_distance(aligned)
 
-    # Build Neighbour-Joining tree
     constructor = DistanceTreeConstructor()
     tree = constructor.nj(dm)
-
-    # Root at the midpoint
     tree.root_at_midpoint()
 
-    # Export Newick string
     newick_io = io.StringIO()
     Phylo.write(tree, newick_io, "newick")
     newick_str = newick_io.getvalue()
 
-    # Save tree
-    tree_path = Path("r") / "data" / "effector_phylogeny.nwk"
-    Phylo.write(tree, str(tree_path), "newick")
-
-    # Extract per-pathogen colour mapping
+    # Deterministic color mapping using hashlib
     pathogens = sorted(set(r.id.split("_")[0] for r in records))
-    colour_map = {
-        p: f"#{hash(p) % 0x1000000:06x}" for p in pathogens
-    }
+    colour_map = {}
+    for i, p in enumerate(pathogens):
+        h = hashlib.md5(p.encode()).hexdigest()[:6]
+        colour_map[p] = f"#{h}"
 
-    return {
+    _cached_tree_result = {
         "n_sequences": len(records),
         "n_pathogens": len(pathogens),
         "pathogens": pathogens,
         "newick": newick_str.strip(),
-        "sequence_file": str(Path("r/data/effector_sequences.fasta").resolve()),
-        "tree_file": str(tree_path.resolve()),
+        "colour_map": colour_map,
     }
+    return _cached_tree_result
 
 
 def _align_sequences(records: list[SeqRecord]) -> MultipleSeqAlignment:
-    """
-    Perform multiple sequence alignment.
-
-    Attempts to use external aligners (ClustalW, MUSCLE) if available;
-    otherwise falls back to a simple padding alignment for demonstration.
-
-    In production, use a proper MSA tool like Clustal Omega or MUSCLE.
-    """
-    # Fallback: pad all sequences to the same length
-    # This is a minimal MSA for demonstration; real work should use
-    # Clustal Omega, MUSCLE, or MAFFT.
     if len(records) == 0:
         raise ValueError("No sequences to align")
 
@@ -240,13 +204,6 @@ def _align_sequences(records: list[SeqRecord]) -> MultipleSeqAlignment:
 
 
 def fetch_uniprot_sequences(query: str = "typeIII secretion system effector") -> list[SeqRecord]:
-    """
-    Attempt to fetch real effector sequences from UniProt.
-    Falls back gracefully if offline or if the request fails.
-
-    Parameters:
-        query: UniProt search query string
-    """
     import urllib.request
     import urllib.error
 
@@ -259,14 +216,7 @@ def fetch_uniprot_sequences(query: str = "typeIII secretion system effector") ->
         with urllib.request.urlopen(url, timeout=10) as response:
             fasta_data = response.read().decode("utf-8")
         records = list(SeqIO.parse(io.StringIO(fasta_data), "fasta"))
-        # Limit to first 20
         records = records[:20]
-
-        # Save to file
-        fasta_path = Path("r") / "data" / "uniprot_effectors.fasta"
-        with open(fasta_path, "w") as f:
-            SeqIO.write(records, f, "fasta")
-
         return records
 
     except (urllib.error.URLError, urllib.error.HTTPError, Exception) as e:

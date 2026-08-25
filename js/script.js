@@ -318,7 +318,7 @@ function _showMarkerPathogens(proteinName, el) {
 
   el.classList.add("clicked");
   info.innerHTML = "<div class='marker-pathogen-header'><strong>Pathogens targeting this marker:</strong> <span class='marker-pathogen-close' onclick='_hideMarkerPathogens()'>&times;</span></div>"
-    + "<ul>" + pathogens.map(function(p) { return "<li>" + p + "</li>"; }).join("") + "</ul>";
+    + "<ul>" + pathogens.map(function(p) { return "<li>" + _escapeHtml(p) + "</li>"; }).join("") + "</ul>";
   info.style.display = "block";
 }
 
@@ -355,7 +355,7 @@ function initToolkit() {
 
   var pathogenList = TOOLKIT_DATA.pathogens || [];
   var opts = pathogenList.map(function(p) {
-    return '<option value="' + p.name + '">' + p.name + ' (' + p.strategy + ')</option>';
+    return '<option value="' + _escapeHtml(p.name) + '">' + _escapeHtml(p.name) + ' (' + _escapeHtml(p.strategy) + ')</option>';
   }).join("");
   if (pSel) pSel.insertAdjacentHTML("beforeend", opts);
   if (mSel && mSel !== pSel) mSel.insertAdjacentHTML("beforeend", opts);
@@ -363,7 +363,7 @@ function initToolkit() {
   var checklist = document.getElementById("marker-checklist");
   if (checklist) {
     checklist.innerHTML = TOOLKIT_DATA.stage_marker_names.map(function(m) {
-      return '<label><input type="checkbox" value="' + m + '"> ' + m + '</label>';
+      return '<label><input type="checkbox" value="' + _escapeHtml(m) + '"> ' + _escapeHtml(m) + '</label>';
     }).join("");
   }
 }
@@ -380,7 +380,7 @@ function _renderEffectorTable(rows, el) {
   if (!rows.length) { el.innerHTML = "<em>No effectors match the filter.</em>"; return; }
   var html = "<table><thead><tr><th>Effector</th><th>Type</th><th>Host Target</th><th>Mechanism</th></tr></thead><tbody>";
   rows.forEach(function(e) {
-    html += "<tr><td>" + e.effector_name + "</td><td>" + (e.type || "—") + "</td><td>" + (e.host_target || "—") + "</td><td>" + (e.mechanism || "—") + "</td></tr>";
+    html += "<tr><td>" + _escapeHtml(e.effector_name) + "</td><td>" + _escapeHtml(e.type || "—") + "</td><td>" + _escapeHtml(e.host_target || "—") + "</td><td>" + _escapeHtml(e.mechanism || "—") + "</td></tr>";
   });
   html += "</tbody></table>";
   el.innerHTML = html;
@@ -397,7 +397,7 @@ function loadPathogenEffectors() {
 
   var el = document.getElementById("pathogen-result");
   if (!el) return;
-  if (!_currentEffectors.length) { el.innerHTML = "<em>No effectors found for " + name + ".</em>"; return; }
+  if (!_currentEffectors.length) { el.innerHTML = "<em>No effectors found for " + _escapeHtml(name) + ".</em>"; return; }
 
   var searchEl = document.getElementById("effector-search");
   if (searchEl) { searchEl.value = ""; searchEl.style.display = "block"; searchEl.placeholder = "Filter " + _currentEffectors.length + " effectors…"; }
@@ -444,7 +444,7 @@ function _stageResultFallback(observed, el) {
     return;
   }
   el.innerHTML = "<strong>Predicted stage:</strong> "
-    + '<span class="badge badge-blue">' + best + "</span>"
+    + '<span class="badge badge-blue">' + _escapeHtml(best) + "</span>"
     + " &nbsp;(confidence: " + (bestScore * 100).toFixed(0) + "%)";
 }
 
@@ -465,11 +465,11 @@ function predictStage() {
   })
   .then(function(r) { if (!r.ok) throw new Error("API unavailable"); return r.json(); })
   .then(function(info) {
-    var present = (info.markers_present || []).join(", ");
+    var present = (info.markers_present || []).map(_escapeHtml).join(", ");
     el.innerHTML = "<strong>Predicted stage:</strong> "
-      + '<span class="badge badge-blue">' + info.name + "</span>"
-      + "<br><small>pH " + info.ph_min + "–" + info.ph_max
-      + " · " + info.time_range
+      + '<span class="badge badge-blue">' + _escapeHtml(info.name) + "</span>"
+      + "<br><small>pH " + _escapeHtml(String(info.ph_min)) + "–" + _escapeHtml(String(info.ph_max))
+      + " · " + _escapeHtml(info.time_range)
       + " · Markers: " + present + "</small>";
   })
   .catch(function() {
@@ -486,7 +486,7 @@ function _renderHubTable(data, el) {
   }
   var html = "<table><thead><tr><th>#</th><th>Host Protein</th><th>Degree</th><th>Centrality</th></tr></thead><tbody>";
   data.forEach(function (h, i) {
-    html += "<tr><td>" + (i + 1) + "</td><td>" + h.host + "</td><td>" + h.degree + "</td><td>" + h.centrality.toFixed(4) + "</td></tr>";
+    html += "<tr><td>" + (i + 1) + "</td><td>" + _escapeHtml(h.host) + "</td><td>" + h.degree + "</td><td>" + h.centrality.toFixed(4) + "</td></tr>";
   });
   html += "</tbody></table>";
   el.innerHTML = html;
@@ -533,8 +533,8 @@ function predictStrategy() {
       var actual = data.actual_strategy;
       var ok = predicted === actual ? "green" : "red";
       var pct = data.confidence ? (data.confidence * 100).toFixed(0) + "%" : "N/A";
-      el.innerHTML = "<strong>Predicted:</strong> <span class='badge badge-" + ok + "'>" + predicted + "</span>"
-        + " &nbsp;| <strong>Actual:</strong> <span class='badge badge-blue'>" + actual + "</span>"
+      el.innerHTML = "<strong>Predicted:</strong> <span class='badge badge-" + ok + "'>" + _escapeHtml(predicted) + "</span>"
+        + " &nbsp;| <strong>Actual:</strong> <span class='badge badge-blue'>" + _escapeHtml(actual) + "</span>"
         + " &nbsp;(confidence: " + pct + ")";
     })
     .catch(function () {
@@ -546,12 +546,12 @@ function predictStrategy() {
           break;
         }
       }
-      if (!match) { el.innerHTML = "<em>No prediction available for " + name + ".</em>"; return; }
+      if (!match) { el.innerHTML = "<em>No prediction available for " + _escapeHtml(name) + ".</em>"; return; }
       var predicted = match.predicted;
       var actual = match.actual;
       var ok = predicted === actual ? "green" : "red";
-      el.innerHTML = "<strong>Predicted:</strong> <span class='badge badge-" + ok + "'>" + predicted + "</span>"
-        + " &nbsp;| <strong>Actual:</strong> <span class='badge badge-blue'>" + actual + "</span>"
+      el.innerHTML = "<strong>Predicted:</strong> <span class='badge badge-" + ok + "'>" + _escapeHtml(predicted) + "</span>"
+        + " &nbsp;| <strong>Actual:</strong> <span class='badge badge-blue'>" + _escapeHtml(actual) + "</span>"
         + " &nbsp;(confidence: " + (match.confidence * 100).toFixed(0) + "%)";
     });
 }
@@ -602,10 +602,7 @@ function renderAllPathogens() {
   var container = document.getElementById("all-pathogens-container");
   if (!container) return;
   var list = TOOLKIT_DATA.pathogens || [];
-  var effMap = {};
-  (TOOLKIT_DATA.effectors || []).forEach(function(e) {
-    effMap[e.pathogen_name] = (effMap[e.pathogen_name] || 0) + 1;
-  });
+  var effMap = _getEffectorMap();
   _allPathogensData = list.slice();
   _renderPathogenGrid(list, effMap, container);
   var cnt = document.getElementById("all-pathogen-count");
@@ -620,8 +617,19 @@ function _strategyBorder(strat) {
   return "ap-border-extracellular";
 }
 
+// Escape HTML special characters to prevent XSS
+function _escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function _renderPathogenGrid(list, effMap, container) {
-  var html = "";
+  var fragment = document.createDocumentFragment();
   for (var i = 0; i < list.length; i++) {
     var p = list[i];
     var nEff = effMap[p.name] || p.n_effectors || "?";
@@ -636,37 +644,53 @@ function _renderPathogenGrid(list, effMap, container) {
     else if (p.strategy === "modified_compartment") stratBadge = "badge-purple";
     var cardId = "ap-card-" + i;
     var borderCls = _strategyBorder(p.strategy);
-    html += '<div class="pathogen-card pathogen-card-sm ' + borderCls + '" id="' + cardId + '">'
-      + '<div class="pathogen-card-top" onclick="toggleAPCard(\'' + cardId + '\',\'' + p.name.replace(/'/g, "\\'") + '\')">'
+
+    var card = document.createElement("div");
+    card.className = "pathogen-card pathogen-card-sm " + borderCls;
+    card.id = cardId;
+
+    var safeName = _escapeHtml(p.name);
+    var safeCardId = _escapeHtml(cardId);
+    card.innerHTML =
+      '<div class="pathogen-card-top" onclick="toggleAPCard(\'' + safeCardId + '\',' + i + ')">'
       + '<div class="pathogen-meta">'
-      + '<span class="badge ' + gramBadge + '">' + (p.gram_stain || "—") + '</span>'
-      + '<span class="badge ' + stratBadge + '">' + (p.strategy || "—") + '</span>'
+      + '<span class="badge ' + gramBadge + '">' + _escapeHtml(p.gram_stain || "\u2014") + '</span>'
+      + '<span class="badge ' + stratBadge + '">' + _escapeHtml(p.strategy || "\u2014") + '</span>'
       + '<span class="badge badge-gray">' + nEff + ' effectors</span>'
       + '</div>'
-      + '<div class="pathogen-name">' + p.name + '</div>'
-      + '<div class="pathogen-class">' + (p.species || "") + '</div>'
-      + '<div class="pathogen-desc">' + (p.description || "") + '</div>'
-      + (p.reference ? '<div class="pathogen-ref">DOI: <a href="https://doi.org/' + p.reference + '" target="_blank" rel="noopener noreferrer">' + p.reference + '</a></div>' : '')
+      + '<div class="pathogen-name">' + safeName + '</div>'
+      + '<div class="pathogen-class">' + _escapeHtml(p.species || "") + '</div>'
+      + '<div class="pathogen-desc">' + _escapeHtml(p.description || "") + '</div>'
+      + (p.reference ? '<div class="pathogen-ref">DOI: <a href="https://doi.org/' + _escapeHtml(p.reference) + '" target="_blank" rel="noopener noreferrer">' + _escapeHtml(p.reference) + '</a></div>' : '')
       + '</div>'
-      + '<div class="pathogen-toggle" onclick="toggleAPCard(\'' + cardId + '\',\'' + p.name.replace(/'/g, "\\'") + '\')"><span>Read Article <span class="toggle-arrow">&#9654;</span></span></div>'
-      + '<div class="pathogen-panel"><div class="panel-article" id="' + cardId + '-article"><em>Loading…</em></div></div>'
-      + '</div>';
+      + '<div class="pathogen-toggle" onclick="toggleAPCard(\'' + safeCardId + '\',' + i + ')"><span>Read Article <span class="toggle-arrow">&#9654;</span></span></div>'
+      + '<div class="pathogen-panel"><div class="panel-article" id="' + safeCardId + '-article"><em>Loading\u2026</em></div></div>';
+
+    fragment.appendChild(card);
   }
-  container.innerHTML = html;
+  container.innerHTML = "";
+  container.appendChild(fragment);
 }
 
-function toggleAPCard(cardId, name) {
+function toggleAPCard(cardId, nameOrIndex) {
   var card = document.getElementById(cardId);
   if (!card) return;
   var wasExpanded = card.classList.contains("expanded");
   card.classList.toggle("expanded");
   if (!wasExpanded) {
     var articleDiv = document.getElementById(cardId + "-article");
-    if (articleDiv && articleDiv.innerHTML.indexOf("Loading") !== -1) {
+    if (articleDiv && !articleDiv.dataset.loaded) {
       var p = null;
-      var allP = TOOLKIT_DATA.pathogens || [];
-      for (var pi = 0; pi < allP.length; pi++) {
-        if (allP[pi].name === name) { p = allP[pi]; break; }
+      var name = nameOrIndex;
+      if (typeof nameOrIndex === "number") {
+        p = _allPathogensData[nameOrIndex] || null;
+        name = p ? p.name : null;
+      }
+      if (!p) {
+        var allP = TOOLKIT_DATA.pathogens || [];
+        for (var pi = 0; pi < allP.length; pi++) {
+          if (allP[pi].name === name) { p = allP[pi]; break; }
+        }
       }
       var effs = (TOOLKIT_DATA.effectors || []).filter(function(e) { return e.pathogen_name === name; });
       var targets = {};
@@ -683,23 +707,23 @@ function toggleAPCard(cardId, name) {
         if (mlAll[mi].pathogen === name) { mlPred = mlAll[mi]; break; }
       }
 
-      var html = '<div class="panel-title">' + name + ' — Pathogen Article</div>';
+      var html = '<div class="panel-title">' + _escapeHtml(name) + ' — Pathogen Article</div>';
 
       // Description section
-      html += '<div class="article-section"><h4>Overview</h4><p>' + (p ? p.description : "") + '</p></div>';
+      html += '<div class="article-section"><h4>Overview</h4><p>' + _escapeHtml(p ? p.description : "") + '</p></div>';
 
       // Classification
-      html += '<div class="article-section"><h4>Classification</h4><p><strong>Gram stain:</strong> ' + (p ? p.gram_stain : "—")
-        + ' &nbsp;|&nbsp; <strong>Strategy:</strong> ' + (p ? p.strategy : "—")
+      html += '<div class="article-section"><h4>Classification</h4><p><strong>Gram stain:</strong> ' + _escapeHtml(p ? p.gram_stain : "—")
+        + ' &nbsp;|&nbsp; <strong>Strategy:</strong> ' + _escapeHtml(p ? p.strategy : "—")
         + ' &nbsp;|&nbsp; <strong>Effectors:</strong> ' + effs.length
-        + (p && p.reference ? ' &nbsp;|&nbsp; <strong>DOI:</strong> <a href="https://doi.org/' + p.reference + '" target="_blank" rel="noopener noreferrer">' + p.reference + '</a>' : '')
+        + (p && p.reference ? ' &nbsp;|&nbsp; <strong>DOI:</strong> <a href="https://doi.org/' + _escapeHtml(p.reference) + '" target="_blank" rel="noopener noreferrer">' + _escapeHtml(p.reference) + '</a>' : '')
         + '</p></div>';
 
       // Host targets
       if (targetKeys.length) {
         html += '<div class="article-section"><h4>Host Targets <span class="badge badge-gray">' + targetKeys.length + ' unique</span></h4><ul class="target-list">';
         targetKeys.sort().forEach(function(t) {
-          html += '<li><span class="target-protein">' + t + '</span> <span class="target-count">(' + targets[t] + ' effectors)</span></li>';
+          html += '<li><span class="target-protein">' + _escapeHtml(t) + '</span> <span class="target-count">(' + targets[t] + ' effectors)</span></li>';
         });
         html += '</ul></div>';
       }
@@ -708,7 +732,7 @@ function toggleAPCard(cardId, name) {
       if (effs.length) {
         html += '<div class="article-section"><h4>Effector Repertoire</h4><table><thead><tr><th>Effector</th><th>Type</th><th>Host Target</th><th>Mechanism</th></tr></thead><tbody>';
         effs.forEach(function(e) {
-          html += "<tr><td>" + e.effector_name + "</td><td>" + (e.type || "—") + "</td><td>" + (e.host_target || "—") + "</td><td>" + (e.mechanism || "—") + "</td></tr>";
+          html += "<tr><td>" + _escapeHtml(e.effector_name) + "</td><td>" + _escapeHtml(e.type || "—") + "</td><td>" + _escapeHtml(e.host_target || "—") + "</td><td>" + _escapeHtml(e.mechanism || "—") + "</td></tr>";
         });
         html += '</tbody></table></div>';
       }
@@ -717,15 +741,34 @@ function toggleAPCard(cardId, name) {
       if (mlPred) {
         var ok = mlPred.predicted === mlPred.actual ? "green" : "red";
         html += '<div class="article-section"><h4>ML Strategy Prediction</h4><p>'
-          + 'Predicted: <span class="badge badge-' + ok + '">' + mlPred.predicted + '</span>'
-          + ' &nbsp;|&nbsp; Actual: <span class="badge badge-blue">' + mlPred.actual + '</span>'
+          + 'Predicted: <span class="badge badge-' + ok + '">' + _escapeHtml(mlPred.predicted) + '</span>'
+          + ' &nbsp;|&nbsp; Actual: <span class="badge badge-blue">' + _escapeHtml(mlPred.actual) + '</span>'
           + ' &nbsp;|&nbsp; Confidence: ' + (mlPred.confidence * 100).toFixed(0) + '%'
           + '</p></div>';
       }
 
       articleDiv.innerHTML = html;
+      articleDiv.dataset.loaded = "1";
     }
   }
+}
+
+// Pre-computed effector map (computed once, not on every keystroke)
+var _effectorMap = null;
+function _getEffectorMap() {
+  if (_effectorMap) return _effectorMap;
+  _effectorMap = {};
+  (TOOLKIT_DATA.effectors || []).forEach(function(e) {
+    _effectorMap[e.pathogen_name] = (_effectorMap[e.pathogen_name] || 0) + 1;
+  });
+  return _effectorMap;
+}
+
+// Debounce utility
+var _filterTimeout = null;
+function debouncedFilterPathogens() {
+  if (_filterTimeout) clearTimeout(_filterTimeout);
+  _filterTimeout = setTimeout(filterAllPathogens, 150);
 }
 
 function filterAllPathogens() {
@@ -740,10 +783,7 @@ function filterAllPathogens() {
     if (gram && p.gram_stain !== gram) return false;
     return true;
   });
-  var effMap = {};
-  (TOOLKIT_DATA.effectors || []).forEach(function(e) {
-    effMap[e.pathogen_name] = (effMap[e.pathogen_name] || 0) + 1;
-  });
+  var effMap = _getEffectorMap();
   var container = document.getElementById("all-pathogens-container");
   if (container) _renderPathogenGrid(filtered, effMap, container);
 }

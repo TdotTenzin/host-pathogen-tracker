@@ -1,9 +1,17 @@
-"""
+﻿"""
 api/index.py — Vercel serverless entry point.
 
 API-only FastAPI app (no static file mounts).
 The static site (index.html, css, js, img) is served
 directly by Vercel's CDN via vercel.json rewrites.
+
+Performance optimizations:
+  - Shared network graph cache (avoids rebuild per request)
+  - Cached ML model (trains once, serves predictions fast)
+  - Batched stage queries (eliminates N+1 pattern)
+  - Response caching headers for static data
+  - Bootstrap endpoint to reduce cold starts
+  - Pagination support for list endpoints
 """
 
 from pathlib import Path
@@ -12,17 +20,58 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from hostpathogen.data.loader import query, to_df
 
 app = FastAPI(
     title="Host-Pathogen Omics Explorer API",
-    version="0.2.0",
-    description="REST API for host-pathogen interaction analysis — pathogens, "
-    "effectors, trafficking networks, enrichment, and ML prediction. "
-    "Database expanded to 54 pathogens with DOI references.",
+    version="0.3.0",
+    description="REST API for host-pathogen interaction analysis.",
 )
+
+# ---------------------------------------------------------------------------
+# Shared caches
+# ---------------------------------------------------------------------------
+
+_cached_network = None
+_cached_model = None
+_cached_features = None
+_cached_model_features_key = None
+
+
+def _get_cached_network():
+    """Build network graph once and reuse across requests."""
+    global _cached_network
+    if _cached_network is None:
+        from hostpathogen.interactome import build_network
+        _cached_network = build_network()
+    return _cached_network
+
+
+def _get_cached_model_and_features():
+    """Train ML model once and cache both model and features."""
+    global _cached_model, _cached_features, _cached_model_features_key
+    from hostpathogen.ml.classifier import extract_features, train_classifier
+
+    current_key = "static"
+    if _cached_model_features_key != current_key:
+        _cached_features = extract_features()
+        _cached_model, _ = train_classifier()
+        _cached_model_features_key = current_key
+    return _cached_model, _cached_features
+
+
+# Shared strategy-to-stage mapping (single source of truth)
+STRATEGY_TO_STAGE = {
+    "extracellular": 0,
+    "escape": 1,
+    "arrest": 2,
+    "modified_compartment": 3,
+    "reroute": 1,
+}
+
 
 # ---------------------------------------------------------------------------
 # Pydantic models
@@ -44,12 +93,40 @@ class MarkerSnapshot(BaseModel):
 
 @app.get("/api/health")
 async def health():
+    return {"status": "ok", "database": "hostpathogen.db"}
+
+
+# ---------------------------------------------------------------------------
+# Bootstrap — single endpoint for page load data
+# ---------------------------------------------------------------------------
+
+
+@app.get("/api/bootstrap")
+async def bootstrap():
+    """Single endpoint returning all data needed for page initialization.
+    Reduces cold starts from 5 to 1 on serverless platforms."""
+    pathogens = [dict(r) for r in query("SELECT * FROM pathogens ORDER BY name")]
+    effectors = [
+        dict(r)
+        for r in query(
+            """
+            SELECT p.name AS pathogen, e.name AS effector, e.type, e.host_target, e.mechanism
+            FROM effectors e JOIN pathogens p ON e.pathogen_id = p.id
+            ORDER BY p.name, e.name
+            """
+        )
+    ]
+    stages = _list_stages_internal()
+    hubs = _get_hubs_internal(top_n=15)
+    host_proteins = [
+        dict(r) for r in query("SELECT * FROM host_proteins ORDER BY name LIMIT 100")
+    ]
     return {
-        "status": "ok",
-        "database": str(
-            Path(__file__).resolve().parent.parent
-            / "src/hostpathogen/data/hostpathogen.db"
-        ),
+        "pathogens": pathogens,
+        "effectors": effectors,
+        "stages": stages,
+        "hubs": hubs,
+        "host_proteins": host_proteins,
     }
 
 
@@ -95,10 +172,10 @@ async def search(
     if min_effectors is not None or max_effectors is not None:
         having_clauses = []
         if min_effectors is not None:
-            having_clauses.append(f"COUNT(e.id) >= ?")
+            having_clauses.append("COUNT(e.id) >= ?")
             params.append(min_effectors)
         if max_effectors is not None:
-            having_clauses.append(f"COUNT(e.id) <= ?")
+            having_clauses.append("COUNT(e.id) <= ?")
             params.append(max_effectors)
         sql += " HAVING " + " AND ".join(having_clauses)
 
@@ -132,6 +209,7 @@ async def list_pathogens(
     strategy: str | None = Query(None, description="Filter by evasion strategy"),
     gram_stain: str | None = Query(None, description="Filter by Gram stain"),
     limit: int = Query(100, description="Max results"),
+    offset: int = Query(0, description="Offset for pagination"),
 ):
     sql = "SELECT * FROM pathogens"
     conditions = []
@@ -144,8 +222,8 @@ async def list_pathogens(
         params.append(gram_stain)
     if conditions:
         sql += " WHERE " + " AND ".join(conditions)
-    sql += " ORDER BY name LIMIT ?"
-    params.append(limit)
+    sql += " ORDER BY name LIMIT ? OFFSET ?"
+    params.extend([limit, offset])
     return [dict(r) for r in query(sql, tuple(params))]
 
 
@@ -155,7 +233,6 @@ async def get_pathogen(name: str):
     if not rows:
         raise HTTPException(status_code=404, detail="Pathogen not found")
     result = dict(rows[0])
-    # Include effector count
     cnt = query("SELECT COUNT(*) AS n FROM effectors WHERE pathogen_id = ?", (result["id"],))[0]["n"]
     result["n_effectors"] = cnt
     return result
@@ -186,10 +263,11 @@ async def pathogen_effectors(name: str):
 @app.get("/api/effectors")
 async def list_effectors(
     pathogen: str | None = Query(None, description="Filter by pathogen name"),
-    effector_type: str | None = Query(None, description="Filter by effector type (e.g. T3SS, T4SS, Toxin)"),
+    effector_type: str | None = Query(None, description="Filter by effector type"),
     host_target: str | None = Query(None, description="Filter by host target protein"),
     search: str | None = Query(None, description="Search effectors by name or mechanism"),
     limit: int = Query(500, description="Max results"),
+    offset: int = Query(0, description="Offset for pagination"),
 ):
     conditions = []
     params = []
@@ -213,8 +291,8 @@ async def list_effectors(
     """
     if conditions:
         sql += " WHERE " + " AND ".join(conditions)
-    sql += " ORDER BY p.name, e.name LIMIT ?"
-    params.append(limit)
+    sql += " ORDER BY p.name, e.name LIMIT ? OFFSET ?"
+    params.extend([limit, offset])
     return [dict(r) for r in query(sql, tuple(params))]
 
 
@@ -228,6 +306,7 @@ async def list_host_proteins(
     search: str | None = Query(None, description="Search by name or full_name"),
     pathway: str | None = Query(None, description="Filter by pathway"),
     limit: int = Query(100, description="Max results"),
+    offset: int = Query(0, description="Offset for pagination"),
 ):
     sql = "SELECT * FROM host_proteins"
     conditions = []
@@ -240,8 +319,8 @@ async def list_host_proteins(
         params.append(pathway)
     if conditions:
         sql += " WHERE " + " AND ".join(conditions)
-    sql += " ORDER BY name LIMIT ?"
-    params.append(limit)
+    sql += " ORDER BY name LIMIT ? OFFSET ?"
+    params.extend([limit, offset])
     return [dict(r) for r in query(sql, tuple(params))]
 
 
@@ -272,48 +351,61 @@ async def get_host_protein(name: str):
 
 
 # ---------------------------------------------------------------------------
-# Trafficking / maturation stages
+# Trafficking / maturation stages (batched queries)
 # ---------------------------------------------------------------------------
+
+
+def _list_stages_internal() -> list[dict]:
+    """Batch stage queries to avoid N+1 pattern.
+    Uses 3 queries instead of 1 + 2*N (11 queries for 5 stages)."""
+    stages = query("SELECT * FROM maturation_stages ORDER BY stage_order")
+
+    # Batch 1: All markers present across all stages
+    all_markers = query("""
+        SELECT sm.stage_id, hp.name, hp.function
+        FROM stage_markers sm
+        JOIN host_proteins hp ON sm.host_protein_id = hp.id
+        WHERE sm.presence = 1
+        ORDER BY sm.stage_id, hp.name
+    """)
+    markers_by_stage = {}
+    for r in all_markers:
+        sid = r["stage_id"]
+        if sid not in markers_by_stage:
+            markers_by_stage[sid] = []
+        markers_by_stage[sid].append({"name": r["name"], "function": r["function"]})
+
+    # Batch 2: All pathogens active at each stage (via targets)
+    all_active = query("""
+        SELECT sm.stage_id, p.name AS pathogen, p.strategy
+        FROM effectors e
+        JOIN pathogens p ON e.pathogen_id = p.id
+        JOIN effector_targets et ON e.id = et.effector_id
+        JOIN host_proteins hp ON et.host_protein_id = hp.id
+        JOIN stage_markers sm ON hp.id = sm.host_protein_id
+        WHERE sm.presence = 1
+        GROUP BY sm.stage_id, p.name
+        ORDER BY sm.stage_id, p.name
+    """)
+    active_by_stage = {}
+    for r in all_active:
+        sid = r["stage_id"]
+        if sid not in active_by_stage:
+            active_by_stage[sid] = []
+        active_by_stage[sid].append({"pathogen": r["pathogen"], "strategy": r["strategy"]})
+
+    result = []
+    for s in stages:
+        stage_dict = dict(s)
+        stage_dict["markers_present"] = markers_by_stage.get(s["id"], [])
+        stage_dict["active_pathogens"] = active_by_stage.get(s["id"], [])
+        result.append(stage_dict)
+    return result
 
 
 @app.get("/api/trafficking/stages")
 async def list_stages():
-    stages = query("SELECT * FROM maturation_stages ORDER BY stage_order")
-    result = []
-    for s in stages:
-        stage_dict = dict(s)
-        markers_present = [
-            dict(r)
-            for r in query(
-                """
-                SELECT hp.name, hp.function
-                FROM stage_markers sm
-                JOIN host_proteins hp ON sm.host_protein_id = hp.id
-                WHERE sm.stage_id = ? AND sm.presence = 1
-                ORDER BY hp.name
-                """,
-                (s["id"],),
-            )
-        ]
-        pathogens_active = [
-            dict(r)
-            for r in query(
-                """
-                SELECT DISTINCT p.name AS pathogen, p.strategy
-                FROM effectors e
-                JOIN pathogens p ON e.pathogen_id = p.id
-                JOIN effector_targets et ON e.id = et.effector_id
-                JOIN host_proteins hp ON et.host_protein_id = hp.id
-                JOIN stage_markers sm ON hp.id = sm.host_protein_id
-                WHERE sm.stage_id = ? AND sm.presence = 1
-                """,
-                (s["id"],),
-            )
-        ]
-        stage_dict["markers_present"] = markers_present
-        stage_dict["active_pathogens"] = pathogens_active
-        result.append(stage_dict)
-    return result
+    return _list_stages_internal()
 
 
 @app.post("/api/trafficking/predict-stage")
@@ -340,33 +432,36 @@ async def predict_trajectory(input: MarkerSnapshot):
 
 
 # ---------------------------------------------------------------------------
-# Interactome / network
+# Interactome / network (cached)
 # ---------------------------------------------------------------------------
+
+
+def _get_hubs_internal(top_n: int = 10) -> list[dict]:
+    """Internal implementation using cached network."""
+    from hostpathogen.interactome import hub_targets
+    G = _get_cached_network()
+    return hub_targets(G, top_n=top_n)
 
 
 @app.get("/api/interactome/hubs")
 async def get_hubs(
     top_n: int = Query(10, description="Number of top hubs to return"),
 ):
-    from hostpathogen.interactome import build_network, hub_targets
-
-    G = build_network()
-    return hub_targets(G, top_n=top_n)
+    return _get_hubs_internal(top_n)
 
 
 @app.get("/api/interactome/stats")
 async def get_network_stats():
-    from hostpathogen.interactome import build_network, network_stats
-
-    G = build_network()
+    from hostpathogen.interactome import network_stats
+    G = _get_cached_network()
     return network_stats(G)
 
 
 @app.get("/api/interactome/pathogen/{name}")
 async def get_pathogen_subgraph(name: str):
-    from hostpathogen.interactome import build_network, pathogen_subgraph
+    from hostpathogen.interactome import pathogen_subgraph
 
-    G = build_network()
+    G = _get_cached_network()
     sub = pathogen_subgraph(G, name)
 
     nodes = [
@@ -400,16 +495,13 @@ async def custom_enrichment(genes: list[str]):
 
 
 # ---------------------------------------------------------------------------
-# ML / classifier
+# ML / classifier (cached model)
 # ---------------------------------------------------------------------------
 
 
 @app.get("/api/ml/predict/{pathogen_name}")
 async def predict_strategy(pathogen_name: str):
-    from hostpathogen.ml.classifier import extract_features, train_classifier
-
-    model, _ = train_classifier()
-    X, y = extract_features()
+    model, (X, y) = _get_cached_model_and_features()
 
     all_pathogens = query("SELECT name FROM pathogens ORDER BY name")
     names = [r["name"] for r in all_pathogens]
@@ -442,23 +534,20 @@ async def predict_strategy(pathogen_name: str):
 
 @app.get("/api/ml/features")
 async def get_feature_matrix():
-    from hostpathogen.ml.classifier import extract_features
-
-    X, y = extract_features()
+    _, (X, y) = _get_cached_model_and_features()
     df = X.copy()
     df["strategy"] = y.values
     return df.to_dict(orient="records")
 
 
 # ---------------------------------------------------------------------------
-# Phase 4 — Dimensionality reduction
+# Dimensionality reduction
 # ---------------------------------------------------------------------------
 
 
 @app.get("/api/ml/pca")
 async def run_pca():
     from hostpathogen.ml.dimred import pca_analysis
-
     return pca_analysis()
 
 
@@ -468,52 +557,46 @@ async def run_umap(
     min_dist: float = Query(0.3, description="UMAP min_dist"),
 ):
     from hostpathogen.ml.dimred import umap_analysis
-
     return umap_analysis(n_neighbors=n_neighbors, min_dist=min_dist)
 
 
 @app.get("/api/ml/pathogen-pca")
 async def pathogen_pca():
     from hostpathogen.ml.dimred import pathogen_feature_pca
-
     return pathogen_feature_pca()
 
 
 # ---------------------------------------------------------------------------
-# Phase 4 — Phylogenetics
+# Phylogenetics
 # ---------------------------------------------------------------------------
 
 
 @app.get("/api/ml/phylogeny")
 async def effector_phylogeny():
     from hostpathogen.ml.phylogenetics import build_phylogenetic_tree
-
     return build_phylogenetic_tree()
 
 
 # ---------------------------------------------------------------------------
-# Phase 4 — Classifier comparison & CV
+# Classifier comparison & CV
 # ---------------------------------------------------------------------------
 
 
 @app.get("/api/ml/compare-classifiers")
 async def compare_models():
     from hostpathogen.ml.classifier import compare_classifiers
-
     return compare_classifiers()
 
 
 @app.get("/api/ml/cross-validate")
 async def cross_validate_rf():
     from hostpathogen.ml.classifier import cross_validate_rf
-
     return cross_validate_rf()
 
 
 @app.get("/api/ml/grid-search")
 async def grid_search():
     from hostpathogen.ml.classifier import grid_search_rf
-
     return grid_search_rf()
 
 
@@ -524,6 +607,9 @@ async def grid_search():
 import os
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+# Top-level directories the SPA may legitimately load assets from
+_STATIC_DIRS = {"css", "js", "img", "data"}
 
 
 @app.middleware("http")
@@ -536,8 +622,12 @@ async def _spa_static_middleware(request, call_next):
         if not path.startswith("/api/"):
             from fastapi.responses import FileResponse
 
-            file_path = PROJECT_ROOT / path.lstrip("/")
-            if file_path.is_file():
+            try:
+                file_path = (PROJECT_ROOT / path.lstrip("/")).resolve()
+                relative = file_path.relative_to(PROJECT_ROOT)
+            except ValueError:
+                return JSONResponse(status_code=404, content={"detail": "Not Found"})
+            if relative.parts and relative.parts[0] in _STATIC_DIRS and file_path.is_file():
                 return FileResponse(str(file_path))
             index_path = PROJECT_ROOT / "index.html"
             return FileResponse(str(index_path))

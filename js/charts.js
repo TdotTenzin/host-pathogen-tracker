@@ -67,12 +67,15 @@ function getStrategyData() {
 function getPathogenActions() {
   if (TOOLKIT_DATA.pathogen_actions) return TOOLKIT_DATA.pathogen_actions;
   // Generate actions from pathogen strategies if not pre-computed
+  // Uses shared STRATEGY_TO_STAGE mapping from API (single source of truth)
   var actions = [];
   var stageLookup = {};
   (TOOLKIT_DATA.maturation_stages || []).forEach(function(s) {
     stageLookup[s.stage_order] = s;
   });
-  var stageMap = { extracellular: 0, escape: 1, arrest: 2, modified_compartment: 3, reroute: 1 };
+  var stageMap = typeof STRATEGY_TO_STAGE !== "undefined"
+    ? STRATEGY_TO_STAGE
+    : { extracellular: 0, escape: 1, arrest: 2, modified_compartment: 3, reroute: 1 };
   (TOOLKIT_DATA.pathogens || []).forEach(function(p) {
     var order = stageMap[p.strategy] !== undefined ? stageMap[p.strategy] : 0;
     var s = stageLookup[order];

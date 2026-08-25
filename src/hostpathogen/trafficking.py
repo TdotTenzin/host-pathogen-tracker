@@ -1,20 +1,26 @@
-"""
+﻿"""
 trafficking.py — Phagosome maturation state machine.
 
 Models the 5-stage phagosome maturation pathway as a state machine.
 Given a set of molecular markers, infers which stage the phagosome
 is in and which pathogens are active at that stage.
+
+Optimizations:
+  - Module-level caching of stage data and marker profiles
 """
 
 from hostpathogen.data.loader import query, to_df
 
+# Module-level caches
+_cached_profiles = None
+_cached_stages_df = None
+
 
 def _build_marker_profiles() -> dict:
-    """
-    Fetch every (stage_name, protein_name, presence) row from the DB
-    and group by stage so we can compare against marker observations.
-    Returns {stage_name: {"marker_name": 0_or_1, ...}}
-    """
+    global _cached_profiles
+    if _cached_profiles is not None:
+        return _cached_profiles
+
     rows = query("""
         SELECT ms.name AS stage, hp.name AS protein, sm.presence
         FROM stage_markers sm
@@ -28,7 +34,16 @@ def _build_marker_profiles() -> dict:
         if stage not in profiles:
             profiles[stage] = {}
         profiles[stage][r["protein"]] = r["presence"]
+    _cached_profiles = profiles
     return profiles
+
+
+def _get_stages_df():
+    global _cached_stages_df
+    if _cached_stages_df is not None:
+        return _cached_stages_df
+    _cached_stages_df = to_df("SELECT * FROM maturation_stages ORDER BY stage_order")
+    return _cached_stages_df
 
 
 class PhagosomeMaturation:
@@ -45,31 +60,16 @@ class PhagosomeMaturation:
     """
 
     def __init__(self):
-        # Full stage metadata (ordered)
-        self.stages_df = to_df(
-            "SELECT * FROM maturation_stages ORDER BY stage_order"
-        )
+        self.stages_df = _get_stages_df()
         self.stage_names = self.stages_df["name"].tolist()
-
-        # Molecular marker profiles per stage
         self._profiles = _build_marker_profiles()
 
     def get_stage(self, observed_markers: list[str]) -> str | None:
-        """
-        Given a list of marker names observed in an experiment,
-        return the most likely maturation stage name.
-
-        Matching logic: the stage whose marker profile has the highest
-        fraction of observed markers that agree with expected presence.
-        Only markers defined in the profile are considered.
-        """
         observed = set(observed_markers)
         best_stage = None
         best_score = -1
 
         for stage, profile in self._profiles.items():
-            # Count agreements: observed marker + profile says present = good,
-            # unobserved marker + profile says absent = also good
             matches = 0
             total = 0
             for marker, expected_present in profile.items():
@@ -85,10 +85,6 @@ class PhagosomeMaturation:
         return best_stage
 
     def stage_info(self, stage_name: str) -> dict:
-        """
-        Return details about a stage: markers present, functional changes,
-        pH range, and which pathogens act at this stage.
-        """
         row = self.stages_df[self.stages_df["name"] == stage_name]
         if row.empty:
             return {}
@@ -101,7 +97,6 @@ class PhagosomeMaturation:
             [m for m, p in profile.items() if p == 0]
         )
 
-        # Pathogens whose effectors act at this stage
         pathogens_at_stage = to_df("""
             SELECT DISTINCT p.name AS pathogen
             FROM effectors e
@@ -125,19 +120,4 @@ class PhagosomeMaturation:
         }
 
     def plot_trajectory(self, marker_snapshots: list[list[str]]) -> list[str]:
-        """
-        Given a time series of marker observations (each snapshot is a list
-        of marker names), return the inferred stage at each time point.
-
-        This is useful for live-cell imaging where you track markers over time.
-
-        Example:
-            snapshots = [
-                ["PI(4,5)P2"],           # t=0
-                ["Rab5", "EEA1"],         # t=5 min
-                ["Rab7", "LAMP1"],        # t=20 min
-            ]
-            pm.plot_trajectory(snapshots)
-            # → ["Pre-phagocytosis", "Early phagosome", "Late phagosome"]
-        """
         return [self.get_stage(snap) for snap in marker_snapshots]

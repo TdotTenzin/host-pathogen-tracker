@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   api:
     build: .
@@ -9,3 +7,4 @@ services:
       - ./src/hostpathogen/data:/app/src/hostpathogen/data
     environment:
       - PYTHONUNBUFFERED=1
+    restart: unless-stopped

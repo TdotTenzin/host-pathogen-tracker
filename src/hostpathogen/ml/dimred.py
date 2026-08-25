@@ -1,36 +1,37 @@
-"""
+﻿"""
 dimred.py — Dimensionality reduction for host response profiles.
 
 Applies PCA and UMAP to the simulated RNA-seq expression data to
 visualise how infected samples cluster away from controls.
 Also supports reduction of the effector feature matrix for pathogen
 strategy visualisation.
+
+Optimizations:
+  - Fixed relative path to use pathlib for cross-platform compatibility
+  - Graceful fallback when umap-learn is not installed
 """
 
 import numpy as np
 import pandas as pd
+from pathlib import Path
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 from hostpathogen.data.loader import to_df
 
+# Absolute path to R data directory (<repo root>/r/data)
+_R_DATA_DIR = Path(__file__).resolve().parents[3] / "r" / "data"
+
 
 def _get_expression_matrix() -> tuple[pd.DataFrame, list[str]]:
-    """
-    Build a log2-CPM-like expression matrix from our simulated data
-    or, failing that, generate one on the fly from the database.
-
-    Returns (df, sample_labels) where df has genes as rows and
-    samples as columns.
-    """
     # Try loading from R exports first (richer data)
     try:
-        path = pd.io.common.file_exists("r/data/deseq2_counts.csv")
-        counts = pd.read_csv("r/data/deseq2_counts.csv", index_col=0)
-        # Log2 transform
-        log_expr = np.log2(counts + 1)
-        labels = ["infected"] * 3 + ["control"] * 3
-        return log_expr.T, labels
+        counts_path = _R_DATA_DIR / "deseq2_counts.csv"
+        if counts_path.exists():
+            counts = pd.read_csv(str(counts_path), index_col=0)
+            log_expr = np.log2(counts + 1)
+            labels = ["infected"] * 3 + ["control"] * 3
+            return log_expr.T, labels
     except (FileNotFoundError, pd.errors.EmptyDataError):
         pass
 
@@ -50,15 +51,6 @@ def _get_expression_matrix() -> tuple[pd.DataFrame, list[str]]:
 
 
 def pca_analysis(n_components: int = 2) -> dict:
-    """
-    Run PCA on the host expression matrix.
-
-    Returns a dict with:
-      - explained_variance_ratio
-      - components (loadings for top genes)
-      - transformed samples (PC1, PC2, condition)
-      - cumulative_variance
-    """
     X, labels = _get_expression_matrix()
 
     scaler = StandardScaler()
@@ -67,7 +59,6 @@ def pca_analysis(n_components: int = 2) -> dict:
     pca = PCA(n_components=min(n_components, X_scaled.shape[0], X_scaled.shape[1]))
     X_pca = pca.fit_transform(X_scaled)
 
-    # Get top contributing genes for PC1
     loadings = pd.DataFrame(
         pca.components_,
         columns=X.columns,
@@ -99,16 +90,15 @@ def pca_analysis(n_components: int = 2) -> dict:
 
 
 def umap_analysis(n_neighbors: int = 5, min_dist: float = 0.3) -> dict:
-    """
-    Run UMAP on the host expression matrix.
-
-    Uses umap-learn. Returns transformed coordinates for each sample.
-
-    Parameters:
-        n_neighbors: local neighbourhood size (smaller = more local structure)
-        min_dist: minimum distance between points in embedding
-    """
-    from umap import UMAP
+    try:
+        from umap import UMAP
+    except ImportError:
+        return {
+            "error": "umap-learn is not installed. Install with: pip install umap-learn",
+            "n_neighbors": n_neighbors,
+            "min_dist": min_dist,
+            "samples": [],
+        }
 
     X, labels = _get_expression_matrix()
 
@@ -129,10 +119,6 @@ def umap_analysis(n_neighbors: int = 5, min_dist: float = 0.3) -> dict:
 
 
 def pathogen_feature_pca() -> dict:
-    """
-    Run PCA on the pathogen effector feature matrix.
-    Helps visualise how pathogens cluster by their effector repertoire.
-    """
     from hostpathogen.ml.classifier import extract_features
 
     X, y = extract_features()
@@ -144,7 +130,6 @@ def pathogen_feature_pca() -> dict:
     pca = PCA(n_components=n)
     X_pca = pca.fit_transform(X_scaled)
 
-    # Get pathogen names
     all_names = to_df("SELECT name FROM pathogens ORDER BY name")["name"].tolist()
 
     samples = []

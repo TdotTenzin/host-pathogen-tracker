@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Host–Pathogen Trafficking Hub</title>
-  <link rel="icon" type="image/png" href="img/content-cutout.png" />
+  <link rel="icon" type="image/svg+xml" href="img/favicon.svg" />
   <link rel="stylesheet" href="css/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-  <script>if (typeof Chart === "undefined") { document.write('<script src="js/chart.umd.min.js"><\/script>'); }</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+  <script>if (typeof Chart === "undefined") { document.write('<script src="js/chart.umd.min.js" defer><\/script>'); }</script>
 </head>
 <body>
 
@@ -402,7 +402,7 @@
         <p class="section-subtitle">A comprehensive, curated collection of bacterial pathogens with mechanistic detail. Click any card to open its full article — including effector repertoire, host targets, and ML strategy prediction.</p>
 
         <div class="all-pathogens-filter">
-          <input id="ap-search" class="tool-input" type="text" placeholder="Search by name, species, or description…" oninput="filterAllPathogens()">
+          <input id="ap-search" class="tool-input" type="text" placeholder="Search by name, species, or description…" oninput="debouncedFilterPathogens()">
           <select id="ap-strategy" class="tool-select" onchange="filterAllPathogens()">
             <option value="">All strategies</option>
             <option value="extracellular">Extracellular</option>

@@ -3,11 +3,15 @@ classifier.py — Predict pathogen evasion strategy from effector features.
 
 Given a pathogen's set of effectors, predict whether its intracellular
 survival strategy is:
-  • "arrest" — blocks phagosome maturation
-  • "escape" — lyses the vacuole and replicates in cytosol
-  • "reroute" — redirects vesicular traffic to build a different compartment
-  • "modified_compartment" — creates a non-degradative niche (e.g. Salmonella)
-  • "extracellular" — survives extracellularly, resists phagocytosis
+  - "arrest" — blocks phagosome maturation
+  - "escape" — lyses the vacuole and replicates in cytosol
+  - "reroute" — redirects vesicular traffic to build a different compartment
+  - "modified_compartment" — creates a non-degradative niche (e.g. Salmonella)
+  - "extracellular" — survives extracellularly, resists phagocytosis
+
+Optimizations:
+  - Single consolidated SQL query for feature extraction (was 7 queries)
+  - Module-level feature cache to avoid repeated DB access
 """
 
 import numpy as np
@@ -33,77 +37,62 @@ FEATURE_NAMES = [
     "n_localizations",
 ]
 
+# Module-level cache for features
+_cached_X = None
+_cached_y = None
+
 
 def extract_features() -> tuple[pd.DataFrame, pd.Series]:
     """
     Build a feature matrix from effector data (11 features, 54 pathogens).
 
+    Uses a single consolidated SQL query instead of 7 separate queries.
+    Results are cached at module level since the database is static.
+
     Returns (X, y).
     """
-    effector_counts = to_df("""
-        SELECT p.name AS pathogen, COUNT(*) AS n_effectors
-        FROM effectors e JOIN pathogens p ON e.pathogen_id = p.id
-        GROUP BY p.name
-    """)
-    target_counts = to_df("""
-        SELECT p.name AS pathogen, COUNT(DISTINCT hp.id) AS n_targets
-        FROM effector_targets et
-        JOIN effectors e ON et.effector_id = e.id
-        JOIN host_proteins hp ON et.host_protein_id = hp.id
-        JOIN pathogens p ON e.pathogen_id = p.id
-        GROUP BY p.name
-    """)
-    type_counts = to_df("""
-        SELECT p.name AS pathogen, COUNT(DISTINCT et.interaction_type) AS n_interaction_types
-        FROM effector_targets et
-        JOIN effectors e ON et.effector_id = e.id
-        JOIN pathogens p ON e.pathogen_id = p.id
-        GROUP BY p.name
-    """)
-    secretion_counts = to_df("""
-        SELECT p.name AS pathogen,
+    global _cached_X, _cached_y
+    if _cached_X is not None and _cached_y is not None:
+        return _cached_X, _cached_y
+
+    # Single consolidated query with conditional aggregation
+    df = to_df("""
+        SELECT
+            p.name AS pathogen,
+            COUNT(DISTINCT e.id) AS n_effectors,
+            COUNT(DISTINCT et.host_protein_id) AS n_targets,
+            COUNT(DISTINCT et.interaction_type) AS n_interaction_types,
             SUM(CASE WHEN e.type LIKE '%T3SS%' THEN 1 ELSE 0 END) AS n_t3ss,
             SUM(CASE WHEN e.type LIKE '%T4SS%' THEN 1 ELSE 0 END) AS n_t4ss,
-            SUM(CASE WHEN e.type LIKE '%T6SS%' THEN 1 ELSE 0 END) AS n_t6ss
-        FROM effectors e JOIN pathogens p ON e.pathogen_id = p.id
-        GROUP BY p.name
-    """)
-    type_diversity = to_df("""
-        SELECT p.name AS pathogen,
-            SUM(CASE WHEN e.type LIKE '%Toxin%' OR e.type LIKE '%AB toxin%' OR e.type LIKE '%Pore-forming%' OR e.type LIKE '%Cholesterol-dependent%' THEN 1 ELSE 0 END) AS n_toxins,
-            SUM(CASE WHEN e.type LIKE '%Surface protein%' OR e.type LIKE '%Outer membrane%' OR e.type LIKE '%Porin%' THEN 1 ELSE 0 END) AS n_surface_proteins,
-            SUM(CASE WHEN e.type LIKE '%Invasin%' OR e.type LIKE '%Adhesin%' OR e.type LIKE '%Autotransporter%' THEN 1 ELSE 0 END) AS n_invasins
-        FROM effectors e JOIN pathogens p ON e.pathogen_id = p.id
-        GROUP BY p.name
-    """)
-    pathway_counts = to_df("""
-        SELECT p.name AS pathogen, COUNT(DISTINCT hp.pathway) AS n_pathways
-        FROM effector_targets et
-        JOIN effectors e ON et.effector_id = e.id
-        JOIN host_proteins hp ON et.host_protein_id = hp.id
+            SUM(CASE WHEN e.type LIKE '%T6SS%' THEN 1 ELSE 0 END) AS n_t6ss,
+            SUM(CASE WHEN e.type LIKE '%Toxin%' OR e.type LIKE '%AB toxin%'
+                      OR e.type LIKE '%Pore-forming%' OR e.type LIKE '%Cholesterol-dependent%' THEN 1 ELSE 0 END) AS n_toxins,
+            SUM(CASE WHEN e.type LIKE '%Surface protein%' OR e.type LIKE '%Outer membrane%'
+                      OR e.type LIKE '%Porin%' THEN 1 ELSE 0 END) AS n_surface_proteins,
+            SUM(CASE WHEN e.type LIKE '%Invasin%' OR e.type LIKE '%Adhesin%'
+                      OR e.type LIKE '%Autotransporter%' THEN 1 ELSE 0 END) AS n_invasins,
+            COUNT(DISTINCT hp.pathway) AS n_pathways,
+            COUNT(DISTINCT hp.localization) AS n_localizations
+        FROM effectors e
         JOIN pathogens p ON e.pathogen_id = p.id
+        LEFT JOIN effector_targets et ON e.id = et.effector_id
+        LEFT JOIN host_proteins hp ON et.host_protein_id = hp.id
         GROUP BY p.name
-    """)
-    localization_counts = to_df("""
-        SELECT p.name AS pathogen, COUNT(DISTINCT hp.localization) AS n_localizations
-        FROM effector_targets et
-        JOIN effectors e ON et.effector_id = e.id
-        JOIN host_proteins hp ON et.host_protein_id = hp.id
-        JOIN pathogens p ON e.pathogen_id = p.id
-        GROUP BY p.name
+        ORDER BY p.name
     """)
 
-    X = effector_counts.merge(target_counts, on="pathogen")
-    X = X.merge(type_counts, on="pathogen")
-    X = X.merge(secretion_counts, on="pathogen")
-    X = X.merge(type_diversity, on="pathogen")
-    X = X.merge(pathway_counts, on="pathogen")
-    X = X.merge(localization_counts, on="pathogen")
+    # Get strategies
+    strategies = to_df("SELECT name AS pathogen, strategy FROM pathogens ORDER BY name")
+    y_df = df[["pathogen"]].merge(strategies, on="pathogen")
 
-    strategies = to_df("SELECT name AS pathogen, strategy FROM pathogens")
-    y_df = X[["pathogen"]].merge(strategies, on="pathogen")
-    X = X.drop(columns=["pathogen"])
+    X = df.drop(columns=["pathogen"])
     y = y_df["strategy"]
+
+    # Fill NaN with 0 for LEFT JOINs that produced no matches
+    X = X.fillna(0).astype(int)
+
+    _cached_X = X
+    _cached_y = y
     return X, y
 
 
@@ -137,7 +126,7 @@ def plot_feature_importance(model: RandomForestClassifier) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Cross-validation + classifier comparison (N=54 → 5-fold CV)
+# Cross-validation + classifier comparison (N=54 -> 5-fold CV)
 # ---------------------------------------------------------------------------
 
 _STRATIFIED_KWARGS = {"n_splits": 5, "shuffle": True, "random_state": 42}

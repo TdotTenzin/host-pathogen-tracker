@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS effectors (
     notes TEXT,
     FOREIGN KEY (pathogen_id) REFERENCES pathogens(id)
 );
+CREATE INDEX IF NOT EXISTS idx_effectors_pathogen ON effectors(pathogen_id);
 
 CREATE TABLE IF NOT EXISTS effector_targets (
     effector_id INTEGER NOT NULL,
@@ -54,6 +55,7 @@ CREATE TABLE IF NOT EXISTS effector_targets (
     FOREIGN KEY (effector_id) REFERENCES effectors(id),
     FOREIGN KEY (host_protein_id) REFERENCES host_proteins(id)
 );
+CREATE INDEX IF NOT EXISTS idx_et_host_protein ON effector_targets(host_protein_id);
 
 CREATE TABLE IF NOT EXISTS stage_markers (
     stage_id INTEGER NOT NULL,

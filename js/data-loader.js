@@ -60,57 +60,88 @@
   }
 
   function loadLiveData() {
-    return Promise.all([
-      fetchJSON("/api/pathogens").catch(function() { return null; }),
-      fetchJSON("/api/effectors?limit=500").catch(function() { return null; }),
-      fetchJSON("/api/trafficking/stages").catch(function() { return null; }),
-      fetchJSON("/api/interactome/hubs?top_n=15").catch(function() { return null; }),
-      fetchJSON("/api/host-proteins?limit=100").catch(function() { return null; }),
-    ]).then(function(results) {
-      var pathogens = results[0];
-      var effectors = results[1];
-      var stages = results[2];
-      var hubs = results[3];
-      var hostProteins = results[4];
+    // Try bootstrap endpoint first (single request, reduces cold starts)
+    return fetchJSON("/api/bootstrap")
+      .then(function(data) {
+        if (data.pathogens) TOOLKIT_DATA.pathogens = data.pathogens;
+        if (data.effectors) TOOLKIT_DATA.effectors = processEffectors(data.effectors);
+        if (data.host_proteins) TOOLKIT_DATA.host_proteins = data.host_proteins;
+        if (data.hubs) TOOLKIT_DATA.hubs = data.hubs;
 
-      if (pathogens) { TOOLKIT_DATA.pathogens = pathogens; }
-      if (effectors) { TOOLKIT_DATA.effectors = processEffectors(effectors); }
-      if (hostProteins) { TOOLKIT_DATA.host_proteins = hostProteins; }
-      if (hubs) { TOOLKIT_DATA.hubs = hubs; }
-
-      if (stages) {
-        TOOLKIT_DATA.maturation_stages = stages.map(function(s) {
-          return {
-            stage_order: s.stage_order, name: s.name, time_range: s.time_range,
-            ph_min: s.ph_min, ph_max: s.ph_max, description: s.description
-          };
-        });
-        var sm = buildStageMarkers(stages);
-        TOOLKIT_DATA.stage_markers = sm.stage_markers;
-        TOOLKIT_DATA.stage_marker_names = sm.stage_marker_names;
-        TOOLKIT_DATA.pathogen_actions = [];
-        stages.forEach(function(s) {
-          (s.active_pathogens || []).forEach(function(ap) {
-            TOOLKIT_DATA.pathogen_actions.push({
-              pathogen: ap.pathogen,
-              stage: s.name,
-              ph: (s.ph_min + s.ph_max) / 2,
-              action: ap.strategy
+        if (data.stages) {
+          TOOLKIT_DATA.maturation_stages = data.stages.map(function(s) {
+            return {
+              stage_order: s.stage_order, name: s.name, time_range: s.time_range,
+              ph_min: s.ph_min, ph_max: s.ph_max, description: s.description
+            };
+          });
+          var sm = buildStageMarkers(data.stages);
+          TOOLKIT_DATA.stage_markers = sm.stage_markers;
+          TOOLKIT_DATA.stage_marker_names = sm.stage_marker_names;
+          TOOLKIT_DATA.pathogen_actions = [];
+          data.stages.forEach(function(s) {
+            (s.active_pathogens || []).forEach(function(ap) {
+              TOOLKIT_DATA.pathogen_actions.push({
+                pathogen: ap.pathogen,
+                stage: s.name,
+                ph: (s.ph_min + s.ph_max) / 2,
+                action: ap.strategy
+              });
             });
           });
-        });
-      }
+        }
+      })
+      .catch(function() {
+        // Bootstrap failed — try individual endpoints
+        return Promise.all([
+          fetchJSON("/api/pathogens").catch(function() { return null; }),
+          fetchJSON("/api/effectors?limit=500").catch(function() { return null; }),
+          fetchJSON("/api/trafficking/stages").catch(function() { return null; }),
+          fetchJSON("/api/interactome/hubs?top_n=15").catch(function() { return null; }),
+          fetchJSON("/api/host-proteins?limit=100").catch(function() { return null; }),
+        ]).then(function(results) {
+          var pathogens = results[0];
+          var effectors = results[1];
+          var stages = results[2];
+          var hubs = results[3];
+          var hostProteins = results[4];
 
-      // If API returned all we need, skip fallback
-      var hasFullData = pathogens && effectors && stages && hubs;
-      if (hasFullData) return;
-      // Otherwise try comprehensive fallback JSON
-      return loadFallbackJSON().then(mergeFallback);
-    })
-    .catch(function() {
-      // API entirely unreachable — try comprehensive fallback JSON
-      return loadFallbackJSON().then(mergeFallback);
-    });
+          if (pathogens) { TOOLKIT_DATA.pathogens = pathogens; }
+          if (effectors) { TOOLKIT_DATA.effectors = processEffectors(effectors); }
+          if (hostProteins) { TOOLKIT_DATA.host_proteins = hostProteins; }
+          if (hubs) { TOOLKIT_DATA.hubs = hubs; }
+
+          if (stages) {
+            TOOLKIT_DATA.maturation_stages = stages.map(function(s) {
+              return {
+                stage_order: s.stage_order, name: s.name, time_range: s.time_range,
+                ph_min: s.ph_min, ph_max: s.ph_max, description: s.description
+              };
+            });
+            var sm = buildStageMarkers(stages);
+            TOOLKIT_DATA.stage_markers = sm.stage_markers;
+            TOOLKIT_DATA.stage_marker_names = sm.stage_marker_names;
+            TOOLKIT_DATA.pathogen_actions = [];
+            stages.forEach(function(s) {
+              (s.active_pathogens || []).forEach(function(ap) {
+                TOOLKIT_DATA.pathogen_actions.push({
+                  pathogen: ap.pathogen,
+                  stage: s.name,
+                  ph: (s.ph_min + s.ph_max) / 2,
+                  action: ap.strategy
+                });
+              });
+            });
+          }
+
+          var hasFullData = pathogens && effectors && stages && hubs;
+          if (hasFullData) return;
+          return loadFallbackJSON().then(mergeFallback);
+        })
+        .catch(function() {
+          return loadFallbackJSON().then(mergeFallback);
+        });
+      });
   }
 
   function init() {
