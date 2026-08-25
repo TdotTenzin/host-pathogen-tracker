@@ -1,5 +1,5 @@
 """
-api/main.py — Local development server.
+main.py — Local development server.
 
 Imports all route handlers from split modules and registers them on a single app.
 Vercel uses the individual function files directly via vercel.json rewrites.
@@ -8,7 +8,7 @@ Vercel uses the individual function files directly via vercel.json rewrites.
 from pathlib import Path
 import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
@@ -37,7 +37,7 @@ from api.ml_dimred.index import run_pca, run_umap, pathogen_pca
 from api.ml_phylogenetics.index import effector_phylogeny
 from api.stats_search.index import database_stats, search, bootstrap
 
-BASE = Path(__file__).resolve().parent.parent
+BASE = Path(__file__).resolve().parent
 
 app = FastAPI(
     title="Host-Pathogen Omics Explorer API",
