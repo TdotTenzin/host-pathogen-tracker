@@ -13,8 +13,19 @@ Optimizations:
   - Pre-computed num_tests for Bonferroni correction
 """
 
-from scipy.stats import hypergeom
+from math import comb
+
 from hostpathogen.data.loader import to_df
+
+
+def _hypergeom_sf(k: int, N: int, K: int, n: int) -> float:
+    """Survival function P(X >= k) for hypergeometric distribution."""
+    if k <= 0:
+        return 1.0
+    k = max(k, 0)
+    upper = min(n, K)
+    denom = comb(N, n)
+    return sum(comb(K, i) * comb(N - K, n - i) for i in range(k, upper + 1)) / denom
 
 # Module-level cache for pathway database
 _cached_pathway_db = None
@@ -73,7 +84,7 @@ def overrepresentation_analysis(
         if k == 0:
             continue
 
-        p_val = hypergeom.sf(k - 1, N, K, n)
+        p_val = _hypergeom_sf(k, N, K, n)
         p_adjusted = min(p_val * max(num_tests, 1), 1.0)
 
         results.append({

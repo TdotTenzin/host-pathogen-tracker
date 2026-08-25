@@ -1,65 +1,11 @@
 {
   "rewrites": [
-    { "source": "/api/health", "destination": "/api/health" },
-    { "source": "/api/pathogens/(.*)", "destination": "/api/pathogens" },
-    { "source": "/api/effectors", "destination": "/api/pathogens" },
-    { "source": "/api/host-proteins/(.*)", "destination": "/api/host_proteins" },
-    { "source": "/api/trafficking/(.*)", "destination": "/api/trafficking" },
-    { "source": "/api/interactome/(.*)", "destination": "/api/interactome" },
-    { "source": "/api/enrichment/(.*)", "destination": "/api/enrichment" },
-    { "source": "/api/ml/predict/(.*)", "destination": "/api/ml_classifier" },
-    { "source": "/api/ml/features", "destination": "/api/ml_classifier" },
-    { "source": "/api/ml/compare-classifiers", "destination": "/api/ml_classifier" },
-    { "source": "/api/ml/cross-validate", "destination": "/api/ml_classifier" },
-    { "source": "/api/ml/grid-search", "destination": "/api/ml_classifier" },
-    { "source": "/api/ml/pca", "destination": "/api/ml_dimred" },
-    { "source": "/api/ml/umap", "destination": "/api/ml_dimred" },
-    { "source": "/api/ml/pathogen-pca", "destination": "/api/ml_dimred" },
-    { "source": "/api/ml/phylogeny", "destination": "/api/ml_phylogenetics" },
-    { "source": "/api/stats", "destination": "/api/stats_search" },
-    { "source": "/api/search", "destination": "/api/stats_search" },
-    { "source": "/api/bootstrap", "destination": "/api/stats_search" },
+    { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "functions": {
-    "api/health/index.py": {
-      "maxDuration": 30,
-      "includeFiles": "src/**"
-    },
-    "api/pathogens/index.py": {
-      "maxDuration": 30,
-      "includeFiles": "src/**"
-    },
-    "api/host_proteins/index.py": {
-      "maxDuration": 30,
-      "includeFiles": "src/**"
-    },
-    "api/trafficking/index.py": {
-      "maxDuration": 30,
-      "includeFiles": "src/**"
-    },
-    "api/interactome/index.py": {
-      "maxDuration": 30,
-      "includeFiles": "src/**"
-    },
-    "api/enrichment/index.py": {
-      "maxDuration": 30,
-      "includeFiles": "src/**"
-    },
-    "api/ml_classifier/index.py": {
+    "api/index.py": {
       "maxDuration": 60,
-      "includeFiles": "src/**"
-    },
-    "api/ml_dimred/index.py": {
-      "maxDuration": 60,
-      "includeFiles": "src/**"
-    },
-    "api/ml_phylogenetics/index.py": {
-      "maxDuration": 60,
-      "includeFiles": "src/**"
-    },
-    "api/stats_search/index.py": {
-      "maxDuration": 30,
       "includeFiles": "src/**"
     }
   }

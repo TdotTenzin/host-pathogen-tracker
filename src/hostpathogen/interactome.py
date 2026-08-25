@@ -10,7 +10,6 @@ that are targeted by many different pathogens.
 """
 
 import networkx as nx
-import matplotlib.pyplot as plt
 
 from hostpathogen.data.loader import to_df
 
@@ -131,51 +130,3 @@ def network_stats(G: nx.Graph) -> dict:
         "total_interactions": G.number_of_edges(),
         "density": nx.density(G),
     }
-
-
-def plot_network(
-    G: nx.Graph,
-    highlight_pathogen: str | None = None,
-    figsize: tuple[int, int] = (10, 8),
-) -> plt.Figure:
-    """
-    Draw the interaction network.
-
-    If highlight_pathogen is given, colour that pathogen's effectors
-    differently so they stand out.
-    """
-    fig, ax = plt.subplots(figsize=figsize)
-
-    # Determine colours by node type
-    node_colours = []
-    for n, attr in G.nodes(data=True):
-        if attr.get("type") == "host_protein":
-            node_colours.append("#6366f1")  # indigo
-        elif attr.get("type") == "effector":
-            if highlight_pathogen and attr.get("pathogen") == highlight_pathogen:
-                node_colours.append("#ef4444")  # red — highlighted
-            else:
-                node_colours.append("#94a3b8")  # slate grey
-
-    # Layout
-    pos = nx.spring_layout(G, k=0.5, seed=42)
-
-    nx.draw(
-        G, pos, ax=ax,
-        node_color=node_colours,
-        node_size=800,
-        with_labels=True,
-        labels={n: n.replace("E:", "").replace("H:", "") for n in G.nodes()},
-        font_size=8,
-        edge_color="#cbd5e1",
-        style="solid",
-        width=0.8,
-    )
-
-    ax.set_title(
-        f"Host-Pathogen Interactome"
-        + (f"  (highlighted: {highlight_pathogen})" if highlight_pathogen else ""),
-        fontsize=12,
-    )
-    ax.axis("off")
-    return fig

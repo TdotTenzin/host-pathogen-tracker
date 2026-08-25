@@ -1,8 +1,8 @@
 """
 main.py — Local development server.
 
-Imports all route handlers from split modules and registers them on a single app.
-Vercel uses the individual function files directly via vercel.json rewrites.
+Imports the unified app from api/index.py and adds static file serving.
+Vercel uses api/index.py directly via vercel.json rewrites.
 """
 
 from pathlib import Path
@@ -10,78 +10,12 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-# Import all route handlers from split modules (new directory structure)
-from api.health.index import health
-from api.pathogens.index import (
-    list_pathogens,
-    get_pathogen,
-    pathogen_effectors,
-    list_effectors,
-)
-from api.host_proteins.index import list_host_proteins, get_host_protein
-from api.trafficking.index import list_stages, predict_stage, predict_trajectory
-from api.interactome.index import get_hubs, get_network_stats, get_pathogen_subgraph
-from api.enrichment.index import pathogen_enrichment, custom_enrichment
-from api.ml_classifier.index import (
-    predict_strategy,
-    get_feature_matrix,
-    compare_models,
-    cross_validate_rf_endpoint,
-    grid_search,
-)
-from api.ml_dimred.index import run_pca, run_umap, pathogen_pca
-from api.ml_phylogenetics.index import effector_phylogeny
-from api.stats_search.index import database_stats, search, bootstrap
+from api.index import app  # noqa: F401 — re-export for uvicorn
 
 BASE = Path(__file__).resolve().parent
-
-app = FastAPI(
-    title="Host-Pathogen Omics Explorer API",
-    version="0.3.0",
-    description="REST API for host-pathogen interaction analysis.",
-)
-
-# Register all routes
-app.add_api_route("/api/health", health, methods=["GET"])
-
-app.add_api_route("/api/pathogens", list_pathogens, methods=["GET"])
-app.add_api_route("/api/pathogens/{name}", get_pathogen, methods=["GET"])
-app.add_api_route("/api/pathogens/{name}/effectors", pathogen_effectors, methods=["GET"])
-app.add_api_route("/api/effectors", list_effectors, methods=["GET"])
-
-app.add_api_route("/api/host-proteins", list_host_proteins, methods=["GET"])
-app.add_api_route("/api/host-proteins/{name}", get_host_protein, methods=["GET"])
-
-app.add_api_route("/api/trafficking/stages", list_stages, methods=["GET"])
-app.add_api_route("/api/trafficking/predict-stage", predict_stage, methods=["POST"])
-app.add_api_route("/api/trafficking/trajectory", predict_trajectory, methods=["POST"])
-
-app.add_api_route("/api/interactome/hubs", get_hubs, methods=["GET"])
-app.add_api_route("/api/interactome/stats", get_network_stats, methods=["GET"])
-app.add_api_route("/api/interactome/pathogen/{name}", get_pathogen_subgraph, methods=["GET"])
-
-app.add_api_route("/api/enrichment/pathogen/{name}", pathogen_enrichment, methods=["GET"])
-app.add_api_route("/api/enrichment/overrepresentation", custom_enrichment, methods=["POST"])
-
-app.add_api_route("/api/ml/predict/{pathogen_name}", predict_strategy, methods=["GET"])
-app.add_api_route("/api/ml/features", get_feature_matrix, methods=["GET"])
-app.add_api_route("/api/ml/compare-classifiers", compare_models, methods=["GET"])
-app.add_api_route("/api/ml/cross-validate", cross_validate_rf_endpoint, methods=["GET"])
-app.add_api_route("/api/ml/grid-search", grid_search, methods=["GET"])
-
-app.add_api_route("/api/ml/pca", run_pca, methods=["GET"])
-app.add_api_route("/api/ml/umap", run_umap, methods=["GET"])
-app.add_api_route("/api/ml/pathogen-pca", pathogen_pca, methods=["GET"])
-
-app.add_api_route("/api/ml/phylogeny", effector_phylogeny, methods=["GET"])
-
-app.add_api_route("/api/stats", database_stats, methods=["GET"])
-app.add_api_route("/api/search", search, methods=["GET"])
-app.add_api_route("/api/bootstrap", bootstrap, methods=["GET"])
 
 # Static file mounts — for local dev only (Vercel's CDN handles these in production)
 app.mount("/css", StaticFiles(directory=str(BASE / "css")), name="css")
@@ -213,4 +147,4 @@ HTML_DASHBOARD = """<!DOCTYPE html>
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("api.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

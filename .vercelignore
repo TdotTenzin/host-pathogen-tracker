@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+tests/
+r/
+data_fragment.txt
+.vercel/
+src/hostpathogen/data/seed/
+src/hostpathogen/data/build_db.py
+src/hostpathogen/data/export_r.py
