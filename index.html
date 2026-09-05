@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
   <script>if (typeof Chart === "undefined") { document.write('<script src="js/chart.umd.min.js" defer><\/script>'); }</script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
 </head>
 <body>
 
@@ -23,7 +24,9 @@
         <li><a href="#all-pathogens" onclick="closeMobileNav()">Articles</a></li>
         <li><a href="#timeline" onclick="closeMobileNav()">Timeline</a></li>
         <li><a href="#microscopy" onclick="closeMobileNav()">Microscopy</a></li>
-        <li><a href="#inspiration" onclick="closeMobileNav()">Research</a></li>
+        <li><a href="#interactome" onclick="closeMobileNav()">Network</a></li>
+        <li><a href="#ml-analysis" onclick="closeMobileNav()">ML</a></li>
+        <li><a href="#phylogeny" onclick="closeMobileNav()">Phylogeny</a></li>
         <li><a href="#toolkit" onclick="closeMobileNav()">Tools</a></li>
       </ul>
       <button class="dark-toggle" id="dark-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode" title="Toggle dark mode">&#9790;</button>
@@ -565,6 +568,107 @@
       </div>
     </section>
 
+    <section class="section" id="interactome">
+      <div class="container">
+        <p class="section-label">Interactome Analysis</p>
+        <h2 class="section-title">Host–Pathogen Interaction Network</h2>
+        <p class="section-subtitle">
+          Force-directed view of how a pathogen's effector repertoire targets host proteins.
+          Select a pathogen to see <strong>effectors</strong> (colored) connecting to the
+          <strong>host proteins</strong> (blue) they manipulate. Hover to highlight a node's
+          connections and drag nodes to rearrange the layout.
+        </p>
+
+        <div class="interactome-controls">
+          <label class="tool-select-label" for="interactome-select">Pathogen</label>
+          <select id="interactome-select" class="tool-select" onchange="loadNetworkGraph(this.value)">
+            <option value="">— Select a pathogen —</option>
+          </select>
+        </div>
+
+        <div id="select-pathogen-hint" class="interactome-hint">
+          Select a pathogen above to visualize its interaction network.
+        </div>
+
+        <div class="chart-container interactome-graph-container">
+          <div id="interactome-graph" class="interactome-graph"></div>
+        </div>
+
+        <p class="chart-caption">
+          Each edge represents an effector–host protein interaction. Effectors are colored
+          by the selected pathogen; hovering a node dims unrelated connections. Network is
+          derived from the curated effector dataset and works fully offline.
+        </p>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="ml-analysis">
+      <div class="container">
+        <p class="section-label">Machine Learning</p>
+        <h2 class="section-title">Predicting Evasion Strategy by Machine Learning</h2>
+        <p class="section-subtitle">
+          A Random Forest classifier predicts a pathogen's immune-evasion strategy from its
+          effector repertoire (~54 samples, 5 classes). Visualize the feature space with PCA
+          and compare classifier performance under cross-validation.
+        </p>
+
+        <div class="interactome-controls">
+          <button class="tool-btn" id="ml-run-btn" onclick="runMlAnalysis()">Run Analysis</button>
+          <span class="ml-status" id="ml-status"></span>
+        </div>
+
+        <div class="ml-plot-grid">
+          <div class="ml-plot-cell">
+            <h3 class="chart-heading">PCA of Effector Features</h3>
+            <div class="chart-container chart-container-md">
+              <canvas id="ml-pca-chart"></canvas>
+            </div>
+          </div>
+          <div class="ml-plot-cell">
+            <h3 class="chart-heading">UMAP Embedding</h3>
+            <div class="chart-container chart-container-md">
+              <canvas id="ml-umap-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-section">
+          <h3 class="chart-heading">Classifier Comparison (5-fold CV)</h3>
+          <div class="chart-container chart-container-sm">
+            <canvas id="ml-classifier-chart"></canvas>
+          </div>
+          <p class="chart-caption">Cross-validated mean accuracy ± standard deviation across four classifiers on the effector feature matrix.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="phylogeny">
+      <div class="container">
+        <p class="section-label">Phylogenetics</p>
+        <h2 class="section-title">Effector Protein Phylogeny</h2>
+        <p class="section-subtitle">
+          A Neighbour-Joining tree built from effector protein sequences (BLOSUM62 distances),
+          colored by pathogen of origin. This reconstructs how effector repertoires relate
+          evolutionarily across host–pathogen systems.
+        </p>
+
+        <div class="interactome-controls">
+          <button class="tool-btn" id="phylogeny-run-btn" onclick="loadPhylogeny()">Build Tree</button>
+          <span class="ml-status" id="phylogeny-status"></span>
+        </div>
+
+        <div class="chart-container phylogeny-container">
+          <div id="phylogeny-tree" class="phylogeny-tree"></div>
+        </div>
+
+        <p class="chart-caption">
+          Leaf labels show effector·pathogen; colors follow the pathogen legend. Branch labels
+          are inferred evolutionary distances. If the live API is unavailable, a pre-computed
+          tree is shown instead.
+        </p>
+      </div>
+    </section>
+
     <section class="section section-alt" id="toolkit">
       <div class="container">
         <p class="section-label">Bioinformatics Toolkit</p>
@@ -678,5 +782,8 @@
   <script src="js/data-loader.js"></script>
   <script src="js/script.js"></script>
   <script src="js/charts.js"></script>
+  <script src="js/network.js"></script>
+  <script src="js/ml-plots.js"></script>
+  <script src="js/phylogeny.js"></script>
 </body>
 </html>

@@ -1,5 +1,12 @@
 """Export the SQLite DB to a JSON file for frontend fallback."""
-import sqlite3, json, os
+import sqlite3, json, os, sys, pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+from hostpathogen.ml.dimred import pathogen_feature_pca  # noqa: E402
+from hostpathogen.ml.classifier import compare_classifiers  # noqa: E402
+from hostpathogen.ml.phylogenetics import build_phylogenetic_tree  # noqa: E402
 
 DB = os.path.join(os.path.dirname(__file__), '..', 'src', 'hostpathogen', 'data', 'hostpathogen.db')
 OUT = os.path.join(os.path.dirname(__file__), '..', 'data', 'fallback.json')
@@ -110,6 +117,24 @@ for p in pathogens:
             'confidence': 0.35
         })
 
+# Optional: PCA projection, classifier comparison, and phylogenetic tree.
+# These are computed from the live modules; if any fails, fall back to {} so
+# the offline frontend can degrade gracefully.
+try:
+    pca_data = pathogen_feature_pca()
+except Exception:
+    pca_data = {}
+
+try:
+    classifier_comparison = compare_classifiers()
+except Exception:
+    classifier_comparison = {}
+
+try:
+    phylogeny = build_phylogenetic_tree()
+except Exception:
+    phylogeny = {}
+
 data = {
     'pathogens': pathogens,
     'effectors': effectors,
@@ -119,12 +144,24 @@ data = {
     'stage_marker_names': marker_names,
     'hubs': hubs,
     'pathogen_actions': pathogen_actions,
-    'ml_predictions': ml_preds
+    'ml_predictions': ml_preds,
+    'ml_pca': pca_data,
+    'classifier_comparison': classifier_comparison,
+    'phylogeny': phylogeny
 }
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 with open(OUT, 'w', encoding='utf-8') as f:
     json.dump(data, f, indent=2, ensure_ascii=False)
 
-print(f"Wrote {OUT}  ({len(pathogens)} pathogens, {len(effectors)} effectors, {len(host_proteins)} host proteins, {len(hubs)} hubs, {len(pathogen_actions)} actions, {len(ml_preds)} predictions)")
+# Also embed the same payload as a JS file so the site works when opened
+# directly via file:// (no fetch possible on file scheme).
+JS_OUT = os.path.join(os.path.dirname(__file__), '..', 'js', 'data.js')
+with open(JS_OUT, 'w', encoding='utf-8') as f:
+    f.write('var TOOLKIT_DATA = ')
+    json.dump(data, f, indent=2, ensure_ascii=False)
+    f.write(';\n')
+
+print(f"Wrote {OUT}  ({len(pathogens)} pathogens, {len(effectors)} effectors, {len(host_proteins)} host proteins, {len(hubs)} hubs, {len(pathogen_actions)} actions, {len(ml_preds)} predictions, pca={'yes' if pca_data else 'no'}, phylogeny={'yes' if phylogeny else 'no'})")
+print(f"Wrote {JS_OUT} (embedded TOOLKIT_DATA for file:// support)")
 conn.close()

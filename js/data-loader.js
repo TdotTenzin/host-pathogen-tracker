@@ -1,5 +1,11 @@
 (function() {
   function fetchJSON(url) {
+    // When opened directly as a local file (file://), fetch is not supported
+    // and nothing will ever resolve — short-circuit so the embedded data in
+    // js/data.js is used without noisy console errors.
+    if (typeof window !== "undefined" && window.location.protocol === "file:") {
+      return Promise.reject(new Error("file:// mode uses embedded data"));
+    }
     return fetch(url).then(function(r) {
       if (!r.ok) throw new Error(url + " returned " + r.status);
       return r.json();
@@ -41,6 +47,10 @@
   }
 
   function loadFallbackJSON() {
+    if (typeof window !== "undefined" && window.location.protocol === "file:") {
+      // file:// cannot fetch — embedded TOOLKIT_DATA in js/data.js is already complete.
+      return Promise.resolve(null);
+    }
     return fetch("data/fallback.json")
       .then(function(r) { if (!r.ok) throw new Error("fallback.json unavailable"); return r.json(); })
       .catch(function() { return null; });
@@ -57,6 +67,9 @@
     if (fb.stage_marker_names) TOOLKIT_DATA.stage_marker_names = fb.stage_marker_names;
     if (fb.pathogen_actions) TOOLKIT_DATA.pathogen_actions = fb.pathogen_actions;
     if (fb.ml_predictions) TOOLKIT_DATA.ml_predictions = fb.ml_predictions;
+    if (fb.ml_pca) TOOLKIT_DATA.ml_pca = fb.ml_pca;
+    if (fb.classifier_comparison) TOOLKIT_DATA.classifier_comparison = fb.classifier_comparison;
+    if (fb.phylogeny) TOOLKIT_DATA.phylogeny = fb.phylogeny;
   }
 
   function loadLiveData() {

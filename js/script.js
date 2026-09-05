@@ -61,7 +61,7 @@ function handleDeepLink() {
       var cardId = cards[i].id;
       setTimeout(function() {
         toggleAPCard(cardId, name);
-        cards[i].scrollIntoView({ behavior: "smooth", block: "center" });
+        cards[i].scrollIntoView({ block: "center" });
       }, 600);
       break;
     }
@@ -253,7 +253,7 @@ function activateStage(index) {
   detail.classList.add('visible');
 
   setTimeout(function() {
-    detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    detail.scrollIntoView({ block: 'nearest' });
   }, 80);
 }
 
@@ -796,3 +796,5 @@ initToolkit = function() {
 };
 
 // Init is now triggered by data-loader.js after API data is fetched
+
+

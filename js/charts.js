@@ -192,7 +192,7 @@ function renderEffectorChart(rawData) {
             sel.value = name;
             if (typeof loadPathogenEffectors === "function") loadPathogenEffectors();
             var tk = document.getElementById("toolkit");
-            if (tk) tk.scrollIntoView({ behavior: "smooth" });
+            if (tk) tk.scrollIntoView();
           }
         }
       }
