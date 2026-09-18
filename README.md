@@ -1,8 +1,10 @@
 # Host–Pathogen Trafficking Hub
 
-An educational hub on phagosome maturation and how pathogens subvert it, built
-around one curated SQLite dataset (~54 pathogens, ~250 effectors, ~72 host
-proteins) surfaced through four layers:
+A bioinformatics toolkit for molecular cell biology and host–pathogen
+interactions: one curated SQLite dataset (~54 pathogens, ~250 effectors,
+~72 host proteins) plus a bring-your-own-data (My Data) pipeline for
+analysing your own pathogen profiles, effectors, or numeric matrices.
+Surfaced through four layers:
 
 | Layer | Location | Runs on |
 |---|---|---|
@@ -19,6 +21,12 @@ proteins) surfaced through four layers:
 python -m http.server 8000   # then visit http://localhost:8000
 ```
 
+The frontend is fully offline-capable (embeds `data/fallback.json`). The
+All Pathogens grid, Network, and ML sections render the curated 54 by
+default and switch to your imported data when you load a dataset in
+**My Data** (CSV/TSV/JSON or pasted text). Basic stats, PCA, clustering,
+OLS, and network analysis run client-side; ML/UMAP fall back to the API.
+
 **Full stack (API + frontend)** — either:
 
 ```
@@ -29,7 +37,7 @@ or:
 
 ```
 pip install -r requirements.txt
-uvicorn api.main:app --reload    # http://localhost:8000
+uvicorn main:app --reload    # http://localhost:8000
 ```
 
 The FastAPI app serves the static site itself in local/Docker mode; on Vercel
@@ -70,7 +78,7 @@ src/hostpathogen/
   data/         loader, build_db, export_r + committed SQLite DB
   ml/           classifier, dimred (PCA/UMAP), phylogenetics
   trafficking.py, interactome.py, enrichment.py
-js/             Frontend logic (charts, offline toolkit, data loader)
+js/             Frontend logic (charts, offline toolkit, data loader, My Data imports)
 notebooks/      Jupyter walkthroughs (SQL, interactome, ML)
 r/              R analyses + generated chart data
 tests/          pytest suite
@@ -81,7 +89,9 @@ scripts/        Data build/export utilities
 
 Interactive docs at `/docs` when running locally. Key endpoints:
 `/api/bootstrap`, `/api/pathogens`, `/api/effectors`,
-`/api/trafficking/predict-stage`, `/api/interactome/hubs`, `/api/ml/predict/{name}`.
+`/api/trafficking/predict-stage`, `/api/interactome/hubs`, `/api/ml/predict/{name}`,
+plus the My Data analysis endpoints `/api/mydata/pca` and
+`/api/mydata/umap` (used by the ML section on imported data).
 
 See `glossary.md` for the domain model (trafficking stages, strategies,
 marker definitions).

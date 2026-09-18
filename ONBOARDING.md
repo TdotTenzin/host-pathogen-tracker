@@ -8,7 +8,7 @@ structured, what each piece does, and how to work with it.
 
 ## 1. What This Project Is
 
-An educational resource and analysis toolkit about **phagosome maturation** and
+An analysis toolkit and educational resource about **phagosome maturation** and
 how intracellular pathogens subvert it. It covers ~54 pathogens, ~250 effector
 proteins, and ~72 host proteins, organised around five evasion strategies:
 
@@ -20,7 +20,13 @@ proteins, and ~72 host proteins, organised around five evasion strategies:
 | **Reroute** | Redirects vesicular traffic to build a different compartment | *Legionella pneumophila* (LCV) |
 | **Extracellular** | Resists phagocytosis entirely | *Yersinia pestis* |
 
-The project surfaces this data through four layers: a static website, a REST
+Beyond the curated 54, the site is a **bioinformatics toolkit**: the **My Data**
+panel imports your own pathogens, effectors, or numeric matrices (CSV/TSV/JSON
+or pasted text) and runs stats, PCA, clustering, OLS, enrichment, and network
+analysis client-side. Importing a dataset switches the All Pathogens grid,
+Network, and ML sections to the imported data (resumable back to curated).
+
+The project surfaces its data through four layers: a static website, a REST
 API, a Python package, and R/Jupyter analyses.
 
 ---
@@ -90,8 +96,15 @@ host-pathogen-tracker/
 │   ├── charts.js               Chart.js visualisations (bar, radar, timeline)
 │   ├── network.js              D3 v7 force-directed interactome graph
 │   ├── phylogeny.js            Newick→SVG phylogenetic tree renderer
-│   ├── ml-plots.js             PCA/UMAP scatter plots
-│   └── script.js               Dark mode toggle, mobile nav, scroll helpers
+│   ├── ml-plots.js             PCA/UMAP scatter plots (curated + imported)
+│   ├── script.js               Toolkit init/rendering (All Pathogens grid,
+│   │                           source-aware re-runs), dark mode, mobile nav
+│   ├── stats.js                Client-side stats, PCA, clustering, OLS,
+│   │                           enrichment, network for My Data
+│   ├── csv-utils.js            Import schema detection + CSV/TSV normalization
+│   ├── my-data.js              My Data panel: file/paste/preset import, dataset
+│   │                           state, template downloads, localStorage cache
+│   └── chart.umd.min.js        Vendored Chart.js (offline fallback)
 │
 ├── css/style.css               Site styling (dark mode, responsive)
 ├── img/                        Pathogen icons, favicon
@@ -303,8 +316,27 @@ The frontend is a **single-page app** that works fully offline.
 | `charts.js` | Chart.js bar charts, radar plots, strategy breakdowns |
 | `network.js` | D3 v7 force-directed graph of effector→host interactions |
 | `phylogeny.js` | Parses Newick strings and renders SVG trees |
-| `ml-plots.js` | PCA and UMAP scatter plots |
-| `script.js` | Dark mode toggle, mobile nav, smooth scroll |
+| `ml-plots.js` | PCA/UMAP scatter plots (curated and imported data) |
+| `script.js` | Toolkit bootstrap (`initToolkit`) and All Pathogens grid; dark mode, mobile nav, smooth scroll |
+| `stats.js` | Client-side math for My Data: summary stats, PCA, clustering, OLS, enrichment, adjacency/network |
+| `csv-utils.js` | Detect dataset mode (host-pathogen, numeric, host-proteins) and normalize CSV/TSV/JSON rows |
+| `my-data.js` | My Data panel: file/paste/preset import, `MyDataApplyImported` wiring, template downloads, `localStorage` cache (`hphub_mydata`) |
+
+### My Data & import flow
+
+1. The user loads a dataset in **My Data**: CSVs/TSVs/JSON files, pasted text,
+   or a bundled preset. `csv-utils.js` classifies it as *effector records*,
+   *pathogen profiles* (no effector column), or a *numeric matrix*.
+2. `my-data.js` stores parsed rows in `localStorage` (`hphub_mydata`) and calls
+   `MyDataApplyImported` (defined in `script.js`), which sets the active dataset
+   for the All Pathogens grid and re-runs Network/ML sections (`refreshNetworkSection`,
+   `refreshMlSection`) through shared source getters (`_sourceList`, `_sourceEffectors`).
+3. With no import, everything renders the curated 54. An "Imported data in use"
+   banner offers a reset back to curated, and `clearMyData` restores it.
+4. Client-side analysis runs in `stats.js` (PCA via a Jacobi-style eigen solver,
+   clustering, OLS, enrichment). ML/UMAP for imported pathogen profiles call
+   `POST /api/mydata/umap` when the API is reachable; the curated ML model remains
+   available for the built-in dataset.
 
 ### External libraries (CDN with local fallback)
 
@@ -315,7 +347,7 @@ The frontend is a **single-page app** that works fully offline.
 
 ## 8. API Endpoints
 
-The FastAPI app at `api/index.py` exposes ~20 endpoints. Interactive docs at
+The FastAPI app at `api/index.py` exposes ~25 endpoints. Interactive docs at
 `/docs` when running locally.
 
 | Domain | Endpoints | What they do |
@@ -327,6 +359,7 @@ The FastAPI app at `api/index.py` exposes ~20 endpoints. Interactive docs at
 | **Interactome** | `GET /api/interactome/stats`, `GET /api/interactome/hubs`, `GET /api/interactome/pathogen/{name}` | Network stats, hub proteins, per-pathogen subgraph |
 | **Enrichment** | `GET /api/enrichment/pathogen/{name}`, `POST /api/enrichment/overrepresentation` | Pathway enrichment analysis |
 | **ML** | `GET /api/ml/predict/{name}`, `GET /api/ml/pca`, `GET /api/ml/umap`, `GET /api/ml/pathogen-pca`, `GET /api/ml/phylogeny`, `GET /api/ml/compare-classifiers`, `GET /api/ml/cross-validate`, `GET /api/ml/grid-search`, `GET /api/ml/features` | Strategy prediction, dimensionality reduction, phylogeny |
+| **My Data** | `POST /api/mydata/predict-strategy`, `POST /api/mydata/pca`, `POST /api/mydata/umap` | Stats/PCA/UMAP on uploaded matrices (used when My Data has a numeric dataset) |
 | **Stats** | `GET /api/stats`, `GET /api/search`, `GET /api/bootstrap` | Database summary, search, full data dump |
 
 The API caches the NetworkX graph and trained RandomForest model in module
@@ -418,6 +451,18 @@ dimensionality reduction, and data loader.
 3. Add effector→host_protein links to `src/hostpathogen/data/seed/effector_targets.csv`
 4. Rebuild: `python src/hostpathogen/data/build_db.py`
 5. Rebuild frontend: `python scripts/export_fallback_json.py`
+
+### Analyse your own data (My Data)
+
+1. Open the **My Data** panel on the site and either drag in a CSV/TSV/JSON,
+   paste a table, or choose a preset
+2. Host–pathogen tables need a pathogen column (e.g. `name`/`pathogen`); effectors
+   can follow with `name`, `type`, `host_target`, `mechanism`. Columns like
+   `species`, `gram_stain`, `strategy`, `description`, `reference` are detected
+   automatically (`csv-utils.js`)
+3. The All Pathogens grid, Network, and ML sections switch to the imported data
+   (banner + reset to curated); numeric datasets unlock client-side Stats and
+   PCA/UMAP in ML
 
 ### Add a new effector
 
