@@ -14,6 +14,8 @@ Optimizations:
   - Module-level feature cache to avoid repeated DB access
 """
 
+import re
+
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
@@ -94,6 +96,105 @@ def extract_features() -> tuple[pd.DataFrame, pd.Series]:
     _cached_X = X
     _cached_y = y
     return X, y
+
+
+# Feature substrings used by extract_features() — kept here so features built
+# from user-uploaded effectors mirror the training features exactly.
+_TYPE_PATTERNS = {
+    "n_t3ss": ("t3ss",),
+    "n_t4ss": ("t4ss",),
+    "n_t6ss": ("t6ss",),
+    "n_toxins": ("toxin", "ab toxin", "pore-forming", "cholesterol-dependent"),
+    "n_surface_proteins": ("surface protein", "outer membrane", "porin"),
+    "n_invasins": ("invasin", "adhesin", "autotransporter"),
+}
+
+
+def _split_targets(host_target: str) -> list[str]:
+    """Split a host_target cell like 'Rab5 / EEA1' or 'Rab5 and EEA1'."""
+    if not host_target:
+        return []
+    parts = re.split(r"\s*/\s*|\s+and\s+", host_target)
+    return [p.strip() for p in parts if p.strip() and p.strip().lower() not in ("none", "n/a")]
+
+
+def _build_host_map() -> dict[str, tuple[str | None, str | None]]:
+    """Map host protein name -> (pathway, localization) from the curated DB."""
+    df = to_df("SELECT name, pathway, localization FROM host_proteins")
+    return {
+        r["name"]: (r.get("pathway"), r.get("localization"))
+        for r in df.to_dict("records")
+    }
+
+
+def features_from_effectors(
+    effectors_df: pd.DataFrame,
+    host_map: dict[str, tuple[str | None, str | None]] | None = None,
+) -> pd.DataFrame:
+    """
+    Build the 11-column feature matrix from an arbitrary effector table.
+
+    Parameters:
+        effectors_df: DataFrame with at least a `pathogen` column and optional
+            `type`, `host_target` columns (as uploaded by the frontend).
+        host_map: optional name -> (pathway, localization) lookup. If omitted,
+            the curated host_proteins table is used to resolve n_pathways /
+            n_localizations for recognized host targets.
+
+    Returns a DataFrame indexed by pathogen name with columns exactly equal to
+    FEATURE_NAMES, so the same trained Random Forest can predict on it.
+    """
+    cols = {str(c) for c in effectors_df.columns}
+    has_type = "type" in cols
+    has_target = "host_target" in cols
+    if "pathogen" not in cols:
+        raise ValueError("effectors_df must contain a 'pathogen' column")
+
+    if host_map is None:
+        host_map = _build_host_map()
+
+    rows = []
+    by_pathogen = effectors_df["pathogen"].fillna("unknown").astype(str)
+    for name, grp in effectors_df.groupby(by_pathogen, sort=True):
+        records = grp.to_dict("records")
+
+        eff_types = [
+            (r.get("type") or "").lower() if has_type else ""
+            for r in records
+        ]
+
+        targets: set[str] = set()
+        if has_target:
+            for r in records:
+                targets.update(_split_targets(r.get("host_target") or ""))
+        n_targets = len(targets)
+
+        pathways: set[str] = set()
+        localizations: set[str] = set()
+        for t in targets:
+            pw, loc = host_map.get(t, (None, None))
+            if pw:
+                pathways.add(pw)
+            if loc:
+                localizations.add(loc)
+
+        features: dict[str, int] = {"n_effectors": len(records), "n_targets": n_targets}
+        features["n_interaction_types"] = 0  # not available in plain CSV uploads
+        for feature, patterns in _TYPE_PATTERNS.items():
+            features[feature] = sum(
+                1 for t in eff_types if any(p in t for p in patterns)
+            )
+        features["n_pathways"] = len(pathways)
+        features["n_localizations"] = len(localizations)
+
+        rows.append({"pathogen": name, **features})
+
+    out = pd.DataFrame(rows)
+    if out.empty:
+        out = pd.DataFrame(columns=["pathogen"] + FEATURE_NAMES)
+    out = out.reindex(columns=["pathogen"] + FEATURE_NAMES, fill_value=0)
+    out = out.fillna(0).astype(int)
+    return out.set_index("pathogen")
 
 
 def train_classifier(

@@ -24,8 +24,10 @@ function initMlPlots() {
   var btn = document.getElementById("ml-run-btn");
   if (btn) btn.addEventListener("click", function() { runMlAnalysis(); });
 
-  // Auto-run once data is available
-  if (TOOLKIT_DATA && (TOOLKIT_DATA.ml_pca || TOOLKIT_DATA.pca_data)) {
+  // Auto-run once data is available, honoring an active imported source.
+  if (typeof _pathogenSource === "object" && _pathogenSource && _pathogenSource.kind === "imported") {
+    renderMlImported(_pathogenSource);
+  } else if (TOOLKIT_DATA && (TOOLKIT_DATA.ml_pca || TOOLKIT_DATA.pca_data)) {
     renderMlFromFallback();
   }
 }
@@ -38,6 +40,10 @@ function _fetchJSON(url) {
 }
 
 function runMlAnalysis() {
+  if (typeof _pathogenSource === "object" && _pathogenSource && _pathogenSource.kind === "imported") {
+    renderMlImported(_pathogenSource);
+    return;
+  }
   var btn = document.getElementById("ml-run-btn");
   if (btn) { btn.disabled = true; btn.textContent = "Analyzing…"; }
 
@@ -83,6 +89,112 @@ function renderMlFromFallback() {
             TOOLKIT_DATA.ml_pca.samples.length : "") + "-pathogen dataset.</p>";
       }
     }
+  }
+}
+
+function _setChartEmpty(canvas, msg) {
+  if (!canvas) return;
+  var container = canvas.closest(".chart-container");
+  if (container && typeof Chart !== "undefined" && !Chart.getChart(canvas)) {
+    container.innerHTML = "<p class='network-empty'>" + msg + "</p>";
+  }
+}
+
+function _effectorFeatureMatrix(src) {
+  if (typeof window.buildMyEffectorFeatures !== "function") return null;
+  return window.buildMyEffectorFeatures({ pathogens: src.pathogens || [], effectors: src.effectors || [] });
+}
+
+/* Re-render the ML section when the pathogen source (curated vs imported)
+   changes. Imported datasets get a client-side PCA of their own effector
+   features; UMAP comes from the live API when reachable; classifier
+   comparison is curated-training-only and explained as such. */
+function refreshMlSection() {
+  var imported = (typeof _pathogenSource === "object" && _pathogenSource && _pathogenSource.kind === "imported");
+  if (!imported) { renderMlFromFallback(); return; }
+  renderMlImported(_pathogenSource);
+}
+
+function renderMlImported(src) {
+  var ft = _effectorFeatureMatrix(src);
+  var preds = src.ml_predictions || [];
+  var correct = 0;
+  preds.forEach(function (p) { if (p.predicted === p.actual) correct++; });
+
+  var status = document.getElementById("ml-status");
+  var statusMsg = preds.length
+    ? "Prediction accuracy on imported dataset: " + correct + "/" + preds.length + " correct (" + Math.round(100 * correct / preds.length) + "%)"
+    : "Imported dataset active — run ML strategy prediction in the My Data panel.";
+  if (status) status.innerHTML = statusMsg;
+
+  renderMlImportedPca(src, ft);
+  renderMlImportedUmap(src, ft);
+  renderMlImportedClassifier(preds, correct);
+}
+
+function renderMlImportedPca(src, ft) {
+  if (!ML_PCA_CANVAS || typeof Chart === "undefined") return;
+  _destroyChart(ML_PCA_CANVAS);
+  if (!ft || !ft.rows || ft.rows.length < 2) {
+    _setChartEmpty(ML_PCA_CANVAS, "Not enough imported pathogens with effector features to run PCA.");
+    return;
+  }
+  var pca = (typeof Stats !== "undefined") ? Stats.pca(ft.rows, 2) : null;
+  if (!pca) {
+    _setChartEmpty(ML_PCA_CANVAS, "PCA failed on the imported dataset.");
+    return;
+  }
+  var stratByPathogen = {};
+  (src.pathogens || []).forEach(function (p) { stratByPathogen[p.name] = p.strategy || "unknown"; });
+  var samples = ft.names.map(function (name, i) {
+    var strat = stratByPathogen[name] || "unknown";
+    return { name: name, x: pca.scores[i][0], y: pca.scores[i][1], strategy: strat };
+  });
+  renderPcaScatter({ samples: samples, explained_variance_ratio: pca.explained || [] });
+}
+
+function renderMlImportedUmap(src, ft) {
+  if (!ML_UMAP_CANVAS || typeof Chart === "undefined") return;
+  _destroyChart(ML_UMAP_CANVAS);
+  if (!ft || !ft.rows || ft.rows.length < 2) {
+    _setChartEmpty(ML_UMAP_CANVAS, "Not enough imported data for UMAP.");
+    return;
+  }
+  if (typeof window === "undefined" || window.location.protocol === "file:") {
+    _setChartEmpty(ML_UMAP_CANVAS, "UMAP is computed server-side and is unavailable offline. The PCA plot above uses the same imported dataset.");
+    return;
+  }
+  fetch("/api/mydata/umap", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ columns: ft.columns, rows: ft.rows, labels: ft.names })
+  })
+    .then(function (r) { if (!r.ok) throw new Error("/api/mydata/umap status " + r.status); return r.json(); })
+    .then(function (data) {
+      var stratByPathogen = {};
+      (src.pathogens || []).forEach(function (p) { stratByPathogen[p.name] = p.strategy || "unknown"; });
+      (data.samples || []).forEach(function (s) {
+        s.name = s.condition || "";
+        var strat = stratByPathogen[s.condition] || "unknown";
+        if (stratByPathogen[s.condition]) s.condition = strat;
+      });
+      renderUmapScatter(data);
+    })
+    .catch(function () {
+      _setChartEmpty(ML_UMAP_CANVAS, "Live API unavailable — UMAP could not be computed for the imported dataset.");
+    });
+}
+
+function renderMlImportedClassifier(preds, correct) {
+  var canvas = document.getElementById("ml-classifier-chart");
+  if (!canvas || typeof Chart === "undefined") return;
+  _destroyChart(canvas);
+  var box = canvas.closest(".chart-container");
+  if (!box) return;
+  if (preds.length) {
+    box.innerHTML = "<p class='network-empty'>Classifier cross-validation reflects the curated training set, so it is not recomputed for imported data. For this import, prediction results were <strong>" + correct + "/" + preds.length + "</strong> correct (" + Math.round(100 * correct / preds.length) + "%).</p>";
+  } else {
+    box.innerHTML = "<p class='network-empty'>Classifier comparison is trained on the curated dataset. Use <strong>Run ML</strong> in the My Data panel to get evasion-strategy predictions on your import.</p>";
   }
 }
 

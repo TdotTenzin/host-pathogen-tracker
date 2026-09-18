@@ -2,9 +2,12 @@
 Tests for the ML classifier module (evasion strategy prediction).
 """
 
+import pandas as pd
+
 from hostpathogen.ml.classifier import (
     FEATURE_NAMES,
     extract_features,
+    features_from_effectors,
     train_classifier,
     compare_classifiers,
     cross_validate_rf,
@@ -30,6 +33,43 @@ def test_extract_feature_names_present():
     """X columns should match the declared FEATURE_NAMES."""
     X, _ = extract_features()
     assert list(X.columns) == FEATURE_NAMES
+
+
+def test_features_from_effectors_shape_and_columns():
+    """features_from_effectors mirrors FEATURE_NAMES and counts correctly."""
+    df = pd.DataFrame(
+        [
+            {"pathogen": "Test Pathogen A", "type": "T3SS effector", "host_target": "Rab5 / EEA1"},
+            {"pathogen": "Test Pathogen A", "type": "Toxin", "host_target": "Rab5"},
+            {"pathogen": "Test Pathogen B", "type": "Porin", "host_target": "LAMP1"},
+        ]
+    )
+    host_map = {
+        "Rab5": ("phagosome_maturation", "vacuolar"),
+        "EEA1": ("phagosome_maturation", "vacuolar"),
+        "LAMP1": (None, "vacuolar"),
+    }
+    features = features_from_effectors(df, host_map=host_map)
+    assert list(features.columns) == FEATURE_NAMES
+    assert features.shape[0] == 2
+    assert features.loc["Test Pathogen A", "n_effectors"] == 2
+    assert features.loc["Test Pathogen A", "n_targets"] == 2
+    assert features.loc["Test Pathogen A", "n_t3ss"] == 1
+    assert features.loc["Test Pathogen A", "n_toxins"] == 1
+    assert features.loc["Test Pathogen A", "n_interaction_types"] == 0
+    assert features.loc["Test Pathogen B", "n_pathways"] == 0
+    assert features.loc["Test Pathogen B", "n_surface_proteins"] == 1
+    assert features.isna().sum().sum() == 0
+
+
+def test_features_from_effectors_tolerates_missing_columns():
+    """Effectors with no type/host_target columns still yield the 11 features."""
+    df = pd.DataFrame({"pathogen": ["X", "X", "Y"]})
+    features = features_from_effectors(df, host_map={})
+    assert list(features.columns) == FEATURE_NAMES
+    assert features.loc["X", "n_effectors"] == 2
+    assert features.loc["X", "n_targets"] == 0
+    assert features.loc["Y", "n_interaction_types"] == 0
 
 
 def test_train_classifier_returns_fitted_model():

@@ -598,10 +598,71 @@ function downloadHubsCSV() {
 
 var _allPathogensData = [];
 
+// Active pathogen source. null => curated TOOLKIT_DATA; otherwise an object
+// {kind, label, pathogens, effectors, ml_predictions} built from an import.
+var _pathogenSource = null;
+
+function _sourceList() {
+  if (_pathogenSource) return _pathogenSource.pathogens || [];
+  return TOOLKIT_DATA.pathogens || [];
+}
+
+function _sourceEffectors() {
+  if (_pathogenSource) return _pathogenSource.effectors || [];
+  return TOOLKIT_DATA.effectors || [];
+}
+
+function _sourceMlPredictions() {
+  if (_pathogenSource) {
+    if (_pathogenSource.ml_predictions) return _pathogenSource.ml_predictions;
+    return [];
+  }
+  return TOOLKIT_DATA.ml_predictions || [];
+}
+
+function _updatePathogenSourceBanner() {
+  var banner = document.getElementById("ap-source-banner");
+  if (!banner) return;
+  if (_pathogenSource) {
+    banner.style.display = "flex";
+    var text = document.getElementById("ap-source-text");
+    if (text) text.innerHTML = "Showing <b>" + _sourceList().length + "</b> pathogens from <b>" + _escapeHtml(_pathogenSource.label || "imported data") + "</b>.";
+  } else {
+    banner.style.display = "none";
+  }
+}
+
+function applyImportedPathogens(pathogens, effectors, opts) {
+  opts = opts || {};
+  if (!Array.isArray(pathogens) || !pathogens.length) return false;
+  _pathogenSource = {
+    kind: opts.kind || "imported",
+    label: opts.label || "Imported data",
+    pathogens: pathogens,
+    effectors: effectors || [],
+    ml_predictions: Array.isArray(opts.ml_predictions) ? opts.ml_predictions : null
+  };
+  _effectorMap = null;
+  renderAllPathogens();
+  _updatePathogenSourceBanner();
+  if (typeof refreshNetworkSection === "function") refreshNetworkSection();
+  if (typeof refreshMlSection === "function") refreshMlSection();
+  return true;
+}
+
+function resetCuratedPathogens() {
+  _pathogenSource = null;
+  _effectorMap = null;
+  renderAllPathogens();
+  _updatePathogenSourceBanner();
+  if (typeof refreshNetworkSection === "function") refreshNetworkSection();
+  if (typeof refreshMlSection === "function") refreshMlSection();
+}
+
 function renderAllPathogens() {
   var container = document.getElementById("all-pathogens-container");
   if (!container) return;
-  var list = TOOLKIT_DATA.pathogens || [];
+  var list = _sourceList();
   var effMap = _getEffectorMap();
   _allPathogensData = list.slice();
   _renderPathogenGrid(list, effMap, container);
@@ -632,7 +693,8 @@ function _renderPathogenGrid(list, effMap, container) {
   var fragment = document.createDocumentFragment();
   for (var i = 0; i < list.length; i++) {
     var p = list[i];
-    var nEff = effMap[p.name] || p.n_effectors || "?";
+    var nEff = effMap[p.name];
+    if (nEff === undefined) nEff = typeof p.n_effectors === "number" ? p.n_effectors : "?";
     var gramBadge = "badge-blue";
     if (p.gram_stain === "Gram-positive") gramBadge = "badge-amber";
     else if (p.gram_stain === "Acid-fast") gramBadge = "badge-acid";
@@ -692,7 +754,7 @@ function toggleAPCard(cardId, nameOrIndex) {
           if (allP[pi].name === name) { p = allP[pi]; break; }
         }
       }
-      var effs = (TOOLKIT_DATA.effectors || []).filter(function(e) { return e.pathogen_name === name; });
+      var effs = (_sourceEffectors() || []).filter(function(e) { return e.pathogen_name === name; });
       var targets = {};
       effs.forEach(function(e) {
         if (e.host_target) {
@@ -702,7 +764,7 @@ function toggleAPCard(cardId, nameOrIndex) {
       });
       var targetKeys = Object.keys(targets);
       var mlPred = null;
-      var mlAll = TOOLKIT_DATA.ml_predictions || [];
+      var mlAll = _sourceMlPredictions();
       for (var mi = 0; mi < mlAll.length; mi++) {
         if (mlAll[mi].pathogen === name) { mlPred = mlAll[mi]; break; }
       }
@@ -758,7 +820,7 @@ var _effectorMap = null;
 function _getEffectorMap() {
   if (_effectorMap) return _effectorMap;
   _effectorMap = {};
-  (TOOLKIT_DATA.effectors || []).forEach(function(e) {
+  (_sourceEffectors() || []).forEach(function(e) {
     _effectorMap[e.pathogen_name] = (_effectorMap[e.pathogen_name] || 0) + 1;
   });
   return _effectorMap;

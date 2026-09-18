@@ -125,6 +125,13 @@ HTML_DASHBOARD = """<!DOCTYPE html>
     </div>
 
     <div class="card">
+      <h2>My Data (user-uploaded)</h2>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/mydata/predict-strategy</span><span class="desc">Predict evasion strategies from an uploaded effector table</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/mydata/pca</span><span class="desc">PCA on an uploaded numeric matrix</span></div>
+      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/mydata/umap</span><span class="desc">UMAP on an uploaded numeric matrix</span></div>
+    </div>
+
+    <div class="card">
       <h2>Stats & Search</h2>
       <div class="endpoint"><span class="method get">GET</span><span class="path">/api/stats</span><span class="desc">Database summary statistics</span></div>
       <div class="endpoint"><span class="method get">GET</span><span class="path">/api/search</span><span class="desc">Search pathogens</span></div>

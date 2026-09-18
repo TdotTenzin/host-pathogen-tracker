@@ -10,9 +10,9 @@
 var _networkGraphRendered = false;
 var _networkSim = null;
 
-/* Build a {nodes, edges} graph from TOOLKIT_DATA.effectors for a pathogen */
+/* Build a {nodes, edges} graph from the active effector source for a pathogen */
 function _buildNetworkData(pathogenName) {
-  var effs = (TOOLKIT_DATA.effectors || []).filter(function(e) {
+  var effs = (_sourceEffectors() || []).filter(function(e) {
     return e.pathogen_name === pathogenName;
   });
 
@@ -58,17 +58,40 @@ function _buildNetworkData(pathogenName) {
 }
 
 function initNetworkSection() {
+  refreshNetworkSection();
+}
+
+function refreshNetworkSection() {
   var select = document.getElementById("interactome-select");
   if (!select) return;
-  var list = TOOLKIT_DATA.pathogens || [];
-  var opts = list.map(function(p) {
-    return '<option value="' + _escapeHtml(p.name) + '">' + _escapeHtml(p.name) + '</option>';
-  }).join("");
-  select.insertAdjacentHTML("beforeend", opts);
+  var prev = select.value;
+  var list = _sourceList() || [];
 
-  // Default to a famous pathogen
-  if (select.value) loadNetworkGraph(select.value);
-  else if (list.length) loadNetworkGraph(list[0].name);
+  select.innerHTML = "";
+  var empty = document.createElement("option");
+  empty.value = "";
+  empty.textContent = "— Select a pathogen —";
+  select.appendChild(empty);
+  list.forEach(function(p) {
+    var o = document.createElement("option");
+    o.value = p.name;
+    o.textContent = p.name;
+    select.appendChild(o);
+  });
+
+  var stillThere = false;
+  for (var i = 0; i < list.length; i++) { if (list[i].name === prev) { stillThere = true; break; } }
+  var target = stillThere ? prev : (list.length ? list[0].name : "");
+  select.value = target;
+
+  if (target) {
+    loadNetworkGraph(target);
+  } else {
+    var placeholder = document.getElementById("select-pathogen-hint");
+    if (placeholder) placeholder.style.display = "block";
+    var container = document.getElementById("interactome-graph");
+    if (container) container.innerHTML = "";
+  }
 }
 
 function loadNetworkGraph(pathogenName) {
@@ -76,7 +99,7 @@ function loadNetworkGraph(pathogenName) {
   if (!container) return;
 
   var placeholder = document.getElementById("select-pathogen-hint");
-  if (placeholder) placeholder.style.display = "none";
+  if (pathogenName && placeholder) placeholder.style.display = "none";
 
   var data = _buildNetworkData(pathogenName);
   container.innerHTML = "";
@@ -122,7 +145,7 @@ function drawNetwork(container, data, pathogenName) {
     .attr("d", "M0,-5L10,0L0,5")
     .attr("fill", "#94a3b8");
 
-  var pathogenIdx = (TOOLKIT_DATA.pathogens || []).findIndex(function(p) { return p.name === pathogenName; });
+  var pathogenIdx = (_sourceList() || []).findIndex(function(p) { return p.name === pathogenName; });
   var pathogenColor = _colorForPathogen(pathogenName, pathogenIdx < 0 ? 0 : pathogenIdx);
 
   var links = svg.append("g")
