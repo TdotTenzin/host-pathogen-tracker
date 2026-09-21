@@ -21,6 +21,7 @@ BASE = Path(__file__).resolve().parent
 app.mount("/css", StaticFiles(directory=str(BASE / "css")), name="css")
 app.mount("/js", StaticFiles(directory=str(BASE / "js")), name="js")
 app.mount("/img", StaticFiles(directory=str(BASE / "img")), name="img")
+app.mount("/data", StaticFiles(directory=str(BASE / "data")), name="data")
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)

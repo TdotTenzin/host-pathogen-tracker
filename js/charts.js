@@ -93,6 +93,12 @@ function _strategyOrder(strat) {
   return idx >= 0 ? idx : 999;
 }
 
+function _releaseCanvas(canvas) {
+  if (!canvas || typeof Chart === "undefined") return;
+  var existing = Chart.getChart(canvas);
+  if (existing) existing.destroy();
+}
+
 function _getGroupRanges(sortedLabels, sortMeta) {
   var ranges = [];
   var currentGroup = null;
@@ -114,6 +120,7 @@ function _getGroupRanges(sortedLabels, sortMeta) {
 function renderEffectorChart(rawData) {
   var canvas = document.getElementById("chart-effectors");
   if (!canvas) return;
+  _releaseCanvas(canvas);
 
   // Sort: group by strategy, then by count descending
   var pathogenMap = {};
@@ -276,6 +283,7 @@ function _pathogenStrategy(name) {
 function renderPhTimeline(stages, actions) {
   var canvas = document.getElementById("chart-ph-timeline");
   if (!canvas) return;
+  _releaseCanvas(canvas);
 
   var stageNames = stages.map(function(s) { return s.name; });
   var strategyKeys = ["extracellular", "escape", "arrest", "modified_compartment", "reroute"];
@@ -424,6 +432,7 @@ function renderPhTimeline(stages, actions) {
 function renderHubChart(data) {
   var canvas = document.getElementById("chart-hubs");
   if (!canvas) return;
+  _releaseCanvas(canvas);
   var top6 = data.slice(0, 6);
   var labels = top6.map(function(d) { return d.host; });
   var vals = top6.map(function(d) { return d.degree; });
@@ -467,6 +476,7 @@ function renderHubChart(data) {
 function renderStrategyChart(data) {
   var canvas = document.getElementById("chart-strategy");
   if (!canvas) return;
+  _releaseCanvas(canvas);
   var labels = data.map(function(d) { return STRATEGY_LABELS[d.strategy] || d.strategy; });
   var counts = data.map(function(d) { return d.count; });
   var colors = data.map(function(d) { return STRATEGY_COLORS[d.strategy] || "#6366f1"; });

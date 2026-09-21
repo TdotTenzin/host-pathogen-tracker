@@ -158,7 +158,14 @@
   }
 
   function init() {
-    loadLiveData().then(function() {
+    // Don't automatically load curated data - only load when user explicitly imports it
+    // Still load structural data (stages, markers) needed for toolkit functionality
+    loadFallbackJSON().then(function(fb) {
+      if (fb) {
+        if (fb.maturation_stages) TOOLKIT_DATA.maturation_stages = fb.maturation_stages;
+        if (fb.stage_markers) TOOLKIT_DATA.stage_markers = fb.stage_markers;
+        if (fb.stage_marker_names) TOOLKIT_DATA.stage_marker_names = fb.stage_marker_names;
+      }
       if (typeof initToolkit === "function") initToolkit();
       if (typeof initCharts === "function") initCharts();
       if (typeof handleDeepLink === "function") handleDeepLink();

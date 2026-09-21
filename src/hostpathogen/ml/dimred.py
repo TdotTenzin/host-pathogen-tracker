@@ -157,6 +157,11 @@ def pca_analysis(n_components: int = 2) -> dict:
     return pca_from_matrix(X, labels=labels, n_components=n_components)
 
 
+def umap_analysis(n_neighbors: int = 5, min_dist: float = 0.3) -> dict:
+    X, labels = _get_expression_matrix()
+    return umap_from_matrix(X, labels=labels, n_neighbors=n_neighbors, min_dist=min_dist)
+
+
 def pathogen_feature_pca() -> dict:
     from hostpathogen.ml.classifier import extract_features
 

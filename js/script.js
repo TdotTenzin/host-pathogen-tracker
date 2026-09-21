@@ -593,7 +593,7 @@ function downloadHubsCSV() {
 }
 
 /* ---------------------------------------------------------------------------
-   All 54 Pathogens — dynamic grid
+   Data Collection — dynamic grid
    --------------------------------------------------------------------------- */
 
 var _allPathogensData = [];
@@ -644,6 +644,7 @@ function applyImportedPathogens(pathogens, effectors, opts) {
   };
   _effectorMap = null;
   renderAllPathogens();
+  _refreshOverviewAndExplorers();
   _updatePathogenSourceBanner();
   if (typeof refreshNetworkSection === "function") refreshNetworkSection();
   if (typeof refreshMlSection === "function") refreshMlSection();
@@ -654,9 +655,138 @@ function resetCuratedPathogens() {
   _pathogenSource = null;
   _effectorMap = null;
   renderAllPathogens();
+  _refreshOverviewAndExplorers();
   _updatePathogenSourceBanner();
   if (typeof refreshNetworkSection === "function") refreshNetworkSection();
   if (typeof refreshMlSection === "function") refreshMlSection();
+}
+
+function _refreshOverviewAndExplorers() {
+  if (typeof initCharts === "function") initCharts();
+  if (typeof initProteinExplorer === "function") initProteinExplorer();
+}
+
+/* ---------------------------------------------------------------------------
+   Maturation timeline tour — builds the stage buttons consumed by
+   activateStage()/closeTimeline() from the timelineData definitions.
+   --------------------------------------------------------------------------- */
+function buildMaturationTimeline() {
+  var container = document.getElementById("maturation-timeline");
+  if (!container || !timelineData || !timelineData.length) return;
+  var times = ["Pre-contact", "t \u2248 0", "t = 5\u201315 min", "t = 20\u201360 min", "t > 1 h"];
+  container.innerHTML = timelineData.map(function (stage, i) {
+    return '<button type="button" class="timeline-stage" onclick="activateStage(' + i + ')" aria-label="Show stage: ' + _escapeHtml(stage.name) + '">' +
+      '<span class="stage-dot">' + (i + 1) + "</span>" +
+      '<span class="stage-name">' + _escapeHtml(stage.name) + "</span>" +
+      '<span class="stage-time">' + _escapeHtml(times[i] || "") + "</span>" +
+      "</button>";
+  }).join("");
+}
+
+/* ---------------------------------------------------------------------------
+   Gene & Protein Explorer — host proteome cards with pathway/localization
+   filters and effector/pathogen targeting statistics.
+   --------------------------------------------------------------------------- */
+var _protTargetMap = null;
+
+function _getProtTargetMap() {
+  if (_protTargetMap) return _protTargetMap;
+  var split = function (v) {
+    return (typeof CSVUtils !== "undefined" && CSVUtils.splitTargets)
+      ? CSVUtils.splitTargets(v)
+      : String(v || "").split(/[;/,]/).map(function (s) { return s.trim(); });
+  };
+  var map = {};
+  (TOOLKIT_DATA.effectors || []).forEach(function (e) {
+    split(e.host_target).forEach(function (t) {
+      var key = String(t).trim();
+      if (!key) return;
+      if (!map[key]) map[key] = { pathogens: {}, effectors: 0 };
+      map[key].pathogens[e.pathogen_name] = (map[key].pathogens[e.pathogen_name] || 0) + 1;
+      map[key].effectors++;
+    });
+  });
+  _protTargetMap = map;
+  return map;
+}
+
+function _resetProtCache() {
+  _protTargetMap = null;
+}
+
+function initProteinExplorer() {
+  _resetProtCache();
+  var grid = document.getElementById("proteome-grid");
+  if (!grid) return;
+  var pathwaySel = document.getElementById("prot-pathway");
+  var locSel = document.getElementById("prot-localization");
+  var proteins = TOOLKIT_DATA.host_proteins || [];
+
+  var pw = {}, locs = {};
+  proteins.forEach(function (h) {
+    var p = h.pathway || h.full_pathway || "Other";
+    if (!pw[p]) pw[p] = true;
+    var l = h.localization || "Not annotated";
+    if (!locs[l]) locs[l] = true;
+  });
+  var pwKeys = Object.keys(pw).sort();
+  var locKeys = Object.keys(locs).sort();
+
+  if (pathwaySel && (pathwaySel.options.length !== pwKeys.length + 1)) {
+    pathwaySel.innerHTML = '<option value="">All pathways</option>' + pwKeys.map(function (c) {
+      return '<option value="' + _escapeHtml(c) + '">' + _escapeHtml(c) + "</option>";
+    }).join("");
+  }
+  if (locSel && (locSel.options.length !== locKeys.length + 1)) {
+    locSel.innerHTML = '<option value="">All localizations</option>' + locKeys.map(function (c) {
+      return '<option value="' + _escapeHtml(c) + '">' + _escapeHtml(c) + "</option>";
+    }).join("");
+  }
+  filterHostProteins();
+}
+
+function filterHostProteins() {
+  var grid = document.getElementById("proteome-grid");
+  if (!grid) return;
+  var q = (document.getElementById("prot-search") ? document.getElementById("prot-search").value : "").toLowerCase();
+  var pw = document.getElementById("prot-pathway") ? document.getElementById("prot-pathway").value : "";
+  var loc = document.getElementById("prot-localization") ? document.getElementById("prot-localization").value : "";
+
+  var proteins = (TOOLKIT_DATA.host_proteins || []).filter(function (h) {
+    var hay = (h.name + " " + (h.full_name || "") + " " + (h.function || "")).toLowerCase();
+    if (q && hay.indexOf(q) === -1) return false;
+    if (pw && (h.pathway || h.full_pathway || "Other") !== pw) return false;
+    if (loc && (h.localization || "Not annotated") !== loc) return false;
+    return true;
+  });
+
+  var map = _getProtTargetMap();
+  var countEl = document.getElementById("proteome-count");
+  if (countEl) countEl.textContent = proteins.length + " host protein" + (proteins.length === 1 ? "" : "s");
+
+  grid.innerHTML = proteins.map(function (h) {
+    var t = map[h.name];
+    var eCount = t ? t.effectors : 0;
+    var pNames = t ? Object.keys(t.pathogens).sort() : [];
+    var chips = pNames.slice(0, 5).map(function (p) {
+      return '<span class="prot-pathogen-chip">' + _escapeHtml(p) + "</span>";
+    });
+    if (pNames.length > 5) chips.push('<span class="prot-pathogen-chip">+' + (pNames.length - 5) + " more</span>");
+    return '<div class="proteome-card">' +
+      "<h4>" + _escapeHtml(h.name) + "</h4>" +
+      '<div class="proteome-fullname">' + _escapeHtml(h.full_name || "") + "</div>" +
+      '<p class="proteome-function">' + _escapeHtml(h.function || "No annotation available.") + "</p>" +
+      '<div class="proteome-meta">' +
+      '<span class="prot-tag">' + _escapeHtml(h.pathway || h.full_pathway || "Other") + "</span>" +
+      '<span class="prot-tag prot-loc">' + _escapeHtml(h.localization || "Not annotated") + "</span>" +
+      "</div>" +
+      '<div class="proteome-targets">' +
+      '<span class="prot-strong">' + eCount + " effector" + (eCount === 1 ? "" : "s") + "</span>" +
+      " from " + pNames.length + " pathogen" + (pNames.length === 1 ? "" : "s") + " target this protein" +
+      '<div class="prot-pathogen-map">' + chips.join("") + "</div>" +
+      "</div>" +
+      "</div>";
+  }).join("") || "<em>No host proteins match these filters. Try clearing the search or filters.</em>";
 }
 
 function renderAllPathogens() {
@@ -855,6 +985,8 @@ var _origInitToolkit = initToolkit;
 initToolkit = function() {
   if (_origInitToolkit) _origInitToolkit();
   renderAllPathogens();
+  buildMaturationTimeline();
+  initProteinExplorer();
 };
 
 // Init is now triggered by data-loader.js after API data is fetched

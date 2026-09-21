@@ -393,6 +393,49 @@
     return { t: round4(t), df: round4(df), p: round4(twoTailedT(t, df)), mean_a: round4(ma), mean_b: round4(mb) };
   }
 
+  /* Variance (ddof = 1 by default, matching the sample standard deviation). */
+  function variance(arr, ddof) {
+    if (arr.length < 2) return 0;
+    var m = mean(arr);
+    var sse = 0;
+    for (var i = 0; i < arr.length; i++) sse += (arr[i] - m) * (arr[i] - m);
+    return sse / (arr.length - (ddof === 0 ? 0 : 1));
+  }
+
+  /* Log2 fold change of group b over group a from mean expression values. */
+  function log2FoldChange(meanA, meanB) {
+    if (meanA === null || meanB === null || isNaN(meanA) || isNaN(meanB)) return null;
+    if (meanA === 0 && meanB === 0) return 0;
+    if (meanA <= 0 || meanB <= 0) return null;
+    return Math.log2(meanB / meanA);
+  }
+
+  /* -----------------------------------------------------------------------
+     Benjamini–Hochberg false-discovery-rate adjustment.
+     Returns an array aligned with the input (null where the input was null/NaN).
+     Enforces monotonicity from the largest p onward and clamps to [0, 1].
+     ----------------------------------------------------------------------- */
+  function bhAdjust(pValues) {
+    var n = pValues.length;
+    var idx = [];
+    for (var i = 0; i < n; i++) {
+      var p = pValues[i] === null || pValues[i] === undefined ? NaN : parseFloat(pValues[i]);
+      if (!isNaN(p)) idx.push({ p: p, i: i });
+    }
+    idx.sort(function (a, b) { return a.p - b.p; });
+    var m = idx.length;
+    var adjusted = new Array(n).fill(null);
+    var previous = 1;
+    for (var k = m - 1; k >= 0; k--) {
+      var rank = k + 1;
+      var q = Math.min(idx[k].p * m / rank, 1);
+      q = Math.min(q, previous);
+      previous = q;
+      adjusted[idx[k].i] = round6(q);
+    }
+    return adjusted;
+  }
+
   // Approximate two-tailed p-value for Student's t using a continued-fraction
   // expansion of the incomplete beta function (Numerical Recipes betai).
   function betacf(a, b, x) {
@@ -543,6 +586,9 @@
     percentile: percentile,
     std: std,
     describe: describe,
+    variance: variance,
+    log2FoldChange: log2FoldChange,
+    bhAdjust: bhAdjust,
     corr: corr,
     correlationMatrix: correlationMatrix,
     pca: pca,

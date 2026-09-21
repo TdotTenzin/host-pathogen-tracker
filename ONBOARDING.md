@@ -26,6 +26,14 @@ or pasted text) and runs stats, PCA, clustering, OLS, enrichment, and network
 analysis client-side. Importing a dataset switches the All Pathogens grid,
 Network, and ML sections to the imported data (resumable back to curated).
 
+The page also ships several always-available modules built on the curated data:
+a **Dataset Overview** (effector counts, phagosome pH by stage,
+evasion-strategy distribution), an interactive **Phagosome Maturation Timeline**,
+a searchable **Gene & Protein Explorer** over the curated host proteome, and a
+**Help & Glossary** section (`js/glossary.js`). Numeric My Data imports add
+**Compare**, **Heatmap**, and **Differential Expression** tabs; host-pathogen
+imports gain a pathway **Enrichment** dot plot.
+
 The project surfaces its data through four layers: a static website, a REST
 API, a Python package, and R/Jupyter analyses.
 
@@ -93,17 +101,21 @@ host-pathogen-tracker/
 ├── js/
 │   ├── data.js                 Embedded TOOLKIT_DATA (offline-first payload)
 │   ├── data-loader.js          API fetcher with file:// fallback
-│   ├── charts.js               Chart.js visualisations (bar, radar, timeline)
+│   ├── charts.js               Chart.js visualisations (bar, radar, timeline);
+│   │                           Dataset Overview charts re-render on preset load
 │   ├── network.js              D3 v7 force-directed interactome graph
 │   ├── phylogeny.js            Newick→SVG phylogenetic tree renderer
 │   ├── ml-plots.js             PCA/UMAP scatter plots (curated + imported)
-│   ├── script.js               Toolkit init/rendering (All Pathogens grid,
-│   │                           source-aware re-runs), dark mode, mobile nav
-│   ├── stats.js                Client-side stats, PCA, clustering, OLS,
-│   │                           enrichment, network for My Data
+│   ├── script.js               Toolkit init/rendering (All Pathogens grid, Gene &
+│   │                           Protein Explorer, maturation timeline, source-aware
+│   │                           re-runs), dark mode, mobile nav
+│   ├── stats.js                Client-side stats, PCA, clustering, OLS, Welch
+│   │                           t-test, BH FDR, z-score heatmap helpers, enrichment
 │   ├── csv-utils.js            Import schema detection + CSV/TSV normalization
 │   ├── my-data.js              My Data panel: file/paste/preset import, dataset
-│   │                           state, template downloads, localStorage cache
+│   │                           state, template downloads, localStorage cache, and
+│   │                           the Compare / Heatmap / DEG / enrichment tabs
+│   ├── glossary.js             Help & Glossary section (quick-start, FAQ, searchable terms)
 │   └── chart.umd.min.js        Vendored Chart.js (offline fallback)
 │
 ├── css/style.css               Site styling (dark mode, responsive)
@@ -312,15 +324,16 @@ The frontend is a **single-page app** that works fully offline.
 | File | What it does |
 |---|---|
 | `data.js` | `TOOLKIT_DATA` — the embedded offline dataset |
-| `data-loader.js` | API fetcher with `file://` fallback |
-| `charts.js` | Chart.js bar charts, radar plots, strategy breakdowns |
+| `data-loader.js` | API fetcher with `file://` fallback (also loads `data/fallback.json`) |
+| `charts.js` | Chart.js bar charts, radar plots, strategy breakdowns, Dataset Overview charts; destroys stale instances before re-rendering on preset reload |
 | `network.js` | D3 v7 force-directed graph of effector→host interactions |
 | `phylogeny.js` | Parses Newick strings and renders SVG trees |
 | `ml-plots.js` | PCA/UMAP scatter plots (curated and imported data) |
-| `script.js` | Toolkit bootstrap (`initToolkit`) and All Pathogens grid; dark mode, mobile nav, smooth scroll |
-| `stats.js` | Client-side math for My Data: summary stats, PCA, clustering, OLS, enrichment, adjacency/network |
+| `script.js` | Toolkit bootstrap (`initToolkit`) and All Pathogens grid, Gene & Protein Explorer, maturation timeline; dark mode, mobile nav, smooth scroll |
+| `stats.js` | Client-side math for My Data: summary stats, PCA, clustering, OLS, Welch t-test, Benjamini–Hochberg FDR (`bhAdjust`), z-score helpers, enrichment, adjacency/network |
 | `csv-utils.js` | Detect dataset mode (host-pathogen, numeric, host-proteins) and normalize CSV/TSV/JSON rows |
-| `my-data.js` | My Data panel: file/paste/preset import, `MyDataApplyImported` wiring, template downloads, `localStorage` cache (`hphub_mydata`) |
+| `my-data.js` | My Data panel: file/paste/preset import, `MyDataApplyImported` wiring, template downloads, `localStorage` cache (`hphub_mydata`), and the numeric Compare / Heatmap / Differential Expression tabs plus the host-pathogen enrichment dot plot |
+| `glossary.js` | Help & Glossary section: quick-start steps, FAQ, searchable glossary rendered into `#help-content` |
 
 ### My Data & import flow
 
@@ -337,6 +350,14 @@ The frontend is a **single-page app** that works fully offline.
    clustering, OLS, enrichment). ML/UMAP for imported pathogen profiles call
    `POST /api/mydata/umap` when the API is reachable; the curated ML model remains
    available for the built-in dataset.
+5. Imported datasets open a tabbed panel. Host-pathogen data gets Overview,
+   Effectors, Network, Hubs, Stage Map, Enrichment (hypergeometric + Bonferroni,
+   with a gene-ratio dot plot), Strategy (ML), and Effector PCA tabs. Numeric
+   data gets Overview, Statistics, Correlation, PCA, Clusters, Regression,
+   Histograms, Compare (two-sample Welch t-test with box plots), Heatmap
+   (per-row z-scores), and Differential Expression (log2-fold change + BH FDR,
+   volcano and MA plots, top-gene heatmap) tabs. Load the bundled presets to see
+   every tab populated.
 
 ### External libraries (CDN with local fallback)
 
@@ -461,8 +482,11 @@ dimensionality reduction, and data loader.
    `species`, `gram_stain`, `strategy`, `description`, `reference` are detected
    automatically (`csv-utils.js`)
 3. The All Pathogens grid, Network, and ML sections switch to the imported data
-   (banner + reset to curated); numeric datasets unlock client-side Stats and
-   PCA/UMAP in ML
+   (banner + reset to curated); a tabbed panel runs per-mode analyses. Numeric
+   datasets unlock Statistics, Correlation, PCA, Clusters, Regression, Histograms,
+   Compare (t-test), Heatmap (z-scores), and Differential Expression tabs;
+   host-pathogen datasets unlock Network, Hubs, Stage Map, Enrichment, Strategy,
+   and Effector PCA tabs.
 
 ### Add a new effector
 

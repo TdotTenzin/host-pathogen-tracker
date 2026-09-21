@@ -22,6 +22,14 @@
     activeTab: "overview"
   };
 
+  /* ------------------------------------------------------------ section gating */
+  function _setContentVisible(visible) {
+    var els = document.querySelectorAll(".data-gated");
+    for (var i = 0; i < els.length; i++) els[i].style.display = visible ? "" : "none";
+    var navLinks = document.querySelectorAll(".nav-data");
+    for (var j = 0; j < navLinks.length; j++) navLinks[j].style.display = visible ? "" : "none";
+  }
+
   /* ------------------------------------------------------------------ init */
   function initMyData() {
     var fileInput = document.getElementById("mydata-file");
@@ -44,6 +52,9 @@
       if (MyData.state.mode === "hostpathogen") {
         MyDataApplyImported(MyData.state);
       }
+      _setContentVisible(true);
+    } else {
+      _setContentVisible(false);
     }
   }
 
@@ -64,6 +75,7 @@
     try { localStorage.setItem(STATE_KEY, JSON.stringify(dataset)); } catch (e) { /* storage may be unavailable */ }
     renderMyData();
     if (dataset.mode === "hostpathogen") MyDataApplyImported(dataset);
+    _setContentVisible(true);
   }
 
   function clearMyData() {
@@ -81,6 +93,7 @@
     var fileInput = document.getElementById("mydata-file");
     if (fileInput) fileInput.value = "";
     if (typeof resetCuratedPathogens === "function") resetCuratedPathogens();
+    _setContentVisible(false);
   }
 
   /* ------------------------------------------------------------- presets */
@@ -261,7 +274,11 @@
     html += "</tr></thead><tbody>";
     rows.forEach(function (r) {
       html += "<tr>";
-      r.forEach(function (c) { html += "<td>" + (c === null || c === undefined ? "—" : _escapeHtml(String(c))) + "</td>"; });
+      r.forEach(function (c) {
+        var cell = (c !== null && c !== undefined && typeof c === "object" && c.raw) ? c.raw
+          : (c === null || c === undefined ? "—" : _escapeHtml(String(c)));
+        html += "<td>" + cell + "</td>";
+      });
       html += "</tr>";
     });
     html += "</tbody></table>";
@@ -298,7 +315,10 @@
       { id: "pca", label: "PCA" },
       { id: "clusters", label: "Clusters" },
       { id: "regression", label: "Regression" },
-      { id: "histograms", label: "Histograms" }
+      { id: "histograms", label: "Histograms" },
+      { id: "compare", label: "Compare" },
+      { id: "heatmap", label: "Heatmap" },
+      { id: "deg", label: "Differential Expression" }
     ]
   };
 
@@ -669,10 +689,56 @@
     }
     el.innerHTML =
       '<h3 class="chart-heading">Pathway enrichment of targeted host proteins</h3>'
-      + "<p class=\"text-muted\">Hypergeometric over-representation test (Fisher’s exact) with Bonferroni correction against the curated host-protein pathway database.</p>"
+      + "<p class=\"text-muted\">Hypergeometric over-representation test (Fisher’s exact) with Bonferroni correction against the curated host-protein pathway database. Bubble size = number of hits; colour = −log10(adjusted p-value).</p>"
+      + '<div class="chart-container chart-container-md mb-12"><canvas id="my-enrich-dotplot"></canvas></div>'
       + _htmlTable(["Pathway", "Overlap", "p-value", "p-adj", "Members hit"], results.slice(0, 20).map(function (r) {
         return [r.pathway, r.ratio, r.p_value.toFixed(4), r.p_adjusted.toFixed(4), r.members_hit.join(", ")];
       }));
+    renderEnrichmentDotPlot(results);
+  }
+
+  function renderEnrichmentDotPlot(results) {
+    var canvas = document.getElementById("my-enrich-dotplot");
+    if (!canvas || typeof Chart === "undefined") return;
+    _destroyChart(canvas);
+    var top = results.slice(0, 15).reverse();
+    var labels = top.map(function (r) { return r.pathway; });
+    var data = top.map(function (r) {
+      var parts = String(r.ratio).split("/");
+      var k = parseInt(parts[0], 10) || 0;
+      var K = parseInt(parts[1], 10) || 1;
+      var nlogp = -Math.log10(Math.max(r.p_adjusted, 1e-12));
+      return { x: k / K, y: r.pathway, r: Math.max(5, Math.min(24, 5 + k * 3.5)), hit: k, K: K, p: r.p_value, padj: r.p_adjusted, nlogp: nlogp };
+    });
+    new Chart(canvas, {
+      type: "bubble",
+      data: {
+        labels: labels,
+        datasets: [{ data: data, backgroundColor: data.map(function (d) { return _dotColor(d.nlogp); }), borderColor: data.map(function (d) { return _dotColor(d.nlogp).replace(/0\.75\)/, "1)"); }), borderWidth: 1 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: function (ctx) {
+            var d = ctx.raw;
+            return " " + d.hit + "/" + d.K + " hits · p = " + d.p.toExponential(2) + " · p-adj = " + d.padj.toExponential(2);
+          } } }
+        },
+        scales: {
+          x: { title: { display: true, text: "Gene ratio (hits / pathway size)", color: "#64748b", font: { size: 12 } }, beginAtZero: true, max: 1, ticks: { stepSize: 0.25 } },
+          y: { type: "category", labels: labels, grid: { display: false }, ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+  }
+
+  function _dotColor(nlogp) {
+    var t = Math.min(Math.max((nlogp - 0.5) / 4, 0), 1);
+    var r = Math.round(37 + (239 - 37) * t);
+    var g = Math.round(99 + (68 - 99) * t);
+    var b = Math.round(235 + (68 - 235) * t);
+    return "rgba(" + r + "," + g + "," + b + ",0.75)";
   }
 
   function buildPathwayDb() {
@@ -870,7 +936,7 @@
   }
 
   function rowNumeric(state, r, cols) {
-    return cols.map(function (c) { return parseFloat(state.rows[r][c]) || 0; });
+    return cols.map(function (c) { return parseFloat(r[state.columns.indexOf(c)]) || 0; });
   }
 
   function missingCells(state) {
@@ -892,6 +958,9 @@
     if (id === "clusters") return renderNumericClusters();
     if (id === "regression") return renderNumericRegression();
     if (id === "histograms") return renderNumericHistograms();
+    if (id === "compare") return renderNumericCompare();
+    if (id === "heatmap") return renderNumericHeatmap();
+    if (id === "deg") return renderNumericDeg();
     renderMyOverview();
   }
 
@@ -1186,6 +1255,473 @@
     });
   }
 
+  /* ------------------------------------------------- shared group helpers */
+  function _groupColumnCandidates(state) {
+    var out = [];
+    categoricalColumns(state).forEach(function (c) {
+      var counts = {};
+      state.rows.forEach(function (r) {
+        var v = String(r[state.columns.indexOf(c)]).trim();
+        if (!v) return;
+        counts[v] = (counts[v] || 0) + 1;
+      });
+      var names = Object.keys(counts);
+      if (names.length === 2 && counts[names[0]] >= 2 && counts[names[1]] >= 2) out.push(c);
+    });
+    return out;
+  }
+
+  function _rowsForGroup(state, gCol, groupName) {
+    var input = null;
+    return state.rows.filter(function (r) {
+      var v = String(r[state.columns.indexOf(gCol)]).trim();
+      return v === groupName;
+    });
+  }
+
+  /* -------------------------------------------- MODE B: Compare (t-test) */
+  function renderNumericCompare() {
+    var state = MyData.state;
+    var el = document.getElementById("mydata-content");
+    if (!state) return;
+    var cols = numericColumns(state);
+    var groups = _groupColumnCandidates(state);
+    if (!cols.length || !groups.length) {
+      el.innerHTML = "<em>The Compare tool needs at least one numeric column and one categorical column with exactly two groups (each with ≥ 2 rows) — e.g. 'condition' with 'infected' vs 'control'.</em>";
+      return;
+    }
+    var optsCols = cols.map(function (c) { return '<option value="' + _escapeHtml(c) + '">' + _escapeHtml(c) + "</option>"; }).join("");
+    var optsGroups = groups.map(function (c) { return '<option value="' + _escapeHtml(c) + '">' + _escapeHtml(c) + "</option>"; }).join("");
+    el.innerHTML =
+      '<h3 class="chart-heading">Group comparison (two-sample Welch t-test)</h3>'
+      + '<div class="mydata-tool-row">'
+      + '<label class="tool-select-label" for="my-cmp-y">Response</label>'
+      + '<select id="my-cmp-y" class="tool-select" onchange="_myCompareCompute()">' + optsCols + "</select>"
+      + '<label class="tool-select-label" for="my-cmp-g" style="margin-left:12px">Group column</label>'
+      + '<select id="my-cmp-g" class="tool-select" onchange="_myCompareCompute()">' + optsGroups + "</select>"
+      + "</div>"
+      + '<div id="my-cmp-out"></div>';
+    _myCompareCompute();
+  }
+
+  function _myCompareCompute() {
+    var state = MyData.state;
+    if (!state) return;
+    var selY = document.getElementById("my-cmp-y"), selG = document.getElementById("my-cmp-g");
+    if (!selY || !selG) return;
+    var yCol = selY.value, gCol = selG.value;
+    var yi = state.columns.indexOf(yCol);
+    var counts = {};
+    state.rows.forEach(function (r) {
+      var v = String(r[state.columns.indexOf(gCol)]).trim();
+      if (v) counts[v] = (counts[v] || 0) + 1;
+    });
+    var gnames = Object.keys(counts).sort();
+    if (gnames.length !== 2) {
+      var out = document.getElementById("my-cmp-out");
+      if (out) out.innerHTML = "<em>Group column must have exactly two groups.</em>";
+      return;
+    }
+    var A = [], B = [];
+    state.rows.forEach(function (r) {
+      var g = String(r[state.columns.indexOf(gCol)]).trim();
+      var v = Stats.toNum(r[yi]);
+      if (g === gnames[0] && !isNaN(v)) A.push(v);
+      if (g === gnames[1] && !isNaN(v)) B.push(v);
+    });
+    var outEl = document.getElementById("my-cmp-out");
+    if (A.length < 2 || B.length < 2) { if (outEl) outEl.innerHTML = "<em>Need at least two observations per group.</em>"; return; }
+
+    var sA = Stats.describe(A), sB = Stats.describe(B);
+    var tt = Stats.ttest2(A, B);
+    var r0 = Math.min(sA.min, sB.min), r1 = Math.max(sA.max, sB.max);
+    if (r1 === r0) r1 = r0 + 1;
+
+    var html = '<div class="compare-boxes">'
+      + _boxPlotHtml(gnames[0] + " (n = " + A.length + ")", sA, r0, r1)
+      + _boxPlotHtml(gnames[1] + " (n = " + B.length + ")", sB, r0, r1)
+      + "</div>"
+      + '<div class="boxplot-axis"><span class="bp-axis-min">' + fmt(r0) + '</span><span class="bp-axis-max">' + fmt(r1) + "</span></div>";
+
+    html += '<h4 class="mydata-subtitle">Descriptive statistics — ' + _escapeHtml(yCol) + "</h4>"
+      + _htmlTable(["Group", "n", "Mean", "Median", "Std", "Min", "Q1", "Q3", "Max"], [
+        [gnames[0], A.length, fmt(sA.mean), fmt(sA.median), fmt(sA.std), fmt(sA.min), fmt(sA.q1), fmt(sA.q3), fmt(sA.max)],
+        [gnames[1], B.length, fmt(sB.mean), fmt(sB.median), fmt(sB.std), fmt(sB.min), fmt(sB.q1), fmt(sB.q3), fmt(sB.max)]
+      ]);
+
+    if (tt) {
+      var meandiff = tt.mean_b - tt.mean_a;
+      html += '<h4 class="mydata-subtitle">Welch’s t-test — ' + _escapeHtml(gnames[1]) + " vs " + _escapeHtml(gnames[0]) + "</h4>"
+        + _htmlTable(["Statistic", "Value"], [
+          ["t", fmt(tt.t)],
+          ["degrees of freedom", fmt(tt.df)],
+          ["p-value (two-tailed)", tt.p > 0 ? tt.p.toExponential(3) : "< 0.0001"],
+          ["mean " + gnames[0], fmt(tt.mean_a)],
+          ["mean " + gnames[1], fmt(tt.mean_b)],
+          ["mean difference (" + gnames[1] + " − " + gnames[0] + ")", fmt(meandiff)]
+        ])
+        + '<p class="chart-caption">' + (tt.p < 0.05
+          ? "The group means differ significantly (p < 0.05)."
+          : "No significant difference between group means at the 0.05 level.") + "</p>";
+    }
+    if (outEl) outEl.innerHTML = html;
+  }
+
+  function _boxPlotHtml(title, d, r0, r1) {
+    var H = 86, TOP = 8;
+    function topPx(v) { return TOP + (1 - (v - r0) / (r1 - r0)) * H; }
+    function tick(v, side) {
+      return '<span class="bp-whisker-tick" style="top:' + (topPx(v) - 0.5) + 'px;' + side + ':0"></span>';
+    }
+    var minV = d.min, maxV = d.max;
+    var boxH = Math.max(2, topPx(d.q1) - topPx(d.q3));
+    return '<div class="compare-box-column">'
+      + '<div class="compare-box-title">' + _escapeHtml(title) + "</div>"
+      + '<div class="boxplot-track">'
+      + '<span class="bp-whisker" style="top:' + topPx(minV) + 'px"></span>' + tick(minV, "left") + tick(minV, "right")
+      + '<span class="bp-whisker" style="top:' + topPx(maxV) + 'px"></span>' + tick(maxV, "left") + tick(maxV, "right")
+      + '<span class="bp-box" style="top:' + topPx(d.q3) + 'px;height:' + boxH + 'px"></span>'
+      + '<span class="bp-median" style="top:' + (topPx(d.median) - 1) + 'px"></span>'
+      + "</div></div>";
+  }
+
+  /* --------------------------------------------- MODE B: z-score heatmap */
+  function renderNumericHeatmap() {
+    var state = MyData.state;
+    var el = document.getElementById("mydata-content");
+    if (!state) return;
+    var cols = numericColumns(state);
+    if (!cols.length) { el.innerHTML = "<em>No numeric columns for a heatmap.</em>"; return; }
+    var rowsLabel = "Genes / features (numeric columns)";
+    var samplesLabel = "Samples (rows)";
+    el.innerHTML =
+      '<h3 class="chart-heading">Expression heatmap (z-scored per row)</h3>'
+      + '<div class="mydata-tool-row">'
+      + '<label class="tool-select-label" for="my-hm-rows">Rows</label>'
+      + '<select id="my-hm-rows" class="tool-select" onchange="_myHmRender()">'
+      + '<option value="features">' + _escapeHtml(rowsLabel) + "</option>"
+      + '<option value="samples">' + _escapeHtml(samplesLabel) + "</option>"
+      + "</select>"
+      + '<label class="tool-select-label" for="my-hm-sort" style="margin-left:12px">Order features</label>'
+      + '<select id="my-hm-sort" class="tool-select" onchange="_myHmRender()">'
+      + '<option value="variance">By variance (desc)</option>'
+      + '<option value="alpha">Alphabetical</option>'
+      + "</select>"
+      + '<button class="tool-btn tool-btn-sm" type="button" onclick="_myHmDownload()">Download CSV</button>'
+      + "</div>"
+      + '<div id="my-hm-out" class="gene-heatmap-wrap"></div>'
+      + '<div class="hm-legend">'
+      + '<span class="hm-swatch" style="background:#2563eb"></span> low (z = −3)'
+      + '<span class="hm-swatch" style="background:#ffffff;border:1px solid #cbd5e1"></span> 0'
+      + '<span class="hm-swatch" style="background:#ef4444"></span> high (z = +3)'
+      + "</div>"
+      + '<p class="chart-caption">Each cell is the z-score of a row’s value across its samples (Z = (x − mean) / SD). Row orientation is selectable; features are sorted by variance by default.</p>';
+    _myHmRender();
+  }
+
+  function _myHmMatrix(state, rowsMode, sortMode) {
+    var cols = numericColumns(state);
+    if (rowsMode === "samples") {
+      var rowLabels = state.rows.map(function (r) { return r[0]; });
+      var colLabels = cols;
+      var colIdx = cols.map(function (c) { return state.columns.indexOf(c); });
+      var M = state.rows.map(function (r) { return colIdx.map(function (i) { return Stats.toNum(r[i]); }); });
+      return M.map(function (rowArr, i) { return { label: rowLabels[i], values: rowArr }; });
+    }
+    var M = cols.map(function (c) {
+      var idx = state.columns.indexOf(c);
+      return {
+        label: c,
+        values: state.rows.map(function (r) {
+          var v = Stats.toNum(r[idx]);
+          return isNaN(v) ? null : v;
+        })
+      };
+    });
+    if (sortMode === "variance") {
+      M = M.slice().sort(function (a, b) {
+        return _rowVariance(b.values) - _rowVariance(a.values);
+      });
+    }
+    return M;
+  }
+
+  function _rowVariance(values) {
+    var nums = values.filter(function (v) { return v !== null && !isNaN(v); });
+    if (nums.length < 2) return 0;
+    return Stats.variance(nums, 0);
+  }
+
+  function _zScoreRows(storage) {
+    return storage.map(function (row) {
+      var nums = row.values.filter(function (v) { return v !== null && !isNaN(v); });
+      var m = nums.length ? Stats.mean(nums) : 0;
+      var s = nums.length >= 2 ? Stats.std(nums, 0) : 0;
+      if (s === 0) s = 1;
+      return { label: row.label, z: row.values.map(function (v) { return v === null || isNaN(v) ? null : (v - m) / s; }) };
+    });
+  }
+
+  function zColor(z) {
+    if (z === null || z === undefined || isNaN(z)) return "transparent";
+    var zz = Math.max(-3, Math.min(3, z));
+    var t = (zz / 3 + 1) / 2;
+    function lerp(a, b) { return Math.round(a + (b - a) * t); }
+    var c;
+    if (t <= 0.5) c = [lerp(37, 255), lerp(99, 255), lerp(235, 255)];
+    else c = [lerp(255, 239), lerp(255, 68), lerp(255, 68)];
+    return "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")";
+  }
+
+  function _myHmRender() {
+    var state = MyData.state;
+    var out = document.getElementById("my-hm-out");
+    if (!state || !out) return;
+    var rowsMode = document.getElementById("my-hm-rows").value;
+    var sortMode = document.getElementById("my-hm-sort").value;
+    var storage = _myHmMatrix(state, rowsMode, sortMode);
+    var rows = _zScoreRows(storage);
+    var colLabels = rowsMode === "samples"
+      ? numericColumns(state)
+      : state.rows.map(function (r) { return r[0]; });
+    var maxRows = 60, maxCols = 50;
+    var showAll = rows.length <= maxRows && colLabels.length <= maxCols;
+    var rowsShown = rows.slice(0, maxRows);
+    var colsShown = colLabels.slice(0, maxCols);
+    var html = buildGeneHeatmap(rowsShown, colsShown);
+    if (!showAll) {
+      html += '<p class="chart-caption">Heatmap is capped at ' + maxRows + " rows × " + maxCols + " columns for readability (" + rows.length + " × " + colLabels.length + " total). Use Download CSV for the full matrix.</p>";
+    }
+    out.innerHTML = html;
+  }
+
+  function buildGeneHeatmap(rows, colLabels) {
+    if (!rows.length) return "<em>Nothing to display.</em>";
+    var html = '<table class="gene-heatmap"><thead><tr><th class="hm-colhead"></th>';
+    colLabels.forEach(function (c) { html += '<th class="hm-colhead">' + _escapeHtml(c) + "</th>"; });
+    html += "</tr></thead><tbody>";
+    rows.forEach(function (row) {
+      html += "<tr><td class='hm-label'>" + _escapeHtml(row.label) + "</td>";
+      row.z.forEach(function (z) { html += "<td style='background:" + zColor(z) + "'>" + (z === null ? "·" : z.toFixed(1)) + "</td>"; });
+      html += "</tr>";
+    });
+    html += "</tbody></table>";
+    return html;
+  }
+
+  function _myHmDownload() {
+    var state = MyData.state;
+    if (!state || state.mode !== "numeric") return;
+    var mode = document.getElementById("my-hm-rows") ? document.getElementById("my-hm-rows").value : "features";
+    var storage = _myHmMatrix(state, mode, "variance");
+    var rows = _zScoreRows(storage);
+    var header = ["feature"].concat(state.rows.map(function (r) { return r[0]; }));
+    var outRows = rows.map(function (row) {
+      return [row.label].concat(row.z.map(function (z) { return z === null ? "" : z.toFixed(4); }));
+    });
+    downloadMyCSV(header, outRows, "my_data_heatmap_z.csv");
+  }
+
+  /* --------------------------------- MODE B: Differential Expression */
+  function renderNumericDeg() {
+    var state = MyData.state;
+    var el = document.getElementById("mydata-content");
+    if (!state) return;
+    var cols = numericColumns(state);
+    var groups = _groupColumnCandidates(state);
+    if (cols.length < 2 || !groups.length) {
+      el.innerHTML = "<em>Differential expression needs a categorical column with exactly two groups (each ≥ 2 rows) plus at least two numeric columns. The sample preset ('condition': infected vs. control) is a ready-made example.</em>";
+      return;
+    }
+    el.innerHTML =
+      '<h3 class="chart-heading">Differential expression (Welch t-test + BH FDR)</h3>'
+      + '<div class="mydata-tool-row">'
+      + '<label class="tool-select-label" for="my-deg-group">Condition column</label>'
+      + '<select id="my-deg-group" class="tool-select" onchange="_myDegCompute()">' + groups.map(function (c) {
+        return '<option value="' + _escapeHtml(c) + '">' + _escapeHtml(c) + "</option>";
+      }).join("") + "</select>"
+      + '<button class="tool-btn tool-btn-sm" type="button" onclick="_myDegDownload()">Download results</button>'
+      + "</div>"
+      + '<div id="my-deg-out"></div>';
+    _myDegCompute();
+  }
+
+  function _myDegRows() {
+    var state = MyData.state;
+    var gCol = document.getElementById("my-deg-group").value;
+    var counts = {};
+    state.rows.forEach(function (r) {
+      var v = String(r[state.columns.indexOf(gCol)]).trim();
+      if (v) counts[v] = (counts[v] || 0) + 1;
+    });
+    var gnames = Object.keys(counts).sort();
+    if (gnames.length !== 2) return null;
+    var usedPseudo = false;
+    var rows = [];
+    var pArray = [];
+
+    numericColumns(state).forEach(function (gene) {
+      var gi = state.columns.indexOf(gene);
+      var vA = [], vB = [];
+      state.rows.forEach(function (r) {
+        var g = String(r[state.columns.indexOf(gCol)]).trim();
+        var v = Stats.toNum(r[gi]);
+        if (isNaN(v)) return;
+        if (g === gnames[0]) vA.push(v);
+        if (g === gnames[1]) vB.push(v);
+      });
+      if (vA.length < 2 || vB.length < 2) return;
+      var anyNonPos = vA.concat(vB).some(function (v) { return v <= 0; });
+      if (anyNonPos) usedPseudo = true;
+      function log2safe(v) { return v > 0 ? Math.log2(v) : Math.log2(v + 0.5); }
+      var logA = vA.map(log2safe), logB = vB.map(log2safe);
+      var tt = Stats.ttest2(logA, logB);
+      if (!tt) return;
+      var log2fc = Stats.mean(logB) - Stats.mean(logA);
+      var rec = {
+        gene: gene,
+        meanA: Stats.mean(vA),
+        meanB: Stats.mean(vB),
+        logA: Stats.mean(logA),
+        logB: Stats.mean(logB),
+        log2fc: log2fc,
+        t: tt.t,
+        df: tt.df,
+        p: tt.p
+      };
+      rows.push(rec);
+      pArray.push(tt.p);
+    });
+
+    var padj = Stats.bhAdjust(pArray);
+    rows.forEach(function (r, i) {
+      r.padj = padj[i];
+      r.sig = r.padj !== null && r.padj < 0.05;
+      r.up = r.sig && r.log2fc > 0;
+      r.down = r.sig && r.log2fc < 0;
+    });
+    rows.sort(function (a, b) { return (a.padj === null ? 1 : a.padj) - (b.padj === null ? 1 : b.padj); });
+    return { rows: rows, gnames: gnames, usedPseudo: usedPseudo };
+  }
+
+  function _myDegCompute() {
+    var state = MyData.state;
+    var out = document.getElementById("my-deg-out");
+    if (!state || !out) return;
+    var res = _myDegRows();
+    if (!res) { out.innerHTML = "<em>Degree column must have exactly two groups.</em>"; return; }
+    var rows = res.rows, gnames = res.gnames;
+
+    var nSig = rows.filter(function (r) { return r.sig; }).length;
+    var nUp = rows.filter(function (r) { return r.up; }).length;
+    var nDown = rows.filter(function (r) { return r.down; }).length;
+
+    var html = '<div class="deg-summary">'
+      + '<div class="deg-kpi"><strong>' + rows.length + "</strong>genes tested</div>"
+      + '<div class="deg-kpi"><strong>' + nSig + "</strong>significant (p-adj < 0.05)</div>"
+      + '<div class="deg-kpi"><strong style="color:#ef4444">' + nUp + "</strong>up-regulated</div>"
+      + '<div class="deg-kpi"><strong style="color:#3b82f6">' + nDown + "</strong>down-regulated</div>"
+      + "</div>"
+      + (res.usedPseudo ? '<p class="chart-caption" style="color:#f59e0b">Warning: some values were ≤ 0; a pseudocount (+0.5) was added before log2 transformation.</p>' : "")
+      + '<div class="ml-plot-grid">'
+      + '<div class="ml-plot-cell"><h3 class="chart-heading">Volcano plot</h3><div class="chart-container chart-container-md"><canvas id="my-deg-volcano"></canvas></div></div>'
+      + '<div class="ml-plot-cell"><h3 class="chart-heading">MA plot</h3><div class="chart-container chart-container-md"><canvas id="my-deg-ma"></canvas></div></div>'
+      + "</div>"
+      + '<h4 class="mydata-subtitle">Results — sorted by adjusted p-value</h4>'
+      + _htmlTable(["Gene", "Mean A", "Mean B", "log2FC", "t", "p-value", "p-adj", "Direction"], rows.slice(0, 60).map(function (r) {
+        return [r.gene, fmt(r.meanA), fmt(r.meanB), fmt(r.log2fc), fmt(r.t), r.p.toExponential(3), r.padj === null ? "—" : r.padj.toExponential(3), { raw: r.sig ? (r.up ? '<span class="deg-badge-up">up ↑</span>' : '<span class="deg-badge-down">down ↓</span>') : '<span class="deg-badge-none">n.s.</span>' }];
+      }))
+      + '<h4 class="mydata-subtitle">Top genes — z-scored expression across all samples</h4>'
+      + '<div id="my-deg-heatmap" class="gene-heatmap-wrap"></div>'
+      + '<p class="chart-caption">Comparisons are ' + _escapeHtml(gnames[1]) + " vs " + _escapeHtml(gnames[0]) + "; positive log2FC = higher in " + _escapeHtml(gnames[1]) + ". Log2-transformed values power both the t-test and the fold change; p-values are corrected with the Benjamini–Hochberg procedure.</p>";
+    out.innerHTML = html;
+
+    _renderDegVolcano(rows, gnames);
+    _renderDegMa(rows, gnames);
+
+    var topGenes = rows.filter(function (r) { return r.sig; }).slice(0, 15);
+    if (topGenes.length < 3) topGenes = rows.slice(0, 15);
+    var gidx = {};
+    var rowsForHm = topGenes.map(function (r) { return r.gene; });
+    rowsForHm.forEach(function (g) { gidx[g] = state.columns.indexOf(g); });
+    var hm = _zScoreRows(rowsForHm.map(function (g) {
+      var gi = gidx[g];
+      return { label: g, values: state.rows.map(function (row) { var v = Stats.toNum(row[gi]); return isNaN(v) ? null : v; }) };
+    }));
+    var hmEl = document.getElementById("my-deg-heatmap");
+    if (hmEl) hmEl.innerHTML = buildGeneHeatmap(hm, state.rows.map(function (r) { return r[0]; }));
+  }
+
+  function _degColor(up, sig) {
+    if (!sig) return "rgba(148,163,184,0.55)";
+    return up ? "rgba(239,68,68,0.8)" : "rgba(59,130,246,0.8)";
+  }
+
+  function _degScatterOptions(xLabel, yLabel) {
+    return {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: function (ctx) {
+            var d = ctx.raw;
+            var dir = d.sig ? (d.up ? " up" : " down") : " n.s.";
+            return " " + d.name + dir + " [log2FC " + d.x.toFixed(2) + ", p-adj " + (d.padj === null ? "—" : d.padj.toExponential(2)) + "]";
+          } }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: xLabel, color: "#64748b", font: { size: 12 } }, grid: { color: "rgba(148,163,184,0.12)" } },
+        y: { title: { display: true, text: yLabel, color: "#64748b", font: { size: 12 } }, grid: { color: "rgba(148,163,184,0.12)" } }
+      }
+    };
+  }
+
+  function _renderDegVolcano(rows, gnames) {
+    var canvas = document.getElementById("my-deg-volcano");
+    if (!canvas || typeof Chart === "undefined") return;
+    _destroyChart(canvas);
+    var data = rows.map(function (r) {
+      var nlog = r.padj !== null && r.padj > 0 ? -Math.log10(r.padj) : 18;
+      return { x: r.log2fc, y: nlog, name: r.gene, sig: r.sig, up: r.up, padj: r.padj };
+    });
+    new Chart(canvas, {
+      type: "scatter",
+      data: { datasets: [{ data: data, backgroundColor: data.map(function (d) { return _degColor(d.up, d.sig); }), pointRadius: 5, pointHoverRadius: 7 }] },
+      options: _degScatterOptions(
+        "log2 fold-change (" + gnames[1] + " vs " + gnames[0] + ")",
+        "\u2212log10(adjusted p-value)")
+    });
+  }
+
+  function _renderDegMa(rows, gnames) {
+    var canvas = document.getElementById("my-deg-ma");
+    if (!canvas || typeof Chart === "undefined") return;
+    _destroyChart(canvas);
+    var data = rows.map(function (r) {
+      return { x: (r.logA + r.logB) / 2, y: r.log2fc, name: r.gene, sig: r.sig, up: r.up, padj: r.padj };
+    });
+    new Chart(canvas, {
+      type: "scatter",
+      data: { datasets: [{ data: data, backgroundColor: data.map(function (d) { return _degColor(d.up, d.sig); }), pointRadius: 5, pointHoverRadius: 7 }] },
+      options: _degScatterOptions(
+        "Mean log2 expression (A = " + gnames[0] + ", B = " + gnames[1] + ")",
+        "log2 fold-change")
+    });
+  }
+
+  function _myDegDownload() {
+    var state = MyData.state;
+    if (!state || state.mode !== "numeric") return;
+    var res = _myDegRows();
+    if (!res) return;
+    var header = ["gene", "mean_" + res.gnames[0], "mean_" + res.gnames[1], "log2fc", "t", "df", "p_value", "p_adj", "significant"];
+    var outRows = res.rows.map(function (r) {
+      return [r.gene, r.meanA === null ? "" : r.meanA.toFixed(4), r.meanB === null ? "" : r.meanB.toFixed(4), r.log2fc.toFixed(4), r.t, r.df, r.p.toExponential(6), r.padj === null ? "" : r.padj.toExponential(6), r.sig ? 1 : 0];
+    });
+    downloadMyCSV(header, outRows, "my_data_deg_results.csv");
+  }
+
   /* ----------------------------------------------------------- downloads */
   function downloadMyCSV(header, rows, filename) {
     var blob = new Blob([CSVUtils.textFromRows(header, rows, ",")], { type: "text/csv;charset=utf-8;" });
@@ -1241,6 +1777,11 @@ function downloadTemplate(kind) {
   window.downloadMyStats = downloadMyStats;
   window.downloadMyDataResults = downloadMyDataResults;
   window._myOlsCompute = _myOlsCompute;
+  window._myCompareCompute = _myCompareCompute;
+  window._myHmRender = _myHmRender;
+  window._myHmDownload = _myHmDownload;
+  window._myDegCompute = _myDegCompute;
+  window._myDegDownload = _myDegDownload;
   window.buildMyEffectorFeatures = buildEffectorFeatures;
   window.renderNumericPca = renderNumericPca;
   window.renderNumericHistograms = renderNumericHistograms;

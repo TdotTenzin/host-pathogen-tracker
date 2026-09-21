@@ -21,11 +21,21 @@ Surfaced through four layers:
 python -m http.server 8000   # then visit http://localhost:8000
 ```
 
-The frontend is fully offline-capable (embeds `data/fallback.json`). The
-All Pathogens grid, Network, and ML sections render the curated 54 by
-default and switch to your imported data when you load a dataset in
-**My Data** (CSV/TSV/JSON or pasted text). Basic stats, PCA, clustering,
+The frontend is fully offline-capable (embeds `data/fallback.json`). Load the
+**Curated dataset (54 pathogens)** preset or import your own data in **My Data**
+(CSV/TSV/JSON or pasted text) — sections appear once data is loaded and switch
+to your imported dataset when you bring your own. Basic stats, PCA, clustering,
 OLS, and network analysis run client-side; ML/UMAP fall back to the API.
+
+Additional built-in sections ship with the toolkit: a **Dataset Overview**
+(effector counts, phagosome pH by stage, strategy distribution), an
+interactive **Phagosome Maturation Timeline**, a searchable **Gene &
+Protein Explorer** of the curated host proteome, and a **Help & Glossary**
+page. In **My Data**, numeric datasets unlock a **Compare** tab (group
+summary + box plots + Welch t-test) and a z-scored **Heatmap** tab, plus a
+**Differential Expression** tab with BH-FDR-corrected p-values, volcano/MA
+plots, and a top-gene heatmap; host-pathogen datasets include a pathway
+**Enrichment** tab with dot plot.
 
 **Full stack (API + frontend)** — either:
 
@@ -78,7 +88,8 @@ src/hostpathogen/
   data/         loader, build_db, export_r + committed SQLite DB
   ml/           classifier, dimred (PCA/UMAP), phylogenetics
   trafficking.py, interactome.py, enrichment.py
-js/             Frontend logic (charts, offline toolkit, data loader, My Data imports)
+js/             Frontend logic (charts, offline toolkit, data loader, My Data
+                imports, statistics + enrichment, glossary)
 notebooks/      Jupyter walkthroughs (SQL, interactome, ML)
 r/              R analyses + generated chart data
 tests/          pytest suite

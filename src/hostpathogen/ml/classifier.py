@@ -193,7 +193,7 @@ def features_from_effectors(
     if out.empty:
         out = pd.DataFrame(columns=["pathogen"] + FEATURE_NAMES)
     out = out.reindex(columns=["pathogen"] + FEATURE_NAMES, fill_value=0)
-    out = out.fillna(0).astype(int)
+    out[FEATURE_NAMES] = out[FEATURE_NAMES].fillna(0).astype(int)
     return out.set_index("pathogen")
 
 
