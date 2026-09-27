@@ -1,9 +1,9 @@
 """
 Tests for the trafficking module.
-Uses the pre-built hostpathogen.db.
+Uses the pre-built pathomap.db.
 """
 
-from hostpathogen.trafficking import PhagosomeMaturation
+from pathomap.trafficking import PhagosomeMaturation
 
 
 def test_stage_names_loaded():

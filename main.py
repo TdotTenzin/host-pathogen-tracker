@@ -76,7 +76,7 @@ HTML_DASHBOARD = """<!DOCTYPE html>
 <body>
   <div class="container">
     <h1>PathoMap <small>API v0.4.0</small></h1>
-    <p>REST API for the curated host&ndash;pathogen dataset served to the PathoMap site. Data is sourced from <code>hostpathogen.db</code>.</p>
+    <p>REST API for the curated host&ndash;pathogen dataset served to the PathoMap site. Data is sourced from <code>pathomap.db</code>.</p>
 
     <div class="card">
       <h2>Pathogens</h2>

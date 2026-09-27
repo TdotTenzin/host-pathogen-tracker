@@ -4,11 +4,11 @@ import sqlite3, json, os, sys, pathlib
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from hostpathogen.ml.dimred import pathogen_feature_pca  # noqa: E402
-from hostpathogen.ml.classifier import compare_classifiers, out_of_fold_predictions  # noqa: E402
-from hostpathogen.ml.phylogenetics import build_phylogenetic_tree  # noqa: E402
+from pathomap.ml.dimred import pathogen_feature_pca  # noqa: E402
+from pathomap.ml.classifier import compare_classifiers, out_of_fold_predictions  # noqa: E402
+from pathomap.ml.phylogenetics import build_phylogenetic_tree  # noqa: E402
 
-DB = os.path.join(os.path.dirname(__file__), '..', 'src', 'hostpathogen', 'data', 'hostpathogen.db')
+DB = os.path.join(os.path.dirname(__file__), '..', 'src', 'pathomap', 'data', 'pathomap.db')
 OUT = os.path.join(os.path.dirname(__file__), '..', 'data', 'fallback.json')
 
 conn = sqlite3.connect(DB)

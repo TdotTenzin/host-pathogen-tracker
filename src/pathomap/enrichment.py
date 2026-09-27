@@ -15,7 +15,7 @@ Optimizations:
 
 from math import comb
 
-from hostpathogen.data.loader import to_df
+from pathomap.data.loader import to_df
 
 
 def _hypergeom_sf(k: int, N: int, K: int, n: int) -> float:

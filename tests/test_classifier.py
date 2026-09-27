@@ -4,8 +4,8 @@ Tests for the ML classifier module (evasion strategy prediction).
 
 import pandas as pd
 
-from hostpathogen.data.loader import to_df
-from hostpathogen.ml.classifier import (
+from pathomap.data.loader import to_df
+from pathomap.ml.classifier import (
     FEATURE_NAMES,
     extract_features,
     features_from_effectors,

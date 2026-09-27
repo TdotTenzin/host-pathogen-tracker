@@ -17,7 +17,7 @@ project adheres to [Semantic Versioning](https://semver.org/).
   count per pathogen, making the live and offline payloads the same shape.
 - `interactions` added to `data/fallback.json` and the embedded `js/data.js`,
   which the Network section previously could not read offline.
-- `out_of_fold_predictions()` in `src/hostpathogen/ml/classifier.py`, used by the
+- `out_of_fold_predictions()` in `src/pathomap/ml/classifier.py`, used by the
   data export to produce genuine held-out ML output.
 - Frontend test coverage for the Database section: `tests/frontend/database_checks.js`
   runs the real `js/database.js` in a headless Node sandbox (55 assertions on
@@ -37,7 +37,7 @@ project adheres to [Semantic Versioning](https://semver.org/).
   name, so `cross_validate_rf()` mislabelled the reported species in its
   confusion matrix.
 - `notebooks/02-interactome-analysis.ipynb` imported `plot_network` from
-  `hostpathogen.interactome`, which does not exist — the notebook failed on its
+  `pathomap.interactome`, which does not exist — the notebook failed on its
   first cell. The plotting cell is replaced with a pointer to the site's
   interactive network.
 - `Dockerfile` installed from a root `requirements.txt` that does not exist, and
@@ -95,7 +95,14 @@ project adheres to [Semantic Versioning](https://semver.org/).
   Network, Proteome and Phylogeny lead; the Analysis Tools, ML and My Data
   entries are demoted behind a separator at reduced opacity and relabelled as
   utility.
-- `pyproject.toml` package renamed `hostpathogen` → `pathomap`, version 0.4.0.
+- Distribution and import namespace unified as `pathomap`, version 0.4.0. The
+  package previously shipped as distribution `pathomap` while the import name
+  was still `hostpathogen`, so `pip install pathomap` then
+  `import hostpathogen` was required. Now `src/hostpathogen/` is
+  `src/pathomap/`, every `from hostpathogen.…` is `from pathomap.…`, and the
+  bundled SQLite file is `pathomap.db` rather than `hostpathogen.db`. Because
+  0.4.0 has not shipped, this is a single rename with no migration step for
+  existing users.
 - `My Data` localStorage cache key `hphub_mydata` → `pathomap_mydata`.
   **Breaking for returning visitors:** any previously imported dataset held in
   the old key is ignored and must be re-imported once.

@@ -1,7 +1,7 @@
 """
 loader.py — SQLite connection and query helpers.
 
-This is the public API for accessing the hostpathogen database.
+This is the public API for accessing the pathomap database.
 All other modules import from here rather than using sqlite3 directly.
 
 Uses thread-local connection pooling to avoid repeated open/close overhead.
@@ -13,7 +13,7 @@ import threading
 import pandas as pd
 
 # Path to the pre-built database (relative to this file)
-DB_PATH = pathlib.Path(__file__).parent / "hostpathogen.db"
+DB_PATH = pathlib.Path(__file__).parent / "pathomap.db"
 
 # Thread-local storage for connection pooling
 _local = threading.local()

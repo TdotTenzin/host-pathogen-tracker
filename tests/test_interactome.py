@@ -4,7 +4,7 @@ Tests for the interactome module (network construction + centrality analysis).
 
 import networkx as nx
 
-from hostpathogen.interactome import (
+from pathomap.interactome import (
     build_network,
     hub_targets,
     pathogen_subgraph,

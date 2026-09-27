@@ -9,7 +9,7 @@ Optimizations:
   - Module-level caching of stage data and marker profiles
 """
 
-from hostpathogen.data.loader import query, to_df
+from pathomap.data.loader import query, to_df
 
 # Module-level caches
 _cached_profiles = None

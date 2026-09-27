@@ -31,8 +31,8 @@ import time
 # Add src to path
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "src"))
 
-SEED_DIR = pathlib.Path(__file__).resolve().parent.parent / "src" / "hostpathogen" / "data" / "seed"
-DB_DIR = pathlib.Path(__file__).resolve().parent.parent / "src" / "hostpathogen" / "data"
+SEED_DIR = pathlib.Path(__file__).resolve().parent.parent / "src" / "pathomap" / "data" / "seed"
+DB_DIR = pathlib.Path(__file__).resolve().parent.parent / "src" / "pathomap" / "data"
 
 
 def log(msg):
@@ -188,7 +188,7 @@ def main():
         if success:
             # Verify
             import sqlite3
-            db_path = DB_DIR / "hostpathogen.db"
+            db_path = DB_DIR / "pathomap.db"
             con = sqlite3.connect(str(db_path))
             con.row_factory = sqlite3.Row
             n_pathogens = con.execute("SELECT COUNT(*) FROM pathogens").fetchone()[0]

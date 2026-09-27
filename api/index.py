@@ -13,23 +13,23 @@ from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Optional
 
-from hostpathogen.data.loader import query, to_df
-from hostpathogen.trafficking import PhagosomeMaturation
-from hostpathogen.interactome import build_network, hub_targets, network_stats, pathogen_subgraph
-from hostpathogen.enrichment import targeted_pathways_by_pathogen, overrepresentation_analysis
-from hostpathogen.ml.classifier import (
+from pathomap.data.loader import query, to_df
+from pathomap.trafficking import PhagosomeMaturation
+from pathomap.interactome import build_network, hub_targets, network_stats, pathogen_subgraph
+from pathomap.enrichment import targeted_pathways_by_pathogen, overrepresentation_analysis
+from pathomap.ml.classifier import (
     extract_features,
     train_classifier,
     compare_classifiers,
     cross_validate_rf,
     grid_search_rf,
 )
-from hostpathogen.ml.dimred import (
+from pathomap.ml.dimred import (
     pca_analysis,
     umap_analysis,
     pathogen_feature_pca,
 )
-from hostpathogen.ml.phylogenetics import build_phylogenetic_tree
+from pathomap.ml.phylogenetics import build_phylogenetic_tree
 
 app = FastAPI(
     title="PathoMap API",
@@ -123,7 +123,7 @@ def _list_stages_internal() -> list[dict]:
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "database": "hostpathogen.db"}
+    return {"status": "ok", "database": "pathomap.db"}
 
 
 # ---------------------------------------------------------------------------

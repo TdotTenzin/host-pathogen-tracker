@@ -22,7 +22,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
 
-from hostpathogen.data.loader import to_df
+from pathomap.data.loader import to_df
 
 
 FEATURE_NAMES = [

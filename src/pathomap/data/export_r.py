@@ -16,7 +16,7 @@ import random
 import numpy as np
 import pandas as pd
 
-from hostpathogen.data.loader import to_df
+from pathomap.data.loader import to_df
 
 R_DATA = pathlib.Path("r") / "data"
 
@@ -106,7 +106,7 @@ def export_network_metrics():
     """
     Compute and export network centrality scores for R visualizations.
     """
-    from hostpathogen.interactome import build_network, hub_targets
+    from pathomap.interactome import build_network, hub_targets
 
     G = build_network()
     hubs = hub_targets(G, top_n=20)

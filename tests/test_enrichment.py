@@ -4,7 +4,7 @@ Tests for the enrichment module (over-representation analysis).
 
 from math import comb
 
-from hostpathogen.enrichment import (
+from pathomap.enrichment import (
     _hypergeom_sf,
     overrepresentation_analysis,
     targeted_pathways_by_pathogen,

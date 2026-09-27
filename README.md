@@ -11,7 +11,7 @@ visualisations elsewhere on the page are all derived from those same rows.
 |---|---|---|
 | Static frontend | `index.html`, `css/`, `js/` | Vercel CDN (offline-first; embeds `data/fallback.json`) |
 | REST API | `api/index.py` (FastAPI) | Vercel serverless (`/api/*`), locally via uvicorn |
-| Python package | `src/hostpathogen/` | pip (`pip install -e .`) |
+| Python package | `src/pathomap/` | pip (`pip install -e .`) |
 | Analysis extras | `notebooks/`, `r/`, `scripts/` | Jupyter / R |
 
 > **Scope.** The **Database** section is the centrepiece, with Organisms,
@@ -79,13 +79,13 @@ them flat for Docker and Vercel.
 Curated seed data → CSVs → SQLite → exports:
 
 ```
-python src/hostpathogen/data/build_db.py      # builds src/hostpathogen/data/hostpathogen.db
+python src/pathomap/data/build_db.py      # builds src/pathomap/data/pathomap.db
 python scripts/export_fallback_json.py        # regenerates data/fallback.json + js/data.js
 python scripts/refresh_data.py                # end-to-end refresh
 Rscript r/export_chart_data.R                 # regenerates r/data/*.csv|.fasta|.nwk
 ```
 
-`hostpathogen.db` is committed so Vercel can ship it inside the serverless
+`pathomap.db` is committed so Vercel can ship it inside the serverless
 bundle (`vercel.json: includeFiles`). Regenerated artifacts under `data/` and
 `r/data/` are also committed for the offline-first frontend.
 
@@ -98,7 +98,7 @@ bundle (`vercel.json: includeFiles`). Regenerated artifacts under `data/` and
 
 ```
 api/            FastAPI app (Vercel entrypoint + local wrapper)
-src/hostpathogen/
+src/pathomap/
   data/         loader, build_db, export_r + committed SQLite DB
   ml/           classifier, dimred (PCA/UMAP), phylogenetics
   trafficking.py, interactome.py, enrichment.py

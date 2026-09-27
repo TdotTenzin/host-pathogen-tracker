@@ -11,7 +11,7 @@ that are targeted by many different pathogens.
 
 import networkx as nx
 
-from hostpathogen.data.loader import to_df
+from pathomap.data.loader import to_df
 
 
 def build_network() -> nx.Graph:

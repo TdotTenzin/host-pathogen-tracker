@@ -17,7 +17,7 @@ from pathlib import Path
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from hostpathogen.data.loader import to_df
+from pathomap.data.loader import to_df
 
 # Absolute path to R data directory (<repo root>/r/data)
 _R_DATA_DIR = Path(__file__).resolve().parents[3] / "r" / "data"
@@ -163,7 +163,7 @@ def umap_analysis(n_neighbors: int = 5, min_dist: float = 0.3) -> dict:
 
 
 def pathogen_feature_pca() -> dict:
-    from hostpathogen.ml.classifier import extract_features
+    from pathomap.ml.classifier import extract_features
 
     X, y = extract_features()
 

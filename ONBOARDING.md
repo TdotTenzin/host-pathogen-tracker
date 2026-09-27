@@ -56,7 +56,7 @@ Tools, organism Compare — are tracked in the "What's next" section of
 │  Runs on: Vercel serverless (/api/*) or local uvicorn    │
 ├─────────────────────────────────────────────────────────┤
 │                    Python Package                         │
-│  src/hostpathogen/  (trafficking, interactome, ML)       │
+│  src/pathomap/  (trafficking, interactome, ML)       │
 │  Runs on: pip install -e .                               │
 ├─────────────────────────────────────────────────────────┤
 │                    Analysis Extras                        │
@@ -65,7 +65,7 @@ Tools, organism Compare — are tracked in the "What's next" section of
 └─────────────────────────────────────────────────────────┘
 ```
 
-All four layers read from one SQLite database (`hostpathogen.db`), which is
+All four layers read from one SQLite database (`pathomap.db`), which is
 built from curated CSV seed files and committed to the repo.
 
 ---
@@ -88,12 +88,12 @@ host-pathogen-tracker/
 │   ├── index.py                Single FastAPI app
 │   └── requirements.txt        Pinned deps for Docker / Vercel serverless bundle
 │
-├── src/hostpathogen/           Installable Python package
+├── src/pathomap/           Installable Python package
 │   ├── data/
 │   │   ├── loader.py           Thread-local SQLite connection + query/to_df helpers
 │   │   ├── build_db.py         Schema DDL + CSV→SQLite loader
 │   │   ├── export_r.py         Exports DB tables to R-friendly CSVs
-│   │   ├── hostpathogen.db     Pre-built SQLite database (committed)
+│   │   ├── pathomap.db     Pre-built SQLite database (committed)
 │   │   └── seed/               Source CSVs (pathogens, effectors, host_proteins, etc.)
 │   ├── trafficking.py          PhagosomeMaturation state machine (5-stage model)
 │   ├── interactome.py          Bipartite NetworkX graph + centrality analysis
@@ -156,7 +156,7 @@ host-pathogen-tracker/
 
 ## 4. The Database
 
-All data lives in one SQLite file: `src/hostpathogen/data/hostpathogen.db`.
+All data lives in one SQLite file: `src/pathomap/data/pathomap.db`.
 
 ### Tables and relationships
 
@@ -178,7 +178,7 @@ pathogens ──────< effectors ──────< effector_targets >�
 
 ### Seed CSVs
 
-The source data lives in `src/hostpathogen/data/seed/`:
+The source data lives in `src/pathomap/data/seed/`:
 
 - `pathogens.csv` — pathogen metadata
 - `effectors.csv` — effector names, types, targets, mechanisms
@@ -198,7 +198,7 @@ Data flows in one direction: **CSV → SQLite → exports**.
 seed/*.csv
     │
     ▼
-build_db.py  ──────────>  hostpathogen.db  (committed to repo)
+build_db.py  ──────────>  pathomap.db  (committed to repo)
     │                         │
     │                         ├──> export_fallback_json.py  →  data/fallback.json
     │                         │                          →  js/data.js (TOOLKIT_DATA)
@@ -212,7 +212,7 @@ build_db.py  ──────────>  hostpathogen.db  (committed to rep
 
 ```bash
 # 1. Rebuild from seed CSVs
-python src/hostpathogen/data/build_db.py
+python src/pathomap/data/build_db.py
 
 # 2. Regenerate frontend fallback data
 python scripts/export_fallback_json.py
@@ -230,9 +230,9 @@ are also committed so the frontend works fully offline.
 
 ---
 
-## 6. Python Package (`src/hostpathogen/`)
+## 6. Python Package (`src/pathomap/`)
 
-Install with `pip install -e .` — the package is called `hostpathogen`.
+Install with `pip install -e .` — the package is called `pathomap`.
 
 ### `data/loader.py`
 
@@ -501,10 +501,10 @@ dimensionality reduction, and data loader.
 
 ### Add a new pathogen
 
-1. Add a row to `src/hostpathogen/data/seed/pathogens.csv`
-2. Add its effectors to `src/hostpathogen/data/seed/effectors.csv`
-3. Add effector→host_protein links to `src/hostpathogen/data/seed/effector_targets.csv`
-4. Rebuild: `python src/hostpathogen/data/build_db.py`
+1. Add a row to `src/pathomap/data/seed/pathogens.csv`
+2. Add its effectors to `src/pathomap/data/seed/effectors.csv`
+3. Add effector→host_protein links to `src/pathomap/data/seed/effector_targets.csv`
+4. Rebuild: `python src/pathomap/data/build_db.py`
 5. Rebuild frontend: `python scripts/export_fallback_json.py`
 
 ### Adding a row to the curated dataset
@@ -515,15 +515,15 @@ seed CSVs and the build — never by editing `data/fallback.json` or `js/data.js
 
 ### Add a new effector
 
-1. Add a row to `src/hostpathogen/data/seed/effectors.csv` with the pathogen name
-2. Add target links to `src/hostpathogen/data/seed/effector_targets.csv`
+1. Add a row to `src/pathomap/data/seed/effectors.csv` with the pathogen name
+2. Add target links to `src/pathomap/data/seed/effector_targets.csv`
 3. Rebuild DB and frontend (same as above)
 
 ### Add a new API endpoint
 
 1. Open `api/index.py`
 2. Add a new route function using FastAPI decorators (`@app.get(...)` or `@app.post(...)`)
-3. Use `hostpathogen.data.loader.query()` or `to_df()` for data access
+3. Use `pathomap.data.loader.query()` or `to_df()` for data access
 4. Add a test to `tests/test_api.py`
 5. Update `main.py` dashboard HTML if the endpoint is user-facing
 
@@ -537,8 +537,8 @@ seed CSVs and the build — never by editing `data/fallback.json` or `js/data.js
 
 ### Add a new Python module
 
-1. Create the module under `src/hostpathogen/`
-2. Import from `hostpathogen.data.loader` for database access
+1. Create the module under `src/pathomap/`
+2. Import from `pathomap.data.loader` for database access
 3. Add functions that the API can call
 4. Add tests to `tests/test_<module>.py`
 5. Import and wire up in `api/index.py`
@@ -554,5 +554,5 @@ seed CSVs and the build — never by editing `data/fallback.json` or `js/data.js
 | `03-evasion-classifier.ipynb` | Feature extraction, training the RandomForest, evaluation, confusion matrix |
 | `04-advanced-ml.ipynb` | PCA, UMAP, phylogenetic tree building, classifier comparison |
 
-All notebooks import from the installed `hostpathogen` package and read from
-the committed `hostpathogen.db`.
+All notebooks import from the installed `pathomap` package and read from
+the committed `pathomap.db`.

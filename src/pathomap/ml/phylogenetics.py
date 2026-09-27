@@ -28,7 +28,7 @@ from Bio.Phylo.TreeConstruction import DistanceCalculator, DistanceTreeConstruct
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
-from hostpathogen.data.loader import to_df
+from pathomap.data.loader import to_df
 
 # Module-level cache
 _cached_records = None

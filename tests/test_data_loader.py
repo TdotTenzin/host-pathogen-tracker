@@ -4,7 +4,7 @@ Tests for the data loader module (SQLite helpers).
 
 import sqlite3
 
-from hostpathogen.data.loader import (
+from pathomap.data.loader import (
     query,
     to_df,
     get_connection,

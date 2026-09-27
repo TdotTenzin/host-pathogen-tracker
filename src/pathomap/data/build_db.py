@@ -3,7 +3,7 @@ import sqlite3
 import pathlib
 
 SEED_DIR = pathlib.Path(__file__).parent / "seed"
-DB_PATH = pathlib.Path(__file__).parent / "hostpathogen.db"
+DB_PATH = pathlib.Path(__file__).parent / "pathomap.db"
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS pathogens (
