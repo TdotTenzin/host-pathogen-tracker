@@ -38,7 +38,8 @@ Python package, and R/Jupyter analyses.
 
 The R analyses are repository-only and deliberately not exposed on the site.
 Planned sections — Ecology, Genome Explorer, Pangenome, Taxonomy, Sequence
-Tools, organism Compare — are tracked in `ROADMAP.md`.
+Tools, organism Compare — are tracked in the "What's next" section of
+`README.md`.
 
 ---
 

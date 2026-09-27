@@ -76,9 +76,13 @@ project adheres to [Semantic Versioning](https://semver.org/).
   the "imported data in use" banner is gone.
 - `data-loader.js` skips the network request entirely on `file://` and merges
   live bootstrap data over the embedded payload otherwise.
-- R analyses (`r/`) are explicitly repository-only and are not surfaced on the
-  site.
-- Rebranded to PathoMap (*Microbial Genomics, Hosts & Ecology*). The
+  - R analyses (`r/`) are explicitly repository-only and are not surfaced on the
+    site.
+  - The future-work plan (Ecology, genome, pangenome, taxonomy, compare, sequence
+    tools) and the carried-forward known problems now live in the **What's next**
+    section of `README.md` instead of a separate `ROADMAP.md`, so there is one
+    place to read what the project is and where it is going.
+  - Rebranded to PathoMap (*Microbial Genomics, Hosts & Ecology*). The
   project outgrew the "Host-Pathogen Tracker" framing: it now presents a
   central research question — *how are microbial genomes, biological
   interactions, evolution, and ecological environments connected?* — with the
@@ -90,20 +94,11 @@ project adheres to [Semantic Versioning](https://semver.org/).
 - **Navigation restructured** around the PathoMap sections: Organisms,
   Network, Proteome and Phylogeny lead; the Analysis Tools, ML and My Data
   entries are demoted behind a separator at reduced opacity and relabelled as
-  utility, per `ROADMAP.md` §4.
+  utility.
 - `pyproject.toml` package renamed `hostpathogen` → `pathomap`, version 0.4.0.
 - `My Data` localStorage cache key `hphub_mydata` → `pathomap_mydata`.
   **Breaking for returning visitors:** any previously imported dataset held in
   the old key is ignored and must be re-imported once.
-
-### Added
-- **`ROADMAP.md`**: PathoMap target architecture, an honest per-section status
-  table (Explore, Organisms, Host–Pathogen Network, Genome Explorer, Pangenome,
-  Phylogeny, Ecology, Sequence Tools, Compare), seven proposed workstreams, a
-  sideline log of deliberately deferred work, and outstanding bugs — including
-  the broken `Dockerfile`, the unreferenced ~464 KB in `img/`, and
-  `notebooks/02-interactome-analysis.ipynb` importing a nonexistent
-  `plot_network`.
 
 ## [Unreleased]
 

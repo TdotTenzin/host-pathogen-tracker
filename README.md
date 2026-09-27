@@ -18,7 +18,7 @@ visualisations elsewhere on the page are all derived from those same rows.
 > Network, Proteome, Trafficking, Machine Learning and Phylogeny as derived
 > views. There is no data import — the curated dataset is the product. Genome,
 > pangenome and **ecology** layers are planned but not built; see
-> [`ROADMAP.md`](ROADMAP.md).
+> [What's next](#whats-next).
 
 ## Quickstart
 
@@ -129,3 +129,95 @@ Interactive docs at `/docs` when running locally. Key endpoints:
 `r/` holds differential-expression and enrichment work on a separate dataset.
 It is kept as repository evidence only and is deliberately **not** surfaced on
 the website. See [`ONBOARDING.md`](ONBOARDING.md) for how to run it.
+
+---
+
+## What's next
+
+None of this is built. It records the intended direction so the reasoning is not
+lost, and so the boundaries of v0.4 stay explicit. v0.4 was drawn around one
+question: *what does this dataset actually contain, and can a student
+interrogate it?* Everything that did not answer that was removed rather than
+stubbed.
+
+### 1. Ecology — the primary axis
+
+The current dataset says **who infects whom and what they target**. It says
+nothing about **where an organism lives** — the environmental context that
+actually explains why particular effectors and strategies are selected for.
+Adding habitat would turn a curated interaction catalogue into an explanation of
+lifestyle.
+
+- A `niches` table: environment metadata per organism (habitat, temperature and
+  pH range, oxygenation, nutrient regime, transmission mode).
+- Link organisms to niches, so a niche can be asked *which pathogens exploit it*.
+- A controlled vocabulary for habitat terms, so labels are queryable rather than
+  free text.
+- An **Ecology** section answering practical questions: *which strategies cluster
+  in acidic environments? what does a soil pathogen target that a mucosal one
+  does not?*
+
+**Why this goes first.** It is the only planned item that adds a genuinely new
+*kind* of data rather than more of the same. Genome and pangenome work is
+subtractive — it refines pathogen identity. Ecology is additive, and it is the
+axis the project name already promises.
+
+### 2. Genome data acquisition *(unblocks 4 and 5)*
+
+Pull genome records for the 54 curated organisms so sequence data can be linked
+to the interaction data already here. Needs a source decision (RefSeq, Ensembl
+Bacteria) and a fetch cadence; `scripts/refresh_data.py` already has an optional
+external-fetch path.
+
+### 3. Pangenome *(unblocks 5)*
+
+Core-genome vs accessory-genome comparison across the 54 organisms. This is
+what would explain *variation within* a species rather than between species, and
+it needs item 2 first.
+
+### 4. Organism vs organism compare
+
+Side-by-side comparison of any two organisms: shared vs pathogen-specific
+effectors, divergent host targets, strategy differences. With item 2 in place
+this becomes a homology comparison rather than a name-level diff.
+
+### 5. Taxonomy
+
+Wire the existing species and lineage fields into a browsable hierarchy so the
+dataset can be navigated by clade instead of by name.
+
+### 6. Sequence tools
+
+Alignment and motif search over the effector sequences that already back the
+phylogeny section.
+
+### Known problems carried forward
+
+1. **Host protein granularity is uneven.** Some rows are single proteins
+   (`Rab7`), others are compartments (`Host membranes`, `Cholesterol`, `Actin`).
+   Centrality partly reflects that inconsistency — a compartment absorbs many
+   effectors at once. A `kind` column separating the two would make the numbers
+   interpretable. The 150 interaction records also collapse to 135 distinct graph
+   edges, because some effector–protein pairs repeat.
+2. **The classifier is weak, and the site says so.** Cross-validated accuracy on
+   the evasion-strategy task is ~37% across 5 classes — above chance, not useful
+   for prediction. The ML section presents it as a measurement, not a claim.
+3. **Interactions are sparse.** Only 57 of 72 host proteins appear in the network,
+   and 123 of 250 effectors have no `effector_targets` row.
+4. **`n_effectors` is derived, not stored.** It is a `COUNT` computed at query
+   time and attached in three separate places (SQL in the API, Python in the
+   export, and again in the browser). It should be a SQL view or generated column
+   so there is one definition.
+5. **Phylogeny rests on a very small matrix**, so branch labels are not well
+   supported.
+6. **Frontend coverage is one module deep.** `js/database.js` has a headless
+   suite; `charts.js`, `network.js`, `ml-plots.js` and `phylogeny.js` are still
+   uncovered because they only run in a browser.
+
+### Deferred indefinitely
+
+- The bring-your-own-data import pipeline removed in v0.4, and its
+  statistics/correlation/clustering/regression/heatmap/differential-expression
+  tools.
+- A help or glossary page.
+- User accounts, saved datasets, or any server-side persistence.
