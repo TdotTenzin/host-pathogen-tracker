@@ -61,6 +61,7 @@
     if (fb.pathogens) TOOLKIT_DATA.pathogens = fb.pathogens;
     if (fb.effectors) TOOLKIT_DATA.effectors = fb.effectors;
     if (fb.host_proteins) TOOLKIT_DATA.host_proteins = fb.host_proteins;
+    if (fb.interactions) TOOLKIT_DATA.interactions = fb.interactions;
     if (fb.hubs) TOOLKIT_DATA.hubs = fb.hubs;
     if (fb.maturation_stages) TOOLKIT_DATA.maturation_stages = fb.maturation_stages;
     if (fb.stage_markers) TOOLKIT_DATA.stage_markers = fb.stage_markers;
@@ -79,6 +80,7 @@
         if (data.pathogens) TOOLKIT_DATA.pathogens = data.pathogens;
         if (data.effectors) TOOLKIT_DATA.effectors = processEffectors(data.effectors);
         if (data.host_proteins) TOOLKIT_DATA.host_proteins = data.host_proteins;
+        if (data.interactions) TOOLKIT_DATA.interactions = data.interactions;
         if (data.hubs) TOOLKIT_DATA.hubs = data.hubs;
 
         if (data.stages) {
@@ -158,14 +160,16 @@
   }
 
   function init() {
-    // Don't automatically load curated data - only load when user explicitly imports it
-    // Still load structural data (stages, markers) needed for toolkit functionality
-    loadFallbackJSON().then(function(fb) {
-      if (fb) {
-        if (fb.maturation_stages) TOOLKIT_DATA.maturation_stages = fb.maturation_stages;
-        if (fb.stage_markers) TOOLKIT_DATA.stage_markers = fb.stage_markers;
-        if (fb.stage_marker_names) TOOLKIT_DATA.stage_marker_names = fb.stage_marker_names;
-      }
+    // The curated 54-pathogen dataset is the product, so it loads
+    // unconditionally — there is no user-supplied source any more.
+    // On file:// the embedded js/data.js is already complete, so skip
+    // the network entirely rather than firing doomed fetches.
+    var isFile = typeof window !== "undefined" && window.location.protocol === "file:";
+    var ready = isFile
+      ? Promise.resolve(null)
+      : loadLiveData().catch(function () { return loadFallbackJSON().then(mergeFallback); });
+
+    ready.then(function () {
       if (typeof initToolkit === "function") initToolkit();
       if (typeof initCharts === "function") initCharts();
       if (typeof handleDeepLink === "function") handleDeepLink();

@@ -4,6 +4,7 @@ Tests for the ML classifier module (evasion strategy prediction).
 
 import pandas as pd
 
+from hostpathogen.data.loader import to_df
 from hostpathogen.ml.classifier import (
     FEATURE_NAMES,
     extract_features,
@@ -12,6 +13,7 @@ from hostpathogen.ml.classifier import (
     compare_classifiers,
     cross_validate_rf,
     grid_search_rf,
+    out_of_fold_predictions,
 )
 
 
@@ -21,6 +23,52 @@ def test_extract_features_shape():
     assert X.shape[0] == 54
     assert X.shape[1] == len(FEATURE_NAMES)
     assert len(y) == 54
+
+
+def test_extract_features_indexed_by_pathogen():
+    """X rows must be labelled with the real pathogen names.
+
+    Per-pathogen reporting (cross_validate_rf, out_of_fold_predictions) maps a
+    positional row back to a name. That is only safe if X carries the name, so
+    this guards against a silent mislabelling regression.
+    """
+    X, _ = extract_features()
+    assert X.index.name == "pathogen"
+    assert len(set(X.index)) == 54
+    assert set(X.index) == set(to_df("SELECT name FROM pathogens")["name"])
+    # names, not integer row numbers
+    assert not any(str(name).isdigit() for name in X.index)
+
+
+def test_out_of_fold_predictions_are_genuine():
+    """Predictions must be out-of-fold, so they cannot be 100% correct.
+
+    The previous offline payload copied the curated label into 'predicted' and
+    derived 'confidence' from a hash, which made accuracy trivially 100%. Real
+    cross-validated predictions should show genuine errors.
+    """
+    preds = out_of_fold_predictions()
+    assert len(preds) == 54
+    assert {p["pathogen"] for p in preds} == set(extract_features()[0].index)
+
+    for p in preds:
+        assert 0.0 <= p["confidence"] <= 1.0
+        assert p["correct"] == (p["predicted"] == p["actual"])
+
+    accuracy = sum(p["correct"] for p in preds) / len(preds)
+    assert accuracy < 1.0, "out-of-fold accuracy of 100% implies label leakage"
+    # More than a couple of distinct confidences means it is not a constant.
+    assert len({p["confidence"] for p in preds}) > 2
+
+
+def test_out_of_fold_agrees_with_cross_validate_rf():
+    """Both CV helpers should score identically on the same folds."""
+    from_folds = {
+        r["pathogen"]: (r["predicted_strategy"], r["correct"])
+        for r in cross_validate_rf()["folds"]
+    }
+    from_oof = {r["pathogen"]: (r["predicted"], r["correct"]) for r in out_of_fold_predictions()}
+    assert from_folds == from_oof
 
 
 def test_extract_features_no_nans():

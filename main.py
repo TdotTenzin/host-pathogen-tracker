@@ -43,7 +43,7 @@ HTML_DASHBOARD = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Host-Pathogen API Dashboard</title>
+  <title>PathoMap API Dashboard</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -75,8 +75,8 @@ HTML_DASHBOARD = """<!DOCTYPE html>
 </head>
 <body>
   <div class="container">
-    <h1>Host-Pathogen Omics Explorer <small>API v0.3.0</small></h1>
-    <p>REST API for host-pathogen interaction analysis. Data sourced from the curated <code>hostpathogen.db</code> SQLite database.</p>
+    <h1>PathoMap <small>API v0.4.0</small></h1>
+    <p>REST API for the curated host&ndash;pathogen dataset served to the PathoMap site. Data is sourced from <code>hostpathogen.db</code>.</p>
 
     <div class="card">
       <h2>Pathogens</h2>
@@ -126,14 +126,7 @@ HTML_DASHBOARD = """<!DOCTYPE html>
     </div>
 
     <div class="card">
-      <h2>My Data (user-uploaded)</h2>
-      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/mydata/predict-strategy</span><span class="desc">Predict evasion strategies from an uploaded effector table</span></div>
-      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/mydata/pca</span><span class="desc">PCA on an uploaded numeric matrix</span></div>
-      <div class="endpoint"><span class="method post">POST</span><span class="path">/api/mydata/umap</span><span class="desc">UMAP on an uploaded numeric matrix</span></div>
-    </div>
-
-    <div class="card">
-      <h2>Stats & Search</h2>
+      <h2>Stats &amp; Search</h2>
       <div class="endpoint"><span class="method get">GET</span><span class="path">/api/stats</span><span class="desc">Database summary statistics</span></div>
       <div class="endpoint"><span class="method get">GET</span><span class="path">/api/search</span><span class="desc">Search pathogens</span></div>
       <div class="endpoint"><span class="method get">GET</span><span class="path">/api/bootstrap</span><span class="desc">All data for page initialization</span></div>
@@ -145,7 +138,7 @@ HTML_DASHBOARD = """<!DOCTYPE html>
     </div>
 
     <div class="footer">
-      Host-Pathogen Omics Explorer &mdash; Built with FastAPI + SQLite
+      PathoMap &mdash; Built with FastAPI + SQLite
     </div>
   </div>
 </body>

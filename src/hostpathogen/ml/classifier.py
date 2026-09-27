@@ -87,7 +87,11 @@ def extract_features() -> tuple[pd.DataFrame, pd.Series]:
     strategies = to_df("SELECT name AS pathogen, strategy FROM pathogens ORDER BY name")
     y_df = df[["pathogen"]].merge(strategies, on="pathogen")
 
+    # Index by pathogen name so row i of X is unambiguously the i-th name in
+    # X.index. Callers that report per-pathogen results rely on this rather
+    # than re-querying names and assuming the two orders match.
     X = df.drop(columns=["pathogen"])
+    X.index = pd.Index(y_df["pathogen"].tolist(), name="pathogen")
     y = y_df["strategy"]
 
     # Fill NaN with 0 for LEFT JOINs that produced no matches
@@ -269,7 +273,7 @@ def cross_validate_rf(random_state: int = 42) -> dict:
     from sklearn.model_selection import StratifiedKFold
 
     X, y = extract_features()
-    all_names = to_df("SELECT name FROM pathogens ORDER BY name")["name"].tolist()
+    all_names = list(X.index)
 
     cv = StratifiedKFold(**_STRATIFIED_KWARGS)
     fold_results = []
@@ -297,6 +301,45 @@ def cross_validate_rf(random_state: int = 42) -> dict:
         "accuracy": round(n_correct / len(fold_results), 4),
         "folds": fold_results,
     }
+
+
+def out_of_fold_predictions(random_state: int = 42) -> list[dict]:
+    """
+    Cross-validated predictions for every pathogen in the curated dataset.
+
+    Each row is predicted by a model that never saw that pathogen during
+    training, so the reported confidence and accuracy are real measurements
+    rather than a restatement of the label. This is what the site's Strategy
+    Predictor displays when the live API is unavailable.
+    """
+    X, y = extract_features()
+    all_names = list(X.index)
+
+    cv = StratifiedKFold(**_STRATIFIED_KWARGS)
+    results: list[dict] = []
+    for train_idx, test_idx in cv.split(X, y):
+        model = RandomForestClassifier(
+            n_estimators=100, random_state=random_state, class_weight="balanced"
+        )
+        model.fit(X.iloc[train_idx], y.iloc[train_idx])
+        preds = model.predict(X.iloc[test_idx])
+        probs = model.predict_proba(X.iloc[test_idx])
+        classes = list(model.classes_)
+        for i, idx in enumerate(test_idx):
+            row_probs = probs[i]
+            confidence = float(row_probs[classes.index(preds[i])]) if preds[i] in classes else 0.0
+            actual = str(y.iloc[idx])
+            predicted = str(preds[i])
+            results.append({
+                "pathogen": all_names[idx],
+                "predicted": predicted,
+                "actual": actual,
+                "confidence": round(confidence, 4),
+                "correct": bool(predicted == actual),
+            })
+
+    results.sort(key=lambda r: r["pathogen"])
+    return results
 
 
 def grid_search_rf(random_state: int = 42) -> dict:

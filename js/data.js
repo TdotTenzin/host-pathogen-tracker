@@ -2799,6 +2799,908 @@ var TOOLKIT_DATA = {
       "pathway": "Cell adhesion"
     }
   ],
+  "interactions": [
+    {
+      "effector": "OmpA",
+      "pathogen": "Acinetobacter baumannii",
+      "host_protein": "Mitochondria",
+      "interaction_type": "targets"
+    },
+    {
+      "effector": "Plc",
+      "pathogen": "Acinetobacter baumannii",
+      "host_protein": "Host membranes",
+      "interaction_type": "phospholipase"
+    },
+    {
+      "effector": "Ats-1",
+      "pathogen": "Anaplasma phagocytophilum",
+      "host_protein": "PI3P",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "Ats-1",
+      "pathogen": "Anaplasma phagocytophilum",
+      "host_protein": "Rab5",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "ALO",
+      "pathogen": "Bacillus anthracis",
+      "host_protein": "Cholesterol",
+      "interaction_type": "pore-forming"
+    },
+    {
+      "effector": "EF",
+      "pathogen": "Bacillus anthracis",
+      "host_protein": "CaM",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "LF",
+      "pathogen": "Bacillus anthracis",
+      "host_protein": "MAPKK",
+      "interaction_type": "cleaves"
+    },
+    {
+      "effector": "PA",
+      "pathogen": "Bacillus anthracis",
+      "host_protein": "Host cells",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "Hbl",
+      "pathogen": "Bacillus cereus",
+      "host_protein": "Host membranes",
+      "interaction_type": "pore-forming"
+    },
+    {
+      "effector": "PC-PLC",
+      "pathogen": "Bacillus cereus",
+      "host_protein": "Host membranes",
+      "interaction_type": "phospholipase"
+    },
+    {
+      "effector": "BFT",
+      "pathogen": "Bacteroides fragilis",
+      "host_protein": "E-cadherin",
+      "interaction_type": "cleaves"
+    },
+    {
+      "effector": "BepA",
+      "pathogen": "Bartonella henselae",
+      "host_protein": "Actin",
+      "interaction_type": "remodels"
+    },
+    {
+      "effector": "CyaA",
+      "pathogen": "Bordetella pertussis",
+      "host_protein": "CaM",
+      "interaction_type": "activates"
+    },
+    {
+      "effector": "PTx",
+      "pathogen": "Bordetella pertussis",
+      "host_protein": "Host signaling",
+      "interaction_type": "ADP-ribosylates"
+    },
+    {
+      "effector": "DbpA",
+      "pathogen": "Borrelia burgdorferi",
+      "host_protein": "Extracellular matrix",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "OspA",
+      "pathogen": "Borrelia burgdorferi",
+      "host_protein": "TLR2",
+      "interaction_type": "activates"
+    },
+    {
+      "effector": "BtpA",
+      "pathogen": "Brucella abortus",
+      "host_protein": "TLR2",
+      "interaction_type": "inhibits"
+    },
+    {
+      "effector": "BtpB",
+      "pathogen": "Brucella abortus",
+      "host_protein": "Host signaling",
+      "interaction_type": "inhibits"
+    },
+    {
+      "effector": "VceA",
+      "pathogen": "Brucella abortus",
+      "host_protein": "Golgi",
+      "interaction_type": "modulates"
+    },
+    {
+      "effector": "VceC",
+      "pathogen": "Brucella abortus",
+      "host_protein": "ER membrane",
+      "interaction_type": "activates"
+    },
+    {
+      "effector": "VirB",
+      "pathogen": "Brucella abortus",
+      "host_protein": "ER membrane",
+      "interaction_type": "modulates"
+    },
+    {
+      "effector": "AidA",
+      "pathogen": "Burkholderia cenocepacia",
+      "host_protein": "Host membranes",
+      "interaction_type": "modulates"
+    },
+    {
+      "effector": "BimA",
+      "pathogen": "Burkholderia pseudomallei",
+      "host_protein": "Actin",
+      "interaction_type": "nucleates"
+    },
+    {
+      "effector": "BopA",
+      "pathogen": "Burkholderia pseudomallei",
+      "host_protein": "Host membranes",
+      "interaction_type": "disrupts"
+    },
+    {
+      "effector": "BopE",
+      "pathogen": "Burkholderia pseudomallei",
+      "host_protein": "Cdc42",
+      "interaction_type": "GEF"
+    },
+    {
+      "effector": "BopE",
+      "pathogen": "Burkholderia pseudomallei",
+      "host_protein": "Rac1",
+      "interaction_type": "GEF"
+    },
+    {
+      "effector": "Cdt",
+      "pathogen": "Campylobacter jejuni",
+      "host_protein": "Host DNA",
+      "interaction_type": "DNase"
+    },
+    {
+      "effector": "FlaA",
+      "pathogen": "Campylobacter jejuni",
+      "host_protein": "TLR5",
+      "interaction_type": "activates"
+    },
+    {
+      "effector": "CPn0809",
+      "pathogen": "Chlamydia pneumoniae",
+      "host_protein": "Golgi",
+      "interaction_type": "modulates"
+    },
+    {
+      "effector": "IncA",
+      "pathogen": "Chlamydia pneumoniae",
+      "host_protein": "LAMP1",
+      "interaction_type": "blocks fusion"
+    },
+    {
+      "effector": "CT229",
+      "pathogen": "Chlamydia trachomatis",
+      "host_protein": "Host signaling",
+      "interaction_type": "modifies"
+    },
+    {
+      "effector": "IncA",
+      "pathogen": "Chlamydia trachomatis",
+      "host_protein": "LAMP1",
+      "interaction_type": "blocks fusion"
+    },
+    {
+      "effector": "IncC",
+      "pathogen": "Chlamydia trachomatis",
+      "host_protein": "Golgi",
+      "interaction_type": "recruits"
+    },
+    {
+      "effector": "Cdt",
+      "pathogen": "Clostridium difficile",
+      "host_protein": "Actin",
+      "interaction_type": "ADP-ribosylates"
+    },
+    {
+      "effector": "TcdA",
+      "pathogen": "Clostridium difficile",
+      "host_protein": "RhoA",
+      "interaction_type": "glucosylates"
+    },
+    {
+      "effector": "TcdB",
+      "pathogen": "Clostridium difficile",
+      "host_protein": "RhoA",
+      "interaction_type": "glucosylates"
+    },
+    {
+      "effector": "PFO",
+      "pathogen": "Clostridium perfringens",
+      "host_protein": "Cholesterol",
+      "interaction_type": "pore-forming"
+    },
+    {
+      "effector": "DT",
+      "pathogen": "Corynebacterium diphtheriae",
+      "host_protein": "EF-2",
+      "interaction_type": "ADP-ribosylates"
+    },
+    {
+      "effector": "Cig2",
+      "pathogen": "Coxiella burnetii",
+      "host_protein": "Rab1",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "Cig57",
+      "pathogen": "Coxiella burnetii",
+      "host_protein": "Host membranes",
+      "interaction_type": "recruits"
+    },
+    {
+      "effector": "CvpB",
+      "pathogen": "Coxiella burnetii",
+      "host_protein": "PI3P",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "Ank200",
+      "pathogen": "Ehrlichia chaffeensis",
+      "host_protein": "Host DNA",
+      "interaction_type": "modulates"
+    },
+    {
+      "effector": "TRP120",
+      "pathogen": "Ehrlichia chaffeensis",
+      "host_protein": "Notch",
+      "interaction_type": "activates"
+    },
+    {
+      "effector": "TRP32",
+      "pathogen": "Ehrlichia chaffeensis",
+      "host_protein": "Wnt",
+      "interaction_type": "activates"
+    },
+    {
+      "effector": "Ace",
+      "pathogen": "Enterococcus faecalis",
+      "host_protein": "Collagen",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "Cyl",
+      "pathogen": "Enterococcus faecalis",
+      "host_protein": "Host membranes",
+      "interaction_type": "pore-forming"
+    },
+    {
+      "effector": "CNF1",
+      "pathogen": "Escherichia coli K1",
+      "host_protein": "RhoA",
+      "interaction_type": "deamidase"
+    },
+    {
+      "effector": "IbeA",
+      "pathogen": "Escherichia coli K1",
+      "host_protein": "Vimentin",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "OmpA",
+      "pathogen": "Escherichia coli K1",
+      "host_protein": "GPI anchor",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "IglC",
+      "pathogen": "Francisella tularensis",
+      "host_protein": "Host membranes",
+      "interaction_type": "disrupts"
+    },
+    {
+      "effector": "IglD",
+      "pathogen": "Francisella tularensis",
+      "host_protein": "Host membranes",
+      "interaction_type": "disrupts"
+    },
+    {
+      "effector": "Hap",
+      "pathogen": "Haemophilus influenzae",
+      "host_protein": "Extracellular matrix",
+      "interaction_type": "protease"
+    },
+    {
+      "effector": "P5",
+      "pathogen": "Haemophilus influenzae",
+      "host_protein": "ICAM-1",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "CagA",
+      "pathogen": "Helicobacter pylori",
+      "host_protein": "SHP-2",
+      "interaction_type": "activates"
+    },
+    {
+      "effector": "HtrA",
+      "pathogen": "Helicobacter pylori",
+      "host_protein": "E-cadherin",
+      "interaction_type": "cleaves"
+    },
+    {
+      "effector": "VacA",
+      "pathogen": "Helicobacter pylori",
+      "host_protein": "Mitochondria",
+      "interaction_type": "targets"
+    },
+    {
+      "effector": "CPS",
+      "pathogen": "Klebsiella pneumoniae",
+      "host_protein": "Host immune",
+      "interaction_type": "antiphagocytic"
+    },
+    {
+      "effector": "LPS",
+      "pathogen": "Klebsiella pneumoniae",
+      "host_protein": "TLR4",
+      "interaction_type": "activates"
+    },
+    {
+      "effector": "AnkX",
+      "pathogen": "Legionella pneumophila",
+      "host_protein": "Rab1",
+      "interaction_type": "phosphocholinates"
+    },
+    {
+      "effector": "AnkX",
+      "pathogen": "Legionella pneumophila",
+      "host_protein": "Rab35",
+      "interaction_type": "phosphocholinates"
+    },
+    {
+      "effector": "DrrA/SidM",
+      "pathogen": "Legionella pneumophila",
+      "host_protein": "Rab1",
+      "interaction_type": "GEF"
+    },
+    {
+      "effector": "Lem3",
+      "pathogen": "Legionella pneumophila",
+      "host_protein": "Rab1",
+      "interaction_type": "dephosphocholinates"
+    },
+    {
+      "effector": "LidA",
+      "pathogen": "Legionella pneumophila",
+      "host_protein": "Rab1",
+      "interaction_type": "binds/stabilizes"
+    },
+    {
+      "effector": "SidC",
+      "pathogen": "Legionella pneumophila",
+      "host_protein": "ER membrane",
+      "interaction_type": "recruits"
+    },
+    {
+      "effector": "SidD",
+      "pathogen": "Legionella pneumophila",
+      "host_protein": "Rab1",
+      "interaction_type": "deAMPylates"
+    },
+    {
+      "effector": "VipD",
+      "pathogen": "Legionella pneumophila",
+      "host_protein": "Host membranes",
+      "interaction_type": "phospholipase"
+    },
+    {
+      "effector": "LenA",
+      "pathogen": "Leptospira interrogans",
+      "host_protein": "Factor H",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "Loa22",
+      "pathogen": "Leptospira interrogans",
+      "host_protein": "Collagen",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "ActA",
+      "pathogen": "Listeria monocytogenes",
+      "host_protein": "Arp2/3",
+      "interaction_type": "activates"
+    },
+    {
+      "effector": "InlA",
+      "pathogen": "Listeria monocytogenes",
+      "host_protein": "E-cadherin",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "InlB",
+      "pathogen": "Listeria monocytogenes",
+      "host_protein": "Met receptor",
+      "interaction_type": "activates"
+    },
+    {
+      "effector": "LLO",
+      "pathogen": "Listeria monocytogenes",
+      "host_protein": "Cholesterol",
+      "interaction_type": "pore-forming"
+    },
+    {
+      "effector": "PlcA",
+      "pathogen": "Listeria monocytogenes",
+      "host_protein": "PI(4,5)P2",
+      "interaction_type": "hydrolyzes"
+    },
+    {
+      "effector": "PlcB",
+      "pathogen": "Listeria monocytogenes",
+      "host_protein": "Sphingomyelin",
+      "interaction_type": "hydrolyzes"
+    },
+    {
+      "effector": "LAM",
+      "pathogen": "Mycobacterium avium",
+      "host_protein": "Vps34",
+      "interaction_type": "inhibits"
+    },
+    {
+      "effector": "ESAT-6",
+      "pathogen": "Mycobacterium bovis",
+      "host_protein": "Host membranes",
+      "interaction_type": "pore-forming"
+    },
+    {
+      "effector": "LAM",
+      "pathogen": "Mycobacterium bovis",
+      "host_protein": "Vps34",
+      "interaction_type": "inhibits"
+    },
+    {
+      "effector": "LAM",
+      "pathogen": "Mycobacterium leprae",
+      "host_protein": "Vps34",
+      "interaction_type": "inhibits"
+    },
+    {
+      "effector": "ESAT-6",
+      "pathogen": "Mycobacterium marinum",
+      "host_protein": "Host membranes",
+      "interaction_type": "pore-forming"
+    },
+    {
+      "effector": "LAM",
+      "pathogen": "Mycobacterium marinum",
+      "host_protein": "Vps34",
+      "interaction_type": "inhibits"
+    },
+    {
+      "effector": "Eis",
+      "pathogen": "Mycobacterium tuberculosis",
+      "host_protein": "Host signaling",
+      "interaction_type": "acetylates"
+    },
+    {
+      "effector": "LAM",
+      "pathogen": "Mycobacterium tuberculosis",
+      "host_protein": "Vps34",
+      "interaction_type": "inhibits"
+    },
+    {
+      "effector": "MptpA",
+      "pathogen": "Mycobacterium tuberculosis",
+      "host_protein": "V-ATPase",
+      "interaction_type": "blocks"
+    },
+    {
+      "effector": "MptpB",
+      "pathogen": "Mycobacterium tuberculosis",
+      "host_protein": "PI(3,5)P2",
+      "interaction_type": "hydrolyzes"
+    },
+    {
+      "effector": "PknG",
+      "pathogen": "Mycobacterium tuberculosis",
+      "host_protein": "Host signaling",
+      "interaction_type": "phosphorylates"
+    },
+    {
+      "effector": "SapM",
+      "pathogen": "Mycobacterium tuberculosis",
+      "host_protein": "PI3P",
+      "interaction_type": "dephosphorylates"
+    },
+    {
+      "effector": "Opa",
+      "pathogen": "Neisseria gonorrhoeae",
+      "host_protein": "CEACAM",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "PorB",
+      "pathogen": "Neisseria gonorrhoeae",
+      "host_protein": "Mitochondria",
+      "interaction_type": "anti-apoptotic"
+    },
+    {
+      "effector": "Opca",
+      "pathogen": "Neisseria meningitidis",
+      "host_protein": "CEACAM",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "PorB",
+      "pathogen": "Neisseria meningitidis",
+      "host_protein": "Mitochondria",
+      "interaction_type": "anti-apoptotic"
+    },
+    {
+      "effector": "PLA",
+      "pathogen": "Nocardia asteroides",
+      "host_protein": "Host membranes",
+      "interaction_type": "phospholipase"
+    },
+    {
+      "effector": "HlyA",
+      "pathogen": "Orientia tsutsugamushi",
+      "host_protein": "Host membranes",
+      "interaction_type": "pore-forming"
+    },
+    {
+      "effector": "Pld",
+      "pathogen": "Orientia tsutsugamushi",
+      "host_protein": "Host membranes",
+      "interaction_type": "phospholipase"
+    },
+    {
+      "effector": "FimA",
+      "pathogen": "Porphyromonas gingivalis",
+      "host_protein": "TLR2",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "ExoS",
+      "pathogen": "Pseudomonas aeruginosa",
+      "host_protein": "RhoA",
+      "interaction_type": "GAP"
+    },
+    {
+      "effector": "ExoT",
+      "pathogen": "Pseudomonas aeruginosa",
+      "host_protein": "Cdc42",
+      "interaction_type": "GAP"
+    },
+    {
+      "effector": "ExoT",
+      "pathogen": "Pseudomonas aeruginosa",
+      "host_protein": "Rac1",
+      "interaction_type": "GAP"
+    },
+    {
+      "effector": "ExoU",
+      "pathogen": "Pseudomonas aeruginosa",
+      "host_protein": "Host membranes",
+      "interaction_type": "phospholipase"
+    },
+    {
+      "effector": "ToxA",
+      "pathogen": "Pseudomonas aeruginosa",
+      "host_protein": "EF-2",
+      "interaction_type": "ADP-ribosylates"
+    },
+    {
+      "effector": "VapA",
+      "pathogen": "Rhodococcus equi",
+      "host_protein": "Host membranes",
+      "interaction_type": "modulates"
+    },
+    {
+      "effector": "Pat1",
+      "pathogen": "Rickettsia conorii",
+      "host_protein": "Host membranes",
+      "interaction_type": "phospholipase"
+    },
+    {
+      "effector": "RickA",
+      "pathogen": "Rickettsia conorii",
+      "host_protein": "Arp2/3",
+      "interaction_type": "activates"
+    },
+    {
+      "effector": "Sca2",
+      "pathogen": "Rickettsia conorii",
+      "host_protein": "Actin",
+      "interaction_type": "nucleates"
+    },
+    {
+      "effector": "RickA",
+      "pathogen": "Rickettsia rickettsii",
+      "host_protein": "Arp2/3",
+      "interaction_type": "activates"
+    },
+    {
+      "effector": "Sca2",
+      "pathogen": "Rickettsia rickettsii",
+      "host_protein": "Actin",
+      "interaction_type": "nucleates"
+    },
+    {
+      "effector": "TlyA",
+      "pathogen": "Rickettsia rickettsii",
+      "host_protein": "Host membranes",
+      "interaction_type": "pore-forming"
+    },
+    {
+      "effector": "PipB2",
+      "pathogen": "Salmonella enterica",
+      "host_protein": "Kinesin-1",
+      "interaction_type": "recruits"
+    },
+    {
+      "effector": "SifA",
+      "pathogen": "Salmonella enterica",
+      "host_protein": "SKIP",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "SipA",
+      "pathogen": "Salmonella enterica",
+      "host_protein": "Actin",
+      "interaction_type": "binds/stabilizes"
+    },
+    {
+      "effector": "SopB/SigD",
+      "pathogen": "Salmonella enterica",
+      "host_protein": "PI(4,5)P2",
+      "interaction_type": "dephosphorylates"
+    },
+    {
+      "effector": "SopD2",
+      "pathogen": "Salmonella enterica",
+      "host_protein": "Rab7",
+      "interaction_type": "inhibits"
+    },
+    {
+      "effector": "SopE",
+      "pathogen": "Salmonella enterica",
+      "host_protein": "Cdc42",
+      "interaction_type": "GEF"
+    },
+    {
+      "effector": "SopE",
+      "pathogen": "Salmonella enterica",
+      "host_protein": "Rac1",
+      "interaction_type": "GEF"
+    },
+    {
+      "effector": "SseJ",
+      "pathogen": "Salmonella enterica",
+      "host_protein": "Cholesterol",
+      "interaction_type": "acyltransferase"
+    },
+    {
+      "effector": "SifA",
+      "pathogen": "Salmonella typhi",
+      "host_protein": "SKIP",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "SopE",
+      "pathogen": "Salmonella typhi",
+      "host_protein": "Cdc42",
+      "interaction_type": "GEF"
+    },
+    {
+      "effector": "SseF",
+      "pathogen": "Salmonella typhi",
+      "host_protein": "Microtubules",
+      "interaction_type": "recruits"
+    },
+    {
+      "effector": "IcsA/VirG",
+      "pathogen": "Shigella flexneri",
+      "host_protein": "N-WASP",
+      "interaction_type": "recruits"
+    },
+    {
+      "effector": "IcsB",
+      "pathogen": "Shigella flexneri",
+      "host_protein": "LC3",
+      "interaction_type": "masks"
+    },
+    {
+      "effector": "IpaB",
+      "pathogen": "Shigella flexneri",
+      "host_protein": "Host membranes",
+      "interaction_type": "pore-forming"
+    },
+    {
+      "effector": "IpaC",
+      "pathogen": "Shigella flexneri",
+      "host_protein": "Actin",
+      "interaction_type": "nucleates"
+    },
+    {
+      "effector": "OspG",
+      "pathogen": "Shigella flexneri",
+      "host_protein": "Host signaling",
+      "interaction_type": "inhibits"
+    },
+    {
+      "effector": "VirA",
+      "pathogen": "Shigella flexneri",
+      "host_protein": "Rab1",
+      "interaction_type": "GAP"
+    },
+    {
+      "effector": "Efb",
+      "pathogen": "Staphylococcus aureus",
+      "host_protein": "Fibrinogen",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "Hla",
+      "pathogen": "Staphylococcus aureus",
+      "host_protein": "ADAM10",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "PVL",
+      "pathogen": "Staphylococcus aureus",
+      "host_protein": "C5aR",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "SpA",
+      "pathogen": "Staphylococcus aureus",
+      "host_protein": "MHC II",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "PLY",
+      "pathogen": "Streptococcus pneumoniae",
+      "host_protein": "Cholesterol",
+      "interaction_type": "pore-forming"
+    },
+    {
+      "effector": "PspA",
+      "pathogen": "Streptococcus pneumoniae",
+      "host_protein": "Lactoferrin",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "PspC",
+      "pathogen": "Streptococcus pneumoniae",
+      "host_protein": "Factor H",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "M protein",
+      "pathogen": "Streptococcus pyogenes",
+      "host_protein": "C4BP",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "M protein",
+      "pathogen": "Streptococcus pyogenes",
+      "host_protein": "Factor H",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "SLO",
+      "pathogen": "Streptococcus pyogenes",
+      "host_protein": "Cholesterol",
+      "interaction_type": "pore-forming"
+    },
+    {
+      "effector": "SpeA",
+      "pathogen": "Streptococcus pyogenes",
+      "host_protein": "MHC II",
+      "interaction_type": "superantigen"
+    },
+    {
+      "effector": "Nec1",
+      "pathogen": "Streptomyces scabies",
+      "host_protein": "Host cells",
+      "interaction_type": "necrosis"
+    },
+    {
+      "effector": "Tp0751",
+      "pathogen": "Treponema pallidum",
+      "host_protein": "Extracellular matrix",
+      "interaction_type": "protease"
+    },
+    {
+      "effector": "TW1",
+      "pathogen": "Tropheryma whipplei",
+      "host_protein": "Host cells",
+      "interaction_type": "binds"
+    },
+    {
+      "effector": "CTX",
+      "pathogen": "Vibrio cholerae",
+      "host_protein": "Host signaling",
+      "interaction_type": "ADP-ribosylates"
+    },
+    {
+      "effector": "YopE",
+      "pathogen": "Yersinia pestis",
+      "host_protein": "Cdc42",
+      "interaction_type": "GAP"
+    },
+    {
+      "effector": "YopE",
+      "pathogen": "Yersinia pestis",
+      "host_protein": "Rac1",
+      "interaction_type": "GAP"
+    },
+    {
+      "effector": "YopE",
+      "pathogen": "Yersinia pestis",
+      "host_protein": "RhoA",
+      "interaction_type": "GAP"
+    },
+    {
+      "effector": "YopH",
+      "pathogen": "Yersinia pestis",
+      "host_protein": "FAK",
+      "interaction_type": "dephosphorylates"
+    },
+    {
+      "effector": "YopH",
+      "pathogen": "Yersinia pestis",
+      "host_protein": "p130Cas",
+      "interaction_type": "dephosphorylates"
+    },
+    {
+      "effector": "YopJ",
+      "pathogen": "Yersinia pestis",
+      "host_protein": "IKK",
+      "interaction_type": "acetylates"
+    },
+    {
+      "effector": "YopJ",
+      "pathogen": "Yersinia pestis",
+      "host_protein": "MAPKK",
+      "interaction_type": "acetylates"
+    },
+    {
+      "effector": "YopE",
+      "pathogen": "Yersinia pseudotuberculosis",
+      "host_protein": "Rac1",
+      "interaction_type": "GAP"
+    },
+    {
+      "effector": "YopE",
+      "pathogen": "Yersinia pseudotuberculosis",
+      "host_protein": "RhoA",
+      "interaction_type": "GAP"
+    },
+    {
+      "effector": "YopH",
+      "pathogen": "Yersinia pseudotuberculosis",
+      "host_protein": "FAK",
+      "interaction_type": "dephosphorylates"
+    },
+    {
+      "effector": "YopJ",
+      "pathogen": "Yersinia pseudotuberculosis",
+      "host_protein": "MAPKK",
+      "interaction_type": "acetylates"
+    },
+    {
+      "effector": "YpkA/YopO",
+      "pathogen": "Yersinia pseudotuberculosis",
+      "host_protein": "Actin",
+      "interaction_type": "binds"
+    }
+  ],
   "maturation_stages": [
     {
       "stage_order": 0,
@@ -3467,327 +4369,381 @@ var TOOLKIT_DATA = {
   "ml_predictions": [
     {
       "pathogen": "Acinetobacter baumannii",
-      "predicted": "extracellular",
+      "predicted": "modified_compartment",
       "actual": "extracellular",
-      "confidence": 0.59
+      "confidence": 0.52,
+      "correct": false
     },
     {
       "pathogen": "Anaplasma phagocytophilum",
       "predicted": "reroute",
       "actual": "reroute",
-      "confidence": 0.62
+      "confidence": 0.45,
+      "correct": true
     },
     {
       "pathogen": "Bacillus anthracis",
       "predicted": "escape",
       "actual": "escape",
-      "confidence": 0.73
+      "confidence": 0.39,
+      "correct": true
     },
     {
       "pathogen": "Bacillus cereus",
-      "predicted": "escape",
+      "predicted": "extracellular",
       "actual": "escape",
-      "confidence": 0.55
+      "confidence": 0.6896,
+      "correct": false
     },
     {
       "pathogen": "Bacteroides fragilis",
-      "predicted": "extracellular",
+      "predicted": "arrest",
       "actual": "extracellular",
-      "confidence": 0.55
+      "confidence": 0.6633,
+      "correct": false
     },
     {
       "pathogen": "Bartonella henselae",
-      "predicted": "reroute",
+      "predicted": "modified_compartment",
       "actual": "reroute",
-      "confidence": 0.69
+      "confidence": 0.71,
+      "correct": false
     },
     {
       "pathogen": "Bordetella pertussis",
       "predicted": "extracellular",
       "actual": "extracellular",
-      "confidence": 0.75
+      "confidence": 0.45,
+      "correct": true
     },
     {
       "pathogen": "Borrelia burgdorferi",
-      "predicted": "extracellular",
+      "predicted": "arrest",
       "actual": "extracellular",
-      "confidence": 0.75
+      "confidence": 0.6043,
+      "correct": false
     },
     {
       "pathogen": "Brucella abortus",
       "predicted": "modified_compartment",
       "actual": "modified_compartment",
-      "confidence": 0.79
+      "confidence": 0.45,
+      "correct": true
     },
     {
       "pathogen": "Burkholderia cenocepacia",
-      "predicted": "modified_compartment",
+      "predicted": "extracellular",
       "actual": "modified_compartment",
-      "confidence": 0.61
+      "confidence": 0.5983,
+      "correct": false
     },
     {
       "pathogen": "Burkholderia pseudomallei",
-      "predicted": "escape",
+      "predicted": "modified_compartment",
       "actual": "escape",
-      "confidence": 0.65
+      "confidence": 0.5,
+      "correct": false
     },
     {
       "pathogen": "Campylobacter jejuni",
-      "predicted": "modified_compartment",
+      "predicted": "arrest",
       "actual": "modified_compartment",
-      "confidence": 0.54
+      "confidence": 0.575,
+      "correct": false
     },
     {
       "pathogen": "Chlamydia pneumoniae",
-      "predicted": "reroute",
+      "predicted": "arrest",
       "actual": "reroute",
-      "confidence": 0.79
+      "confidence": 0.835,
+      "correct": false
     },
     {
       "pathogen": "Chlamydia trachomatis",
-      "predicted": "reroute",
+      "predicted": "modified_compartment",
       "actual": "reroute",
-      "confidence": 0.66
+      "confidence": 0.72,
+      "correct": false
     },
     {
       "pathogen": "Clostridium difficile",
-      "predicted": "extracellular",
+      "predicted": "arrest",
       "actual": "extracellular",
-      "confidence": 0.65
+      "confidence": 0.37,
+      "correct": false
     },
     {
       "pathogen": "Clostridium perfringens",
       "predicted": "extracellular",
       "actual": "extracellular",
-      "confidence": 0.79
+      "confidence": 0.3725,
+      "correct": true
     },
     {
       "pathogen": "Corynebacterium diphtheriae",
       "predicted": "extracellular",
       "actual": "extracellular",
-      "confidence": 0.62
+      "confidence": 0.5563,
+      "correct": true
     },
     {
       "pathogen": "Coxiella burnetii",
       "predicted": "modified_compartment",
       "actual": "modified_compartment",
-      "confidence": 0.68
+      "confidence": 0.51,
+      "correct": true
     },
     {
       "pathogen": "Ehrlichia chaffeensis",
       "predicted": "reroute",
       "actual": "reroute",
-      "confidence": 0.52
+      "confidence": 0.55,
+      "correct": true
     },
     {
       "pathogen": "Enterococcus faecalis",
       "predicted": "extracellular",
       "actual": "extracellular",
-      "confidence": 0.54
+      "confidence": 0.725,
+      "correct": true
     },
     {
       "pathogen": "Escherichia coli K1",
-      "predicted": "arrest",
+      "predicted": "extracellular",
       "actual": "arrest",
-      "confidence": 0.7
+      "confidence": 0.64,
+      "correct": false
     },
     {
       "pathogen": "Francisella tularensis",
-      "predicted": "escape",
+      "predicted": "arrest",
       "actual": "escape",
-      "confidence": 0.73
+      "confidence": 0.3207,
+      "correct": false
     },
     {
       "pathogen": "Haemophilus influenzae",
       "predicted": "extracellular",
       "actual": "extracellular",
-      "confidence": 0.67
+      "confidence": 0.48,
+      "correct": true
     },
     {
       "pathogen": "Helicobacter pylori",
-      "predicted": "extracellular",
+      "predicted": "escape",
       "actual": "extracellular",
-      "confidence": 0.5
+      "confidence": 0.34,
+      "correct": false
     },
     {
       "pathogen": "Klebsiella pneumoniae",
       "predicted": "extracellular",
       "actual": "extracellular",
-      "confidence": 0.73
+      "confidence": 0.5,
+      "correct": true
     },
     {
       "pathogen": "Legionella pneumophila",
-      "predicted": "reroute",
+      "predicted": "modified_compartment",
       "actual": "reroute",
-      "confidence": 0.67
+      "confidence": 0.74,
+      "correct": false
     },
     {
       "pathogen": "Leptospira interrogans",
-      "predicted": "extracellular",
+      "predicted": "arrest",
       "actual": "extracellular",
-      "confidence": 0.71
+      "confidence": 0.5665,
+      "correct": false
     },
     {
       "pathogen": "Listeria monocytogenes",
       "predicted": "escape",
       "actual": "escape",
-      "confidence": 0.63
+      "confidence": 0.47,
+      "correct": true
     },
     {
       "pathogen": "Mycobacterium avium",
       "predicted": "arrest",
       "actual": "arrest",
-      "confidence": 0.6
+      "confidence": 0.7172,
+      "correct": true
     },
     {
       "pathogen": "Mycobacterium bovis",
-      "predicted": "arrest",
+      "predicted": "modified_compartment",
       "actual": "arrest",
-      "confidence": 0.61
+      "confidence": 0.43,
+      "correct": false
     },
     {
       "pathogen": "Mycobacterium leprae",
-      "predicted": "arrest",
+      "predicted": "extracellular",
       "actual": "arrest",
-      "confidence": 0.52
+      "confidence": 0.8025,
+      "correct": false
     },
     {
       "pathogen": "Mycobacterium marinum",
-      "predicted": "arrest",
+      "predicted": "reroute",
       "actual": "arrest",
-      "confidence": 0.78
+      "confidence": 0.51,
+      "correct": false
     },
     {
       "pathogen": "Mycobacterium tuberculosis",
-      "predicted": "arrest",
+      "predicted": "modified_compartment",
       "actual": "arrest",
-      "confidence": 0.74
+      "confidence": 0.59,
+      "correct": false
     },
     {
       "pathogen": "Neisseria gonorrhoeae",
       "predicted": "extracellular",
       "actual": "extracellular",
-      "confidence": 0.74
+      "confidence": 0.82,
+      "correct": true
     },
     {
       "pathogen": "Neisseria meningitidis",
       "predicted": "extracellular",
       "actual": "extracellular",
-      "confidence": 0.69
+      "confidence": 0.51,
+      "correct": true
     },
     {
       "pathogen": "Nocardia asteroides",
-      "predicted": "arrest",
+      "predicted": "extracellular",
       "actual": "arrest",
-      "confidence": 0.53
+      "confidence": 0.5867,
+      "correct": false
     },
     {
       "pathogen": "Orientia tsutsugamushi",
-      "predicted": "escape",
+      "predicted": "extracellular",
       "actual": "escape",
-      "confidence": 0.65
+      "confidence": 0.391,
+      "correct": false
     },
     {
       "pathogen": "Porphyromonas gingivalis",
-      "predicted": "modified_compartment",
+      "predicted": "arrest",
       "actual": "modified_compartment",
-      "confidence": 0.6
+      "confidence": 0.4207,
+      "correct": false
     },
     {
       "pathogen": "Pseudomonas aeruginosa",
-      "predicted": "extracellular",
+      "predicted": "escape",
       "actual": "extracellular",
-      "confidence": 0.54
+      "confidence": 0.33,
+      "correct": false
     },
     {
       "pathogen": "Rhodococcus equi",
-      "predicted": "modified_compartment",
+      "predicted": "arrest",
       "actual": "modified_compartment",
-      "confidence": 0.78
+      "confidence": 0.4887,
+      "correct": false
     },
     {
       "pathogen": "Rickettsia conorii",
       "predicted": "escape",
       "actual": "escape",
-      "confidence": 0.5
+      "confidence": 0.42,
+      "correct": true
     },
     {
       "pathogen": "Rickettsia rickettsii",
       "predicted": "escape",
       "actual": "escape",
-      "confidence": 0.72
+      "confidence": 0.43,
+      "correct": true
     },
     {
       "pathogen": "Salmonella enterica",
-      "predicted": "modified_compartment",
+      "predicted": "reroute",
       "actual": "modified_compartment",
-      "confidence": 0.68
+      "confidence": 0.37,
+      "correct": false
     },
     {
       "pathogen": "Salmonella typhi",
-      "predicted": "modified_compartment",
+      "predicted": "reroute",
       "actual": "modified_compartment",
-      "confidence": 0.56
+      "confidence": 0.41,
+      "correct": false
     },
     {
       "pathogen": "Shigella flexneri",
-      "predicted": "escape",
+      "predicted": "extracellular",
       "actual": "escape",
-      "confidence": 0.69
+      "confidence": 0.31,
+      "correct": false
     },
     {
       "pathogen": "Staphylococcus aureus",
       "predicted": "escape",
       "actual": "escape",
-      "confidence": 0.57
+      "confidence": 0.33,
+      "correct": true
     },
     {
       "pathogen": "Streptococcus pneumoniae",
-      "predicted": "extracellular",
+      "predicted": "arrest",
       "actual": "extracellular",
-      "confidence": 0.65
+      "confidence": 0.36,
+      "correct": false
     },
     {
       "pathogen": "Streptococcus pyogenes",
       "predicted": "escape",
       "actual": "escape",
-      "confidence": 0.58
+      "confidence": 0.54,
+      "correct": true
     },
     {
       "pathogen": "Streptomyces scabies",
-      "predicted": "extracellular",
+      "predicted": "arrest",
       "actual": "extracellular",
-      "confidence": 0.52
+      "confidence": 0.8882,
+      "correct": false
     },
     {
       "pathogen": "Treponema pallidum",
-      "predicted": "extracellular",
+      "predicted": "arrest",
       "actual": "extracellular",
-      "confidence": 0.63
+      "confidence": 0.6916,
+      "correct": false
     },
     {
       "pathogen": "Tropheryma whipplei",
       "predicted": "arrest",
       "actual": "arrest",
-      "confidence": 0.55
+      "confidence": 0.5272,
+      "correct": true
     },
     {
       "pathogen": "Vibrio cholerae",
-      "predicted": "extracellular",
+      "predicted": "modified_compartment",
       "actual": "extracellular",
-      "confidence": 0.62
+      "confidence": 0.51,
+      "correct": false
     },
     {
       "pathogen": "Yersinia pestis",
-      "predicted": "extracellular",
+      "predicted": "reroute",
       "actual": "extracellular",
-      "confidence": 0.77
+      "confidence": 0.46,
+      "correct": false
     },
     {
       "pathogen": "Yersinia pseudotuberculosis",
-      "predicted": "extracellular",
+      "predicted": "modified_compartment",
       "actual": "extracellular",
-      "confidence": 0.76
+      "confidence": 0.3,
+      "correct": false
     }
   ],
   "ml_pca": {

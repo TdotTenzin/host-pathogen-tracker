@@ -19,7 +19,6 @@ from hostpathogen.interactome import build_network, hub_targets, network_stats, 
 from hostpathogen.enrichment import targeted_pathways_by_pathogen, overrepresentation_analysis
 from hostpathogen.ml.classifier import (
     extract_features,
-    features_from_effectors,
     train_classifier,
     compare_classifiers,
     cross_validate_rf,
@@ -29,15 +28,13 @@ from hostpathogen.ml.dimred import (
     pca_analysis,
     umap_analysis,
     pathogen_feature_pca,
-    pca_from_matrix,
-    umap_from_matrix,
 )
 from hostpathogen.ml.phylogenetics import build_phylogenetic_tree
 
 app = FastAPI(
-    title="Host-Pathogen Omics Explorer API",
-    version="0.3.0",
-    description="REST API for host-pathogen interaction analysis.",
+    title="PathoMap API",
+    version="0.4.0",
+    description="REST API for the PathoMap curated host-pathogen dataset.",
 )
 
 
@@ -52,28 +49,6 @@ class MarkerInput(BaseModel):
 
 class MarkerSnapshot(BaseModel):
     snapshots: List[List[str]]
-
-
-class EffectorRecord(BaseModel):
-    pathogen: str = ""
-    effector: str = ""
-    type: str = ""
-    host_target: str = ""
-
-
-class StrategyRequest(BaseModel):
-    effectors: List[EffectorRecord]
-
-
-class MatrixRequest(BaseModel):
-    columns: List[str]
-    rows: List[List[float]]
-    labels: Optional[List[str]] = None
-
-
-_MAX_EFFECTORS = 50000
-_MAX_MATRIX_ROWS = 10000
-_MAX_MATRIX_COLS = 500
 
 
 # ---------------------------------------------------------------------------
@@ -459,93 +434,6 @@ async def effector_phylogeny():
     return build_phylogenetic_tree()
 
 
-# ---------------------------------------------------------------------------
-# My Data — user-uploaded datasets
-# ---------------------------------------------------------------------------
-
-def _guard_matrix(input: MatrixRequest):
-    if not input.columns:
-        raise HTTPException(status_code=400, detail="Matrix must have at least one column")
-    if not input.rows:
-        raise HTTPException(status_code=400, detail="Matrix must have at least one row")
-    if len(input.rows) > _MAX_MATRIX_ROWS:
-        raise HTTPException(status_code=413, detail=f"Matrix exceeds {_MAX_MATRIX_ROWS} rows")
-    if len(input.columns) > _MAX_MATRIX_COLS:
-        raise HTTPException(status_code=413, detail=f"Matrix exceeds {_MAX_MATRIX_COLS} columns")
-    if input.labels and len(input.labels) != len(input.rows):
-        raise HTTPException(status_code=400, detail="labels must match the number of rows")
-    for r in input.rows:
-        if len(r) != len(input.columns):
-            raise HTTPException(status_code=400, detail="All rows must have the same length as columns")
-
-
-@app.post("/api/mydata/predict-strategy")
-async def mydata_predict_strategy(input: StrategyRequest):
-    """
-    Predict immune-evasion strategies for a user-uploaded effector table.
-    The Random Forest model trained on the curated dataset is applied to
-    features derived from the uploaded effectors.
-    """
-    if not input.effectors:
-        raise HTTPException(status_code=400, detail="No effectors supplied")
-    if len(input.effectors) > _MAX_EFFECTORS:
-        raise HTTPException(status_code=413, detail=f"Too many effectors (max {_MAX_EFFECTORS})")
-
-    model, _ = _get_cached_model_and_features()
-    df = pd.DataFrame([e.model_dump() for e in input.effectors])
-    X = features_from_effectors(df)
-
-    proba = model.predict_proba(X)
-    classes = list(model.classes_)
-    predictions = []
-    for i, (name, row) in enumerate(X.iterrows()):
-        probs = proba[i]
-        argmax = int(probs.argmax())
-        predictions.append(
-            {
-                "pathogen": str(name),
-                "predicted_strategy": str(classes[argmax]),
-                "confidence": round(float(probs[argmax]), 4),
-                "probs": {
-                    str(c): round(float(prob), 4) for c, prob in zip(classes, probs)
-                },
-                "n_effectors": int(row["n_effectors"]),
-            }
-        )
-    predictions.sort(key=lambda p: p["pathogen"])
-
-    importances = sorted(
-        [
-            {"feature": col, "importance": round(float(imp), 4)}
-            for col, imp in zip(X.columns, model.feature_importances_)
-        ],
-        key=lambda x: x["importance"],
-        reverse=True,
-    )
-    return {"predictions": predictions, "feature_importances": importances}
-
-
-@app.post("/api/mydata/pca")
-async def mydata_pca(input: MatrixRequest, n_components: int = Query(2, ge=2, le=10)):
-    """PCA on a user-uploaded numeric matrix."""
-    _guard_matrix(input)
-    df = pd.DataFrame(input.rows, columns=input.columns)
-    return pca_from_matrix(df, labels=input.labels, n_components=n_components)
-
-
-@app.post("/api/mydata/umap")
-async def mydata_umap(
-    input: MatrixRequest,
-    n_neighbors: int = Query(5, ge=2, le=50),
-    min_dist: float = Query(0.3, ge=0.0, le=1.0),
-):
-    """UMAP on a user-uploaded numeric matrix."""
-    _guard_matrix(input)
-    df = pd.DataFrame(input.rows, columns=input.columns)
-    return umap_from_matrix(
-        df, labels=input.labels, n_neighbors=n_neighbors, min_dist=min_dist
-    )
-
 
 # ---------------------------------------------------------------------------
 # Stats & Search
@@ -630,10 +518,34 @@ async def bootstrap():
     host_proteins = [
         dict(r) for r in query("SELECT * FROM host_proteins ORDER BY name LIMIT 100")
     ]
+    interactions = [
+        dict(r)
+        for r in query(
+            """
+            SELECT e.name AS effector,
+                   p.name AS pathogen,
+                   hp.name AS host_protein,
+                   et.interaction_type
+            FROM effector_targets et
+            JOIN effectors e ON et.effector_id = e.id
+            JOIN pathogens p ON e.pathogen_id = p.id
+            JOIN host_proteins hp ON et.host_protein_id = hp.id
+            ORDER BY p.name, e.name, hp.name
+            """
+        )
+    ]
+    # n_effectors is computed rather than stored, so attach it here to match
+    # the shape the offline export produces and the Database table expects.
+    counts: dict[str, int] = {}
+    for e in effectors:
+        counts[e["pathogen"]] = counts.get(e["pathogen"], 0) + 1
+    for p in pathogens:
+        p["n_effectors"] = counts.get(p["name"], 0)
     return {
         "pathogens": pathogens,
         "effectors": effectors,
         "stages": stages,
         "hubs": hubs,
         "host_proteins": host_proteins,
+        "interactions": interactions,
     }

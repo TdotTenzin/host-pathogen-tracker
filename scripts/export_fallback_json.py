@@ -5,7 +5,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from hostpathogen.ml.dimred import pathogen_feature_pca  # noqa: E402
-from hostpathogen.ml.classifier import compare_classifiers  # noqa: E402
+from hostpathogen.ml.classifier import compare_classifiers, out_of_fold_predictions  # noqa: E402
 from hostpathogen.ml.phylogenetics import build_phylogenetic_tree  # noqa: E402
 
 DB = os.path.join(os.path.dirname(__file__), '..', 'src', 'hostpathogen', 'data', 'hostpathogen.db')
@@ -26,6 +26,22 @@ effectors = [dict(r) for r in c.fetchall()]
 # Host proteins
 c.execute('SELECT hp.name, hp.full_name, hp.function, hp.localization, hp.pathway FROM host_proteins hp ORDER BY hp.name')
 host_proteins = [dict(r) for r in c.fetchall()]
+
+# Effector -> host protein interactions, with names resolved. The Database
+# section renders these directly, so they must exist in the offline payload
+# rather than only behind /api/interactome.
+c.execute('''
+    SELECT e.name as effector,
+           p.name as pathogen,
+           hp.name as host_protein,
+           et.interaction_type
+    FROM effector_targets et
+    JOIN effectors e ON et.effector_id = e.id
+    JOIN pathogens p ON e.pathogen_id = p.id
+    JOIN host_proteins hp ON et.host_protein_id = hp.id
+    ORDER BY p.name, e.name, hp.name
+''')
+interactions = [dict(r) for r in c.fetchall()]
 
 # Maturation stages
 c.execute('SELECT ms.stage_order, ms.name, ms.time_range, ms.ph_min, ms.ph_max, ms.description FROM maturation_stages ms ORDER BY ms.stage_order')
@@ -96,26 +112,13 @@ for p in pathogens:
             'action': strat
         })
 
-# ML predictions: use actual strategy as predicted with a confidence
-ml_preds = []
-for p in pathogens:
-    if p['strategy']:
-        import hashlib
-        h = int(hashlib.md5(p['name'].encode()).hexdigest()[:8], 16)
-        conf = round(0.50 + (h % 30) / 100.0, 2)
-        ml_preds.append({
-            'pathogen': p['name'],
-            'predicted': p['strategy'],
-            'actual': p['strategy'],
-            'confidence': conf
-        })
-    else:
-        ml_preds.append({
-            'pathogen': p['name'],
-            'predicted': 'extracellular',
-            'actual': 'unknown',
-            'confidence': 0.35
-        })
+# ML predictions: real out-of-fold predictions from the trained Random Forest.
+# Every row is predicted by a model that did not see that pathogen, so the
+# offline confidence and accuracy are genuine measurements.
+try:
+    ml_preds = out_of_fold_predictions()
+except Exception:
+    ml_preds = []
 
 # Optional: PCA projection, classifier comparison, and phylogenetic tree.
 # These are computed from the live modules; if any fails, fall back to {} so
@@ -139,6 +142,7 @@ data = {
     'pathogens': pathogens,
     'effectors': effectors,
     'host_proteins': host_proteins,
+    'interactions': interactions,
     'maturation_stages': stages,
     'stage_markers': stage_markers,
     'stage_marker_names': marker_names,
@@ -162,6 +166,6 @@ with open(JS_OUT, 'w', encoding='utf-8') as f:
     json.dump(data, f, indent=2, ensure_ascii=False)
     f.write(';\n')
 
-print(f"Wrote {OUT}  ({len(pathogens)} pathogens, {len(effectors)} effectors, {len(host_proteins)} host proteins, {len(hubs)} hubs, {len(pathogen_actions)} actions, {len(ml_preds)} predictions, pca={'yes' if pca_data else 'no'}, phylogeny={'yes' if phylogeny else 'no'})")
+print(f"Wrote {OUT}  ({len(pathogens)} pathogens, {len(effectors)} effectors, {len(host_proteins)} host proteins, {len(interactions)} interactions, {len(hubs)} hubs, {len(pathogen_actions)} actions, {len(ml_preds)} predictions, pca={'yes' if pca_data else 'no'}, phylogeny={'yes' if phylogeny else 'no'})")
 print(f"Wrote {JS_OUT} (embedded TOOLKIT_DATA for file:// support)")
 conn.close()

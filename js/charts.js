@@ -194,13 +194,9 @@ function renderEffectorChart(rawData) {
       onClick: function(e, item) {
         if (item && item.length) {
           var name = this.data.labels[item[0].index];
-          var sel = document.getElementById("pathogen-select");
-          if (sel) {
-            sel.value = name;
-            if (typeof loadPathogenEffectors === "function") loadPathogenEffectors();
-            var tk = document.getElementById("toolkit");
-            if (tk) tk.scrollIntoView();
-          }
+          // The Pathogen Explorer is gone; drill into the Database's
+          // Effectors table filtered to the clicked pathogen instead.
+          if (typeof focusDatabaseForPathogen === "function") focusDatabaseForPathogen(name);
         }
       }
     },

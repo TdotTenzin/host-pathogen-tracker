@@ -349,20 +349,18 @@ function _getStageProfiles() {
 }
 
 function initToolkit() {
-  var pSel = document.getElementById("pathogen-select");
   var mSel = document.getElementById("ml-pathogen-select");
-  if (!pSel && !mSel) return;
+  var checklist = document.getElementById("marker-checklist");
+  if (!mSel && !checklist) return;
 
   var pathogenList = TOOLKIT_DATA.pathogens || [];
   var opts = pathogenList.map(function(p) {
     return '<option value="' + _escapeHtml(p.name) + '">' + _escapeHtml(p.name) + ' (' + _escapeHtml(p.strategy) + ')</option>';
   }).join("");
-  if (pSel) pSel.insertAdjacentHTML("beforeend", opts);
-  if (mSel && mSel !== pSel) mSel.insertAdjacentHTML("beforeend", opts);
+  if (mSel) mSel.insertAdjacentHTML("beforeend", opts);
 
-  var checklist = document.getElementById("marker-checklist");
   if (checklist) {
-    checklist.innerHTML = TOOLKIT_DATA.stage_marker_names.map(function(m) {
+    checklist.innerHTML = (TOOLKIT_DATA.stage_marker_names || []).map(function(m) {
       return '<label><input type="checkbox" value="' + _escapeHtml(m) + '"> ' + _escapeHtml(m) + '</label>';
     }).join("");
   }
@@ -372,52 +370,6 @@ function showError(elId, msg) {
   var el = document.getElementById(elId);
   if (!el) return;
   el.innerHTML = '<div class="error">' + msg + '</div>';
-}
-
-var _currentEffectors = [];
-
-function _renderEffectorTable(rows, el) {
-  if (!rows.length) { el.innerHTML = "<em>No effectors match the filter.</em>"; return; }
-  var html = "<table><thead><tr><th>Effector</th><th>Type</th><th>Host Target</th><th>Mechanism</th></tr></thead><tbody>";
-  rows.forEach(function(e) {
-    html += "<tr><td>" + _escapeHtml(e.effector_name) + "</td><td>" + _escapeHtml(e.type || "—") + "</td><td>" + _escapeHtml(e.host_target || "—") + "</td><td>" + _escapeHtml(e.mechanism || "—") + "</td></tr>";
-  });
-  html += "</tbody></table>";
-  el.innerHTML = html;
-}
-
-function loadPathogenEffectors() {
-  var sel = document.getElementById("pathogen-select");
-  var name = sel ? sel.value : "";
-  if (!name) { showError("pathogen-result", "Select a pathogen first."); return; }
-
-  _currentEffectors = TOOLKIT_DATA.effectors.filter(function(e) {
-    return e.pathogen_name === name;
-  });
-
-  var el = document.getElementById("pathogen-result");
-  if (!el) return;
-  if (!_currentEffectors.length) { el.innerHTML = "<em>No effectors found for " + _escapeHtml(name) + ".</em>"; return; }
-
-  var searchEl = document.getElementById("effector-search");
-  if (searchEl) { searchEl.value = ""; searchEl.style.display = "block"; searchEl.placeholder = "Filter " + _currentEffectors.length + " effectors…"; }
-  var dlBtn = document.getElementById("dl-effectors-btn");
-  if (dlBtn) dlBtn.style.display = "inline-block";
-
-  _renderEffectorTable(_currentEffectors, el);
-}
-
-function filterEffectors() {
-  var searchEl = document.getElementById("effector-search");
-  var q = searchEl ? searchEl.value.toLowerCase() : "";
-  var filtered = _currentEffectors.filter(function(e) {
-    return e.effector_name.toLowerCase().indexOf(q) !== -1
-        || (e.type || "").toLowerCase().indexOf(q) !== -1
-        || (e.host_target || "").toLowerCase().indexOf(q) !== -1
-        || (e.mechanism || "").toLowerCase().indexOf(q) !== -1;
-  });
-  var el = document.getElementById("pathogen-result");
-  if (el) _renderEffectorTable(filtered, el);
 }
 
 function _stageResultFallback(observed, el) {
@@ -479,41 +431,6 @@ function predictStage() {
   });
 }
 
-function _renderHubTable(data, el) {
-  if (!data || !data.length) {
-    el.innerHTML = "<em>No hub data available.</em>";
-    return;
-  }
-  var html = "<table><thead><tr><th>#</th><th>Host Protein</th><th>Degree</th><th>Centrality</th></tr></thead><tbody>";
-  data.forEach(function (h, i) {
-    html += "<tr><td>" + (i + 1) + "</td><td>" + _escapeHtml(h.host) + "</td><td>" + h.degree + "</td><td>" + h.centrality.toFixed(4) + "</td></tr>";
-  });
-  html += "</tbody></table>";
-  el.innerHTML = html;
-  var dlBtn = document.getElementById("dl-hubs-btn");
-  if (dlBtn) dlBtn.style.display = "inline-block";
-}
-
-function loadHubProteins() {
-  var el = document.getElementById("hub-result");
-  if (!el) return;
-  el.innerHTML = "<em>Loading…</em>";
-
-  fetch("/api/interactome/hubs?top_n=10")
-    .then(function (r) {
-      if (!r.ok) throw new Error("Hub API unavailable");
-      return r.json();
-    })
-    .then(function (data) {
-      // Persist live data so download uses fresh values
-      TOOLKIT_DATA.hubs = data;
-      _renderHubTable(data, el);
-    })
-    .catch(function () {
-      _renderHubTable(TOOLKIT_DATA.hubs, el);
-    });
-}
-
 function predictStrategy() {
   var sel = document.getElementById("ml-pathogen-select");
   var name = sel ? sel.value : "";
@@ -556,11 +473,14 @@ function predictStrategy() {
     });
 }
 
-function _downloadCSV(rows, columns, filename) {
-  var header = columns.map(function(c) { return '"' + c.label + '"'; }).join(",");
-  var data = rows.map(function(r) {
-    return columns.map(function(c) { var v = r[c.key]; return '"' + (v || "").replace(/"/g, '""') + '"'; }).join(",");
-  }).join("\n");
+  function _downloadCSV(rows, columns, filename) {
+    var cell = function (v) {
+      return '"' + (v === undefined || v === null ? "" : String(v)).replace(/"/g, '""') + '"';
+    };
+    var header = columns.map(function(c) { return cell(c.label); }).join(",");
+    var data = rows.map(function(r) {
+      return columns.map(function(c) { return cell(r[c.key]); }).join(",");
+    }).join("\n");
   var blob = new Blob([header + "\n" + data], { type: "text/csv;charset=utf-8;" });
   var link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
@@ -572,98 +492,25 @@ function _downloadCSV(rows, columns, filename) {
   URL.revokeObjectURL(link.href);
 }
 
-function downloadEffectorsCSV() {
-  if (!_currentEffectors.length) return;
-  _downloadCSV(_currentEffectors, [
-    { key: "effector_name", label: "Effector" },
-    { key: "type", label: "Type" },
-    { key: "host_target", label: "Host Target" },
-    { key: "mechanism", label: "Mechanism" }
-  ], "effectors.csv");
-}
-
-function downloadHubsCSV() {
-  var data = TOOLKIT_DATA.hubs;
-  if (!data.length) return;
-  _downloadCSV(data, [
-    { key: "host", label: "Host Protein" },
-    { key: "degree", label: "Degree" },
-    { key: "centrality", label: "Centrality" }
-  ], "hub_proteins.csv");
-}
-
 /* ---------------------------------------------------------------------------
    Data Collection — dynamic grid
    --------------------------------------------------------------------------- */
 
 var _allPathogensData = [];
 
-// Active pathogen source. null => curated TOOLKIT_DATA; otherwise an object
-// {kind, label, pathogens, effectors, ml_predictions} built from an import.
-var _pathogenSource = null;
-
+// The curated dataset in TOOLKIT_DATA is the single source of truth. It is
+// populated from js/data.js (embedded, works on file://) and refreshed from
+// /api/bootstrap or data/fallback.json when a server is reachable.
 function _sourceList() {
-  if (_pathogenSource) return _pathogenSource.pathogens || [];
   return TOOLKIT_DATA.pathogens || [];
 }
 
 function _sourceEffectors() {
-  if (_pathogenSource) return _pathogenSource.effectors || [];
   return TOOLKIT_DATA.effectors || [];
 }
 
 function _sourceMlPredictions() {
-  if (_pathogenSource) {
-    if (_pathogenSource.ml_predictions) return _pathogenSource.ml_predictions;
-    return [];
-  }
   return TOOLKIT_DATA.ml_predictions || [];
-}
-
-function _updatePathogenSourceBanner() {
-  var banner = document.getElementById("ap-source-banner");
-  if (!banner) return;
-  if (_pathogenSource) {
-    banner.style.display = "flex";
-    var text = document.getElementById("ap-source-text");
-    if (text) text.innerHTML = "Showing <b>" + _sourceList().length + "</b> pathogens from <b>" + _escapeHtml(_pathogenSource.label || "imported data") + "</b>.";
-  } else {
-    banner.style.display = "none";
-  }
-}
-
-function applyImportedPathogens(pathogens, effectors, opts) {
-  opts = opts || {};
-  if (!Array.isArray(pathogens) || !pathogens.length) return false;
-  _pathogenSource = {
-    kind: opts.kind || "imported",
-    label: opts.label || "Imported data",
-    pathogens: pathogens,
-    effectors: effectors || [],
-    ml_predictions: Array.isArray(opts.ml_predictions) ? opts.ml_predictions : null
-  };
-  _effectorMap = null;
-  renderAllPathogens();
-  _refreshOverviewAndExplorers();
-  _updatePathogenSourceBanner();
-  if (typeof refreshNetworkSection === "function") refreshNetworkSection();
-  if (typeof refreshMlSection === "function") refreshMlSection();
-  return true;
-}
-
-function resetCuratedPathogens() {
-  _pathogenSource = null;
-  _effectorMap = null;
-  renderAllPathogens();
-  _refreshOverviewAndExplorers();
-  _updatePathogenSourceBanner();
-  if (typeof refreshNetworkSection === "function") refreshNetworkSection();
-  if (typeof refreshMlSection === "function") refreshMlSection();
-}
-
-function _refreshOverviewAndExplorers() {
-  if (typeof initCharts === "function") initCharts();
-  if (typeof initProteinExplorer === "function") initProteinExplorer();
 }
 
 /* ---------------------------------------------------------------------------
@@ -689,16 +536,20 @@ function buildMaturationTimeline() {
    --------------------------------------------------------------------------- */
 var _protTargetMap = null;
 
+// Effectors can list several host targets in one cell, separated by "/",
+// "and", ";" or a comma.
+function splitHostTargets(v) {
+  return String(v == null ? "" : v)
+    .split(/\s*(?:\/|\band\b|;|,)\s*/i)
+    .map(function (s) { return s.trim(); })
+    .filter(function (s) { return s.length > 0; });
+}
+
 function _getProtTargetMap() {
   if (_protTargetMap) return _protTargetMap;
-  var split = function (v) {
-    return (typeof CSVUtils !== "undefined" && CSVUtils.splitTargets)
-      ? CSVUtils.splitTargets(v)
-      : String(v || "").split(/[;/,]/).map(function (s) { return s.trim(); });
-  };
   var map = {};
   (TOOLKIT_DATA.effectors || []).forEach(function (e) {
-    split(e.host_target).forEach(function (t) {
+    splitHostTargets(e.host_target).forEach(function (t) {
       var key = String(t).trim();
       if (!key) return;
       if (!map[key]) map[key] = { pathogens: {}, effectors: 0 };

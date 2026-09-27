@@ -1,16 +1,19 @@
 # Onboarding Guide
 
-A walkthrough of the Host–Pathogen Trafficking Hub codebase. This guide is for
-anyone — biologist or developer — who wants to understand how the project is
-structured, what each piece does, and how to work with it.
+A walkthrough of the **PathoMap** (*Microbial Genomics, Hosts & Ecology*)
+codebase. This guide is for anyone — biologist or developer — who wants to
+understand how the project is structured, what each piece does, and how to work
+with it.
 
 ---
 
 ## 1. What This Project Is
 
-An analysis toolkit and educational resource about **phagosome maturation** and
-how intracellular pathogens subvert it. It covers ~54 pathogens, ~250 effector
-proteins, and ~72 host proteins, organised around five evasion strategies:
+**PathoMap** is a browsable curated dataset and an educational resource about
+**phagosome maturation** and how intracellular pathogens subvert it. It covers
+54 pathogens, 250 effector proteins, 72 host proteins, 150 effector–host
+interactions, and 5 maturation stages, organised around five evasion
+strategies:
 
 | Strategy | What the pathogen does | Example |
 |---|---|---|
@@ -20,22 +23,22 @@ proteins, and ~72 host proteins, organised around five evasion strategies:
 | **Reroute** | Redirects vesicular traffic to build a different compartment | *Legionella pneumophila* (LCV) |
 | **Extracellular** | Resists phagocytosis entirely | *Yersinia pestis* |
 
-Beyond the curated 54, the site is a **bioinformatics toolkit**: the **My Data**
-panel imports your own pathogens, effectors, or numeric matrices (CSV/TSV/JSON
-or pasted text) and runs stats, PCA, clustering, OLS, enrichment, and network
-analysis client-side. Importing a dataset switches the All Pathogens grid,
-Network, and ML sections to the imported data (resumable back to curated).
+The site leads with a **Database** section: the five curated tables as
+searchable, click-sortable rows, with CSV export and the `SELECT` behind each
+one. Everything else on the page is a derived view over the same rows — an
+interactive **Dataset Overview**, an **Organisms** grid, a force-directed
+**Host–Pathogen Network**, a searchable **Proteome**, a **Phagosome
+Maturation Timeline** with a marker-based stage predictor, a **Machine
+Learning** section (PCA/UMAP, classifier cross-validation, strategy predictor),
+and an effector **Phylogeny** tree.
 
-The page also ships several always-available modules built on the curated data:
-a **Dataset Overview** (effector counts, phagosome pH by stage,
-evasion-strategy distribution), an interactive **Phagosome Maturation Timeline**,
-a searchable **Gene & Protein Explorer** over the curated host proteome, and a
-**Help & Glossary** section (`js/glossary.js`). Numeric My Data imports add
-**Compare**, **Heatmap**, and **Differential Expression** tabs; host-pathogen
-imports gain a pathway **Enrichment** dot plot.
+There is no data import: the curated 54 pathogens *are* the product. The
+project surfaces its data through four layers: a static website, a REST API, a
+Python package, and R/Jupyter analyses.
 
-The project surfaces its data through four layers: a static website, a REST
-API, a Python package, and R/Jupyter analyses.
+The R analyses are repository-only and deliberately not exposed on the site.
+Planned sections — Ecology, Genome Explorer, Pangenome, Taxonomy, Sequence
+Tools, organism Compare — are tracked in `ROADMAP.md`.
 
 ---
 
@@ -74,14 +77,15 @@ host-pathogen-tracker/
 ├── index.html                  Main frontend page (single-page app)
 ├── main.py                     Local dev server (FastAPI + static mounts)
 ├── vercel.json                 Vercel deployment config (rewrites, function settings)
-├── pyproject.toml              Python package metadata (hostpathogen v0.3.0)
+├── pyproject.toml              Python package metadata (pathomap v0.4.0)
 ├── Dockerfile / docker-compose.yml  Containerised API deployment
-├── glossary.md                 Domain glossary (biology + computational terms)
+├── glossary.md                 Domain glossary (biology terms) — a reference
+│                               document, NOT a page on the website
 ├── ONBOARDING.md               This file
 │
 ├── api/
-│   ├── index.py                Single FastAPI app — all ~20 endpoints
-│   └── requirements.txt        Pinned deps for Vercel serverless bundle
+│   ├── index.py                Single FastAPI app
+│   └── requirements.txt        Pinned deps for Docker / Vercel serverless bundle
 │
 ├── src/hostpathogen/           Installable Python package
 │   ├── data/
@@ -101,21 +105,15 @@ host-pathogen-tracker/
 ├── js/
 │   ├── data.js                 Embedded TOOLKIT_DATA (offline-first payload)
 │   ├── data-loader.js          API fetcher with file:// fallback
-│   ├── charts.js               Chart.js visualisations (bar, radar, timeline);
-│   │                           Dataset Overview charts re-render on preset load
+│   ├── database.js             Database section: five tables, search, sort,
+│   │                           CSV export, SQL display
+│   ├── charts.js               Chart.js visualisations (bar, radar, timeline)
 │   ├── network.js              D3 v7 force-directed interactome graph
 │   ├── phylogeny.js            Newick→SVG phylogenetic tree renderer
-│   ├── ml-plots.js             PCA/UMAP scatter plots (curated + imported)
-│   ├── script.js               Toolkit init/rendering (All Pathogens grid, Gene &
-│   │                           Protein Explorer, maturation timeline, source-aware
-│   │                           re-runs), dark mode, mobile nav
-│   ├── stats.js                Client-side stats, PCA, clustering, OLS, Welch
-│   │                           t-test, BH FDR, z-score heatmap helpers, enrichment
-│   ├── csv-utils.js            Import schema detection + CSV/TSV normalization
-│   ├── my-data.js              My Data panel: file/paste/preset import, dataset
-│   │                           state, template downloads, localStorage cache, and
-│   │                           the Compare / Heatmap / DEG / enrichment tabs
-│   ├── glossary.js             Help & Glossary section (quick-start, FAQ, searchable terms)
+│   ├── ml-plots.js             PCA/UMAP scatter plots (curated data)
+│   ├── script.js               Init/rendering (All Pathogens grid, maturation
+│   │                           timeline, stage + strategy predictors), dark mode,
+│   │                           mobile nav
 │   └── chart.umd.min.js        Vendored Chart.js (offline fallback)
 │
 ├── css/style.css               Site styling (dark mode, responsive)
@@ -314,50 +312,81 @@ The frontend is a **single-page app** that works fully offline.
 ### How offline-first works
 
 1. `js/data.js` contains a `TOOLKIT_DATA` object with all pathogens, effectors,
-   host proteins, stages, and pre-computed ML results — embedded at build time
-2. `js/data-loader.js` tries to `fetch()` from the API first; if that fails
-   (e.g. `file://` or no server), it falls back to `TOOLKIT_DATA`
-3. All charts, graphs, and visualisations read from `TOOLKIT_DATA`
+   host proteins, interactions, stages, hubs, and pre-computed ML results —
+   embedded at build time
+2. `js/data-loader.js` skips the network entirely on `file://`; otherwise it
+   tries `/api/bootstrap` and merges the live response over `TOOLKIT_DATA`,
+   falling back to the embedded copy if the request fails
+3. All tables, charts, graphs, and visualisations read from `TOOLKIT_DATA`
 
 ### Key JS files
 
 | File | What it does |
 |---|---|
 | `data.js` | `TOOLKIT_DATA` — the embedded offline dataset |
-| `data-loader.js` | API fetcher with `file://` fallback (also loads `data/fallback.json`) |
-| `charts.js` | Chart.js bar charts, radar plots, strategy breakdowns, Dataset Overview charts; destroys stale instances before re-rendering on preset reload |
-| `network.js` | D3 v7 force-directed graph of effector→host interactions |
+| `data-loader.js` | Loads `/api/bootstrap` when possible, merges over the embedded copy |
+| `database.js` | The Database section: tab definitions, filtering, sorting, cell rendering, CSV export, and `focusDatabaseForPathogen()` for cross-section links |
+| `charts.js` | Chart.js bar charts, radar plots, strategy breakdowns, Dataset Overview charts |
+| `network.js` | D3 v7 force-directed graph of effector↔host interactions |
 | `phylogeny.js` | Parses Newick strings and renders SVG trees |
-| `ml-plots.js` | PCA/UMAP scatter plots (curated and imported data) |
-| `script.js` | Toolkit bootstrap (`initToolkit`) and All Pathogens grid, Gene & Protein Explorer, maturation timeline; dark mode, mobile nav, smooth scroll |
-| `stats.js` | Client-side math for My Data: summary stats, PCA, clustering, OLS, Welch t-test, Benjamini–Hochberg FDR (`bhAdjust`), z-score helpers, enrichment, adjacency/network |
-| `csv-utils.js` | Detect dataset mode (host-pathogen, numeric, host-proteins) and normalize CSV/TSV/JSON rows |
-| `my-data.js` | My Data panel: file/paste/preset import, `MyDataApplyImported` wiring, template downloads, `localStorage` cache (`hphub_mydata`), and the numeric Compare / Heatmap / Differential Expression tabs plus the host-pathogen enrichment dot plot |
-| `glossary.js` | Help & Glossary section: quick-start steps, FAQ, searchable glossary rendered into `#help-content` |
+| `ml-plots.js` | PCA/UMAP scatter plots (curated data) |
+| `script.js` | Init/rendering (All Pathogens grid, maturation timeline, stage + strategy predictors); dark mode, mobile nav, smooth scroll |
 
-### My Data & import flow
+> **A note on `initToolkit` wrapping.** `script.js`, `database.js`, and
+> `ml-plots.js` each wrap the previous `initToolkit` rather than replacing it, so
+> script order in `index.html` matters. `database.js` must load before
+> `ml-plots.js`. `data-loader.js` calls the fully-wrapped version once on
+> `DOMContentLoaded`.
 
-1. The user loads a dataset in **My Data**: CSVs/TSVs/JSON files, pasted text,
-   or a bundled preset. `csv-utils.js` classifies it as *effector records*,
-   *pathogen profiles* (no effector column), or a *numeric matrix*.
-2. `my-data.js` stores parsed rows in `localStorage` (`hphub_mydata`) and calls
-   `MyDataApplyImported` (defined in `script.js`), which sets the active dataset
-   for the All Pathogens grid and re-runs Network/ML sections (`refreshNetworkSection`,
-   `refreshMlSection`) through shared source getters (`_sourceList`, `_sourceEffectors`).
-3. With no import, everything renders the curated 54. An "Imported data in use"
-   banner offers a reset back to curated, and `clearMyData` restores it.
-4. Client-side analysis runs in `stats.js` (PCA via a Jacobi-style eigen solver,
-   clustering, OLS, enrichment). ML/UMAP for imported pathogen profiles call
-   `POST /api/mydata/umap` when the API is reachable; the curated ML model remains
-   available for the built-in dataset.
-5. Imported datasets open a tabbed panel. Host-pathogen data gets Overview,
-   Effectors, Network, Hubs, Stage Map, Enrichment (hypergeometric + Bonferroni,
-   with a gene-ratio dot plot), Strategy (ML), and Effector PCA tabs. Numeric
-   data gets Overview, Statistics, Correlation, PCA, Clusters, Regression,
-   Histograms, Compare (two-sample Welch t-test with box plots), Heatmap
-   (per-row z-scores), and Differential Expression (log2-fold change + BH FDR,
-   volcano and MA plots, top-gene heatmap) tabs. Load the bundled presets to see
-   every tab populated.
+### The Database section
+
+`js/database.js` is the site's centrepiece and the one place worth understanding
+before touching the frontend.
+
+- `DB_TABLES` is a single declarative list of the five tables (id, label,
+  description, `rows()` accessor, and column definitions). Adding a sixth view
+  means adding one entry here, not new render code.
+- `rows()` returns the underlying `TOOLKIT_DATA` slice, so the section always
+  shows whatever the live API last merged in.
+- `_dbNormalise()` repairs schema drift before render: it maps the API's
+  `effector`/`pathogen` column names onto the `*_name` keys used everywhere
+  else, so the tables work against both the live API and the embedded payload.
+- Columns declare `num: true` for numeric sort and `long: true` for values that
+  should be truncated with a full-value tooltip.
+- Sorting is three-state (asc → desc → unsorted) per table; filtering matches
+  any column case-insensitively and the status line shows `N of M rows` so an
+  active filter is never invisible.
+- `focusDatabaseForPathogen(name)` is the entry point for cross-section links —
+  the Organisms cards and the interaction network both call it to send a
+  pathogen to the Pathogens table.
+
+### Testing the frontend
+
+`js/database.js` is pure logic with no DOM dependencies, so it is tested
+without a browser:
+
+- `tests/frontend/database_checks.js` — a Node harness that loads the real
+  `js/data.js`, `js/script.js` and `js/database.js` into a `vm` sandbox behind a
+  minimal DOM stub, then asserts on 55 behaviours: schema normalisation, the
+  five row counts, filtering, three-state sorting, CSV export across mixed value
+  types, and HTML escaping of long cells.
+- `tests/test_frontend_js.py` — runs that harness under pytest, syntax-checks
+  every shipped script with `node --check`, and asserts that the removed
+  import/help layer has not crept back into `index.html`.
+
+Run the harness directly while iterating:
+
+```
+node tests/frontend/database_checks.js
+```
+
+It exits non-zero on the first failure summary, so it works as a pre-commit
+check. Adding a table to `DB_TABLES` automatically gets it row-count and CSV
+coverage here.
+
+> When extending the DOM stub, **cache the node**: `return nodes[id] || (nodes[id] = {...})`.
+> Returning a fresh object each call silently breaks anything that writes
+> `.value` and then re-reads the element by id.
 
 ### External libraries (CDN with local fallback)
 
@@ -380,8 +409,12 @@ The FastAPI app at `api/index.py` exposes ~25 endpoints. Interactive docs at
 | **Interactome** | `GET /api/interactome/stats`, `GET /api/interactome/hubs`, `GET /api/interactome/pathogen/{name}` | Network stats, hub proteins, per-pathogen subgraph |
 | **Enrichment** | `GET /api/enrichment/pathogen/{name}`, `POST /api/enrichment/overrepresentation` | Pathway enrichment analysis |
 | **ML** | `GET /api/ml/predict/{name}`, `GET /api/ml/pca`, `GET /api/ml/umap`, `GET /api/ml/pathogen-pca`, `GET /api/ml/phylogeny`, `GET /api/ml/compare-classifiers`, `GET /api/ml/cross-validate`, `GET /api/ml/grid-search`, `GET /api/ml/features` | Strategy prediction, dimensionality reduction, phylogeny |
-| **My Data** | `POST /api/mydata/predict-strategy`, `POST /api/mydata/pca`, `POST /api/mydata/umap` | Stats/PCA/UMAP on uploaded matrices (used when My Data has a numeric dataset) |
 | **Stats** | `GET /api/stats`, `GET /api/search`, `GET /api/bootstrap` | Database summary, search, full data dump |
+
+`GET /api/bootstrap` is the endpoint that matters most: it returns every table
+the frontend needs in one request — `pathogens` (each with a derived
+`n_effectors` count), `effectors`, `stages`, `hubs`, `host_proteins`, and
+`interactions` — so the offline and live paths are the same shape.
 
 The API caches the NetworkX graph and trained RandomForest model in module
 globals for warm-start performance in Vercel's serverless environment.
@@ -473,20 +506,11 @@ dimensionality reduction, and data loader.
 4. Rebuild: `python src/hostpathogen/data/build_db.py`
 5. Rebuild frontend: `python scripts/export_fallback_json.py`
 
-### Analyse your own data (My Data)
+### Adding a row to the curated dataset
 
-1. Open the **My Data** panel on the site and either drag in a CSV/TSV/JSON,
-   paste a table, or choose a preset
-2. Host–pathogen tables need a pathogen column (e.g. `name`/`pathogen`); effectors
-   can follow with `name`, `type`, `host_target`, `mechanism`. Columns like
-   `species`, `gram_stain`, `strategy`, `description`, `reference` are detected
-   automatically (`csv-utils.js`)
-3. The All Pathogens grid, Network, and ML sections switch to the imported data
-   (banner + reset to curated); a tabbed panel runs per-mode analyses. Numeric
-   datasets unlock Statistics, Correlation, PCA, Clusters, Regression, Histograms,
-   Compare (t-test), Heatmap (z-scores), and Differential Expression tabs;
-   host-pathogen datasets unlock Network, Hubs, Stage Map, Enrichment, Strategy,
-   and Effector PCA tabs.
+The site has no import path, so a new organism or effector enters through the
+seed CSVs and the build — never by editing `data/fallback.json` or `js/data.js`
+(both are generated and will be overwritten).
 
 ### Add a new effector
 

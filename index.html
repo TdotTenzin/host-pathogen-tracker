@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Host–Pathogen Hub — Bioinformatics Toolkit</title>
+  <title>PathoMap — Microbial Genomics, Hosts &amp; Ecology</title>
+  <meta name="description" content="PathoMap maps the connections between microbial genomes, biological interactions, evolution and ecological environments." />
   <link rel="icon" type="image/svg+xml" href="img/favicon.svg" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
@@ -14,17 +15,18 @@
 
   <nav>
     <div class="container nav-inner">
-      <a class="nav-brand" href="#hero">Host–Pathogen Hub</a>
+      <a class="nav-brand" href="#hero">PathoMap</a>
       <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Toggle navigation">
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links" id="nav-links">
-        <li class="nav-data"><a href="#all-pathogens" onclick="closeMobileNav()">Pathogens</a></li>
-        <li class="nav-data"><a href="#interactome" onclick="closeMobileNav()">Network</a></li>
-        <li class="nav-data"><a href="#ml-analysis" onclick="closeMobileNav()">ML</a></li>
-        <li class="nav-data"><a href="#phylogeny" onclick="closeMobileNav()">Phylogeny</a></li>
-        <li class="nav-data"><a href="#toolkit" onclick="closeMobileNav()">Tools</a></li>
-        <li><a href="#my-data" onclick="closeMobileNav()">My Data</a></li>
+        <li><a href="#database" onclick="closeMobileNav()">Database</a></li>
+        <li><a href="#all-pathogens" onclick="closeMobileNav()">Organisms</a></li>
+        <li><a href="#interactome" onclick="closeMobileNav()">Network</a></li>
+        <li><a href="#proteome" onclick="closeMobileNav()">Proteome</a></li>
+        <li><a href="#maturation" onclick="closeMobileNav()">Trafficking</a></li>
+        <li><a href="#ml-analysis" onclick="closeMobileNav()">ML</a></li>
+        <li><a href="#phylogeny" onclick="closeMobileNav()">Phylogeny</a></li>
       </ul>
       <button class="dark-toggle" id="dark-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode" title="Toggle dark mode">&#9790;</button>
     </div>
@@ -35,12 +37,14 @@
 
     <header id="hero">
       <div class="container">
-        <div class="hero-tag">Molecular Biology · Biotech · Bioinformatics</div>
-        <h1 class="hero-title">Host–Pathogen Trafficking Hub</h1>
+        <div class="hero-tag">Microbial Genomics &middot; Hosts &middot; Ecology</div>
+        <h1 class="hero-title">PathoMap</h1>
         <p class="hero-subtitle">
-          A bioinformatics toolkit for host–pathogen and molecular cell biology — import a
-          dataset (or load the curated 54-pathogen preset) and explore the interaction network,
-          statistics, PCA, clustering and machine learning.
+          How are microbial genomes, biological interactions, evolution, and ecological
+          environments connected? PathoMap traces those links — start from a pathogen and
+          follow it out through its effectors, the host proteins they manipulate, and the
+          evolutionary relationships between them. Genome, pangenome, and ecological-niche
+          layers are on the roadmap.
         </p>
         <div class="hero-author">
           <span class="hero-author-dot"></span>
@@ -49,73 +53,49 @@
       </div>
     </header>
 
-    <section class="section section-alt" id="my-data">
+    <section class="section section-alt" id="database">
       <div class="container">
-        <p class="section-label">Bring Your Own Data</p>
-        <h2 class="section-title">Import Data</h2>
+        <p class="section-label">Database</p>
+        <h2 class="section-title">Browse the Curated Dataset</h2>
         <p class="section-subtitle">
-          Load a preset or import your own spreadsheet first — the analyses below
-          appear once data is loaded. Everything runs in your browser; ML and UMAP
-          additionally use the live API when available.
+          The same SQLite database that powers the API, exposed as sortable tables.
+          Click a column heading to sort, type to filter. Each table is the result of a
+          single <code>SELECT</code> &mdash; shown underneath.
         </p>
 
-        <div class="tool-card mydata-card">
-          <div class="tool-header">
-            <span class="tool-icon">&#8648;</span>
-            <h3>Load Data</h3>
+        <div class="db-toolbar">
+          <div class="db-tabs" id="db-tabs" role="tablist" aria-label="Database tables"></div>
+          <div class="db-toolbar-right">
+            <input id="db-search" class="tool-input db-search" type="search"
+                   placeholder="Filter rows&hellip;" autocomplete="off" aria-label="Filter table rows">
+            <button type="button" id="db-download" class="tool-btn tool-btn-sm">Download CSV</button>
           </div>
-
-          <div class="mydata-presets">
-            <span class="mydata-preset-label">Presets:</span>
-            <button class="tool-btn tool-btn-sm" type="button" onclick="loadDataPreset('curated')">Curated dataset (54 pathogens)</button>
-            <button class="tool-btn tool-btn-sm" type="button" onclick="loadDataPreset('numeric')">Sample expression data</button>
-          </div>
-
-          <div class="mydata-templates">
-            <span class="mydata-preset-label">Templates:</span>
-            <a class="tool-btn tool-btn-sm" href="#" onclick="downloadTemplate('hostpathogen'); return false;">Host-pathogen CSV</a>
-            <a class="tool-btn tool-btn-sm" href="#" onclick="downloadTemplate('profiles'); return false;">Pathogen profiles CSV</a>
-            <a class="tool-btn tool-btn-sm" href="#" onclick="downloadTemplate('numeric'); return false;">Numeric CSV</a>
-          </div>
-
-          <div class="mydata-methods">
-            <label class="mydata-radio"><input type="radio" name="mydata-method" value="file" checked onchange="onMyImportMethod()"> Upload CSV/TSV</label>
-            <label class="mydata-radio"><input type="radio" name="mydata-method" value="paste" onchange="onMyImportMethod()"> Paste CSV/TSV</label>
-            <label class="mydata-radio"><input type="radio" name="mydata-method" value="json" onchange="onMyImportMethod()"> Paste JSON</label>
-          </div>
-
-          <input type="file" id="mydata-file" accept=".csv,.tsv,.txt,.json" class="mydata-file">
-          <p id="mydata-text-label" class="mydata-text-label" style="display:none;">Paste CSV or TSV data (first row = column headers):</p>
-          <textarea id="mydata-text" class="tool-input mydata-textarea" rows="8" placeholder="Paste CSV, TSV, or JSON here…" style="display:none;"></textarea>
-
-          <div class="mydata-actions">
-            <button class="tool-btn" type="button" onclick="importFromActiveMethod()">Import</button>
-            <button class="tool-btn tool-btn-sm" type="button" onclick="clearMyData()">Clear</button>
-          </div>
-          <div id="mydata-status" class="tool-result"></div>
         </div>
 
-        <div id="mydata-panel" class="mydata-panel" style="display:none;">
-          <div class="mydata-title-row">
-            <h3 id="mydata-dataset-title"></h3>
-            <button class="tool-btn tool-btn-sm" type="button" onclick="downloadMyDataResults()">Download dataset</button>
-          </div>
-          <div class="mydata-tabs" id="mydata-tabs"></div>
-          <div class="mydata-content" id="mydata-content"></div>
+        <p class="db-status">
+          <span id="db-count">&nbsp;</span>
+          <span class="db-status-hint" id="db-hint"></span>
+        </p>
+
+        <div class="db-table-wrap">
+          <table class="db-table" id="db-table">
+            <thead><tr id="db-head"></tr></thead>
+            <tbody id="db-body"></tbody>
+          </table>
         </div>
+
+        <details class="db-sql">
+          <summary>SQL behind this table</summary>
+          <pre id="db-sql"><code></code></pre>
+        </details>
       </div>
     </section>
 
-    <section class="section data-gated" id="all-pathogens" style="display:none;">
+    <section class="section" id="all-pathogens">
       <div class="container">
-        <p class="section-label">Item Details</p>
+        <p class="section-label">Organisms</p>
         <h2 class="section-title">Data Collection (<span id="all-pathogen-count">54</span> items)</h2>
-        <p class="section-subtitle">Click any card to open its full article, including effector repertoire, host targets, and ML strategy prediction. To browse the built-in collection, load the <em>Curated dataset (54 pathogens)</em> preset in the Import Data section.</p>
-
-        <div id="ap-source-banner" class="ap-source-banner" style="display:none;">
-          <span id="ap-source-text"></span>
-          <button type="button" class="tool-btn tool-btn-sm" onclick="clearMyData()">Reset to no data</button>
-        </div>
+        <p class="section-subtitle">Click any card to open its full article, including effector repertoire, host targets, and ML strategy prediction. For flat, sortable rows, use the <a href="#database">Database</a> section above.</p>
 
         <div class="all-pathogens-filter">
           <input id="ap-search" class="tool-input" type="text" placeholder="Search by name, species, or description…" oninput="debouncedFilterPathogens()">
@@ -139,7 +119,7 @@
       </div>
     </section>
 
-    <section class="section section-alt data-gated" id="dataset-overview" style="display:none;">
+    <section class="section section-alt" id="dataset-overview">
       <div class="container">
         <p class="section-label">Dataset Overview</p>
         <h2 class="section-title">Curated Dataset at a Glance</h2>
@@ -178,7 +158,7 @@
       </div>
     </section>
 
-    <section class="section data-gated" id="interactome" style="display:none;">
+    <section class="section" id="interactome">
       <div class="container">
         <p class="section-label">Interactome Analysis</p>
         <h2 class="section-title">Host–Pathogen Interaction Network</h2>
@@ -205,14 +185,28 @@
         </div>
 
         <p class="chart-caption">
-          Each edge represents an effector–host protein interaction. Effectors are colored
-          by the selected pathogen; hovering a node dims unrelated connections. Network is
-          derived from the curated effector dataset and works fully offline.
+          Each edge represents an effector&ndash;host protein interaction. The 150 interaction
+          records collapse to 135 distinct edges here, because the graph is simple and a few
+          effector&ndash;protein pairs are recorded more than once. Effectors are colored by the
+          selected pathogen; hovering a node dims unrelated connections. The network is derived
+          from the curated effector dataset and works fully offline.
         </p>
+
+        <div class="chart-section">
+          <h3 class="chart-heading">Most-Targeted Host Proteins</h3>
+          <div class="chart-container chart-container-sm">
+            <canvas id="chart-hubs"></canvas>
+          </div>
+          <p class="chart-caption">
+            The six host proteins targeted by the largest number of distinct effectors, across
+            the whole dataset. These are the central nodes of the interaction network. Browse
+            every host protein in the <a href="#database">Database</a> section.
+          </p>
+        </div>
       </div>
     </section>
 
-    <section class="section section-alt data-gated" id="proteome" style="display:none;">
+    <section class="section section-alt" id="proteome">
       <div class="container">
         <p class="section-label">Host Proteome Explorer</p>
         <h2 class="section-title">Gene &amp; Protein Explorer</h2>
@@ -236,7 +230,7 @@
       </div>
     </section>
 
-    <section class="section data-gated" id="maturation" style="display:none;">
+    <section class="section" id="maturation">
       <div class="container">
         <p class="section-label">Cellular Context</p>
         <h2 class="section-title">Phagosome Maturation Timeline</h2>
@@ -272,10 +266,21 @@
             </div>
           </div>
         </div>
+
+        <div class="tool-card mt-28">
+          <div class="tool-header">
+            <span class="tool-icon">&#9200;</span>
+            <h3>Stage Predictor</h3>
+          </div>
+          <p>Given the markers you can actually observe, work out which maturation stage the compartment is in.</p>
+          <div id="marker-checklist" class="marker-grid"></div>
+          <button class="tool-btn" onclick="predictStage()">Predict Stage</button>
+          <div id="stage-result" class="tool-result"></div>
+        </div>
       </div>
     </section>
 
-    <section class="section section-alt data-gated" id="ml-analysis" style="display:none;">
+    <section class="section section-alt" id="ml-analysis">
       <div class="container">
         <p class="section-label">Machine Learning</p>
         <h2 class="section-title">Predicting Evasion Strategy by Machine Learning</h2>
@@ -312,10 +317,23 @@
           </div>
           <p class="chart-caption">Cross-validated mean accuracy ± standard deviation across four classifiers on the effector feature matrix.</p>
         </div>
+
+        <div class="tool-card mt-28">
+          <div class="tool-header">
+            <span class="tool-icon">&#9881;</span>
+            <h3>Strategy Predictor</h3>
+          </div>
+          <p>Predict a pathogen's immune evasion strategy from its effector repertoire, and compare the prediction against the curated label.</p>
+          <select id="ml-pathogen-select" class="tool-select">
+            <option value="">— Select a pathogen —</option>
+          </select>
+          <button class="tool-btn" onclick="predictStrategy()">Predict Strategy</button>
+          <div id="ml-result" class="tool-result"></div>
+        </div>
       </div>
     </section>
 
-    <section class="section data-gated" id="phylogeny" style="display:none;">
+    <section class="section" id="phylogeny">
       <div class="container">
         <p class="section-label">Phylogenetics</p>
         <h2 class="section-title">Effector Protein Phylogeny</h2>
@@ -342,79 +360,7 @@
       </div>
     </section>
 
-    <section class="section section-alt data-gated" id="toolkit" style="display:none;">
-      <div class="container">
-        <p class="section-label">Bioinformatics Toolkit</p>
-        <h2 class="section-title">Interactive Analysis Tools</h2>
-        <p class="section-subtitle">
-          Browse pathogens, predict maturation stages, explore hub proteins, and classify
-          evasion strategies — all powered by built-in data. No server required.
-        </p>
-
-        <div class="toolkit-grid">
-
-          <!-- Tool 1: Pathogen Explorer -->
-          <div class="tool-card">
-            <div class="tool-header">
-              <span class="tool-icon">&#119808;</span>
-              <h3>Pathogen Explorer</h3>
-            </div>
-            <p>Browse effectors and targets for any pathogen in the database.</p>
-            <select id="pathogen-select" class="tool-select">
-              <option value="">— Select a pathogen —</option>
-            </select>
-            <button class="tool-btn" onclick="loadPathogenEffectors()">Load Effectors</button>
-            <input id="effector-search" class="tool-input" type="text" placeholder="Filter effectors…" oninput="filterEffectors()" style="display:none;">
-            <div id="pathogen-result" class="tool-result"></div>
-            <button class="tool-btn tool-btn-sm" onclick="downloadEffectorsCSV()" style="display:none;" id="dl-effectors-btn">Download CSV</button>
-          </div>
-
-          <!-- Tool 2: Stage Predictor -->
-          <div class="tool-card">
-            <div class="tool-header">
-              <span class="tool-icon">&#9200;</span>
-              <h3>Stage Predictor</h3>
-            </div>
-            <p>Select observed markers to predict the phagosome maturation stage.</p>
-            <div id="marker-checklist" class="marker-grid"></div>
-            <button class="tool-btn" onclick="predictStage()">Predict Stage</button>
-            <div id="stage-result" class="tool-result"></div>
-          </div>
-
-          <!-- Tool 3: Hub Proteins -->
-          <div class="tool-card">
-            <div class="tool-header">
-              <span class="tool-icon">&#9673;</span>
-              <h3>Hub Proteins</h3>
-            </div>
-            <p>Top host proteins targeted by the most effectors (centrality hubs).</p>
-            <div class="chart-container chart-container-sm mb-12">
-              <canvas id="chart-hubs"></canvas>
-            </div>
-            <button class="tool-btn" onclick="loadHubProteins()">Show Full Table</button>
-            <div id="hub-result" class="tool-result"></div>
-            <button class="tool-btn tool-btn-sm" onclick="downloadHubsCSV()" style="display:none;" id="dl-hubs-btn">Download CSV</button>
-          </div>
-
-          <!-- Tool 4: Strategy Predictor -->
-          <div class="tool-card">
-            <div class="tool-header">
-              <span class="tool-icon">&#9881;</span>
-              <h3>Strategy Predictor</h3>
-            </div>
-            <p>Predict a pathogen's immune evasion strategy using a Random Forest model.</p>
-            <select id="ml-pathogen-select" class="tool-select">
-              <option value="">— Select a pathogen —</option>
-            </select>
-            <button class="tool-btn" onclick="predictStrategy()">Predict Strategy</button>
-            <div id="ml-result" class="tool-result"></div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <section class="section data-gated" id="inspiration" style="display:none;">
+    <section class="section" id="inspiration">
       <div class="container">
         <p class="section-label">Research Inspiration</p>
         <h2 class="section-title mb-28">Inspired by Foundational Work</h2>
@@ -435,30 +381,18 @@
       </div>
     </section>
 
-  <section class="section section-alt" id="help">
-      <div class="container">
-        <p class="section-label">Help &amp; Documentation</p>
-        <h2 class="section-title">Help &amp; Glossary</h2>
-        <p class="section-subtitle">
-          Quick-start steps, answers to common questions, and a searchable glossary of the
-          biology, statistics, and machine-learning terms used across this toolkit.
-        </p>
-        <div id="help-content"></div>
-      </div>
-    </section>
-
   </main>
 
   <footer>
     <div class="container">
       <div class="footer-inner">
         <div>
-          <div class="footer-brand">Host–Pathogen Trafficking Hub</div>
-          <p class="footer-tagline">A bioinformatics toolkit for host–pathogen and molecular cell biology — 54 curated pathogen profiles, interaction-network, ML and phylogenetics analyses, and bring-your-own-data statistics. Built for advanced undergraduate biology students.</p>
+          <div class="footer-brand">PathoMap</div>
+          <p class="footer-tagline">A browsable curated dataset: 54 pathogens, their effectors, the host proteins those effectors manipulate, and the phagosome stages they exploit. Every table is a SQL query; the projections, classifier and phylogeny are computed in Python. Built for advanced undergraduate biology students.</p>
         </div>
       </div>
       <div class="footer-bottom">
-        Built as an educational resource. Content is for instructional purposes. No external libraries or tracking.
+        Educational resource. Content is for instructional purposes. No external libraries or tracking.
       </div>
     </div>
   </footer>
@@ -468,11 +402,8 @@
   <script src="js/script.js"></script>
   <script src="js/charts.js"></script>
   <script src="js/network.js"></script>
+  <script src="js/database.js"></script>
   <script src="js/ml-plots.js"></script>
   <script src="js/phylogeny.js"></script>
-  <script src="js/stats.js"></script>
-  <script src="js/csv-utils.js"></script>
-  <script src="js/my-data.js"></script>
-  <script src="js/glossary.js"></script>
 </body>
 </html>

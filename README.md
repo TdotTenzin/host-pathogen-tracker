@@ -1,10 +1,11 @@
-# Host–Pathogen Trafficking Hub
+# PathoMap
 
-A bioinformatics toolkit for molecular cell biology and host–pathogen
-interactions: one curated SQLite dataset (~54 pathogens, ~250 effectors,
-~72 host proteins) plus a bring-your-own-data (My Data) pipeline for
-analysing your own pathogen profiles, effectors, or numeric matrices.
-Surfaced through four layers:
+**A browsable curated host–pathogen dataset, and the queries and analyses built on it.**
+
+PathoMap is built on a curated SQLite database of **54 pathogens, 250 effectors,
+72 host proteins, 150 effector–host interactions, and 5 phagosome maturation
+stages**. The site leads with that database as sortable, filterable tables; the
+visualisations elsewhere on the page are all derived from those same rows.
 
 | Layer | Location | Runs on |
 |---|---|---|
@@ -12,6 +13,12 @@ Surfaced through four layers:
 | REST API | `api/index.py` (FastAPI) | Vercel serverless (`/api/*`), locally via uvicorn |
 | Python package | `src/hostpathogen/` | pip (`pip install -e .`) |
 | Analysis extras | `notebooks/`, `r/`, `scripts/` | Jupyter / R |
+
+> **Scope.** The **Database** section is the centrepiece, with Organisms,
+> Network, Proteome, Trafficking, Machine Learning and Phylogeny as derived
+> views. There is no data import — the curated dataset is the product. Genome,
+> pangenome and **ecology** layers are planned but not built; see
+> [`ROADMAP.md`](ROADMAP.md).
 
 ## Quickstart
 
@@ -21,37 +28,39 @@ Surfaced through four layers:
 python -m http.server 8000   # then visit http://localhost:8000
 ```
 
-The frontend is fully offline-capable (embeds `data/fallback.json`). Load the
-**Curated dataset (54 pathogens)** preset or import your own data in **My Data**
-(CSV/TSV/JSON or pasted text) — sections appear once data is loaded and switch
-to your imported dataset when you bring your own. Basic stats, PCA, clustering,
-OLS, and network analysis run client-side; ML/UMAP fall back to the API.
+The frontend is fully offline-capable: `js/data.js` embeds the whole dataset, so
+`file://` works with no server at all. When a server *is* reachable, the live API
+refreshes the data in place. Either way the curated 54 pathogens load
+automatically — there is nothing to click first.
 
-Additional built-in sections ship with the toolkit: a **Dataset Overview**
-(effector counts, phagosome pH by stage, strategy distribution), an
-interactive **Phagosome Maturation Timeline**, a searchable **Gene &
-Protein Explorer** of the curated host proteome, and a **Help & Glossary**
-page. In **My Data**, numeric datasets unlock a **Compare** tab (group
-summary + box plots + Welch t-test) and a z-scored **Heatmap** tab, plus a
-**Differential Expression** tab with BH-FDR-corrected p-values, volcano/MA
-plots, and a top-gene heatmap; host-pathogen datasets include a pathway
-**Enrichment** tab with dot plot.
+**Full stack (API + frontend)**:
 
-**Full stack (API + frontend)** — either:
+```
+pip install -e ".[dev]"
+uvicorn main:app --reload    # http://localhost:8000
+```
+
+or with Docker:
 
 ```
 docker compose up            # http://localhost:8000
 ```
 
-or:
-
-```
-pip install -r requirements.txt
-uvicorn main:app --reload    # http://localhost:8000
-```
-
 The FastAPI app serves the static site itself in local/Docker mode; on Vercel
 the CDN serves static assets and only `/api/*` hits the function.
+
+## What's on the page
+
+| Section | What it is |
+|---|---|
+| **Database** | The five curated tables — Pathogens, Effectors, Host Proteins, Interactions, Maturation Stages — with search, click-to-sort, CSV export, and the `SELECT` behind each table. |
+| **Organisms** | The same 54 pathogens as expandable cards, with full per-organism articles. |
+| **Dataset Overview** | Effector counts, phagosome pH by stage, strategy distribution. |
+| **Network** | Force-directed bipartite effector↔host-protein graph, plus most-targeted host proteins. |
+| **Proteome** | Searchable host proteome with pathway and localization filters. |
+| **Trafficking** | Phagosome maturation timeline, plus a marker-based stage predictor. |
+| **Machine Learning** | PCA and UMAP of effector features, classifier cross-validation, and a strategy predictor. |
+| **Phylogeny** | Neighbour-Joining effector tree from BLOSUM62 distances. |
 
 ## Development setup
 
@@ -62,8 +71,8 @@ pip install -e ".[dev]"
 pytest
 ```
 
-Dependencies are declared once in `pyproject.toml`; the root
-`requirements.txt` mirrors them flat for Docker/Vercel.
+Dependencies are declared in `pyproject.toml`; `api/requirements.txt` mirrors
+them flat for Docker and Vercel.
 
 ## Data pipeline
 
@@ -71,7 +80,7 @@ Curated seed data → CSVs → SQLite → exports:
 
 ```
 python src/hostpathogen/data/build_db.py      # builds src/hostpathogen/data/hostpathogen.db
-python scripts/export_fallback_json.py        # regenerates data/fallback.json (offline toolkit data)
+python scripts/export_fallback_json.py        # regenerates data/fallback.json + js/data.js
 python scripts/refresh_data.py                # end-to-end refresh
 Rscript r/export_chart_data.R                 # regenerates r/data/*.csv|.fasta|.nwk
 ```
@@ -79,6 +88,11 @@ Rscript r/export_chart_data.R                 # regenerates r/data/*.csv|.fasta|
 `hostpathogen.db` is committed so Vercel can ship it inside the serverless
 bundle (`vercel.json: includeFiles`). Regenerated artifacts under `data/` and
 `r/data/` are also committed for the offline-first frontend.
+
+> **Edit `data/fallback.json` or `js/data.js` and your change will be
+> overwritten.** Both are generated by `scripts/export_fallback_json.py` from
+> the SQLite database. Change the database (or the seed CSVs) and re-run the
+> export.
 
 ## Project structure
 
@@ -88,10 +102,9 @@ src/hostpathogen/
   data/         loader, build_db, export_r + committed SQLite DB
   ml/           classifier, dimred (PCA/UMAP), phylogenetics
   trafficking.py, interactome.py, enrichment.py
-js/             Frontend logic (charts, offline toolkit, data loader, My Data
-                imports, statistics + enrichment, glossary)
+js/             database browser, charts, network, phylogeny, data loader
 notebooks/      Jupyter walkthroughs (SQL, interactome, ML)
-r/              R analyses + generated chart data
+r/              R analyses + generated chart data (repo-only, not on the site)
 tests/          pytest suite
 scripts/        Data build/export utilities
 ```
@@ -99,10 +112,20 @@ scripts/        Data build/export utilities
 ## API
 
 Interactive docs at `/docs` when running locally. Key endpoints:
-`/api/bootstrap`, `/api/pathogens`, `/api/effectors`,
-`/api/trafficking/predict-stage`, `/api/interactome/hubs`, `/api/ml/predict/{name}`,
-plus the My Data analysis endpoints `/api/mydata/pca` and
-`/api/mydata/umap` (used by the ML section on imported data).
+`/api/bootstrap`, `/api/pathogens`, `/api/effectors`, `/api/host-proteins`,
+`/api/trafficking/predict-stage`, `/api/interactome/hubs`,
+`/api/ml/predict/{name}`, `/api/ml/pathogen-pca`.
 
-See `glossary.md` for the domain model (trafficking stages, strategies,
-marker definitions).
+## Reference
+
+- [`glossary.md`](glossary.md) — the domain model in plain language: what the
+  five maturation stages are, what each evasion strategy means, and how marker
+  definitions are used. A reference document, not a page on the site.
+- [`ONBOARDING.md`](ONBOARDING.md) — architecture, data pipeline, and how to run
+  each layer.
+
+## R analyses
+
+`r/` holds differential-expression and enrichment work on a separate dataset.
+It is kept as repository evidence only and is deliberately **not** surfaced on
+the website. See [`ONBOARDING.md`](ONBOARDING.md) for how to run it.

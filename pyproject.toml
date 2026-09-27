@@ -3,11 +3,21 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "hostpathogen"
-version = "0.3.0"
-description = "Host-pathogen interaction analysis toolkit"
+name = "pathomap"
+version = "0.4.0"
+description = "PathoMap — a browsable curated host-pathogen interaction dataset"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "fastapi==0.115.12",
+    "pydantic==2.11.4",
+    "pandas==2.2.3",
+    "numpy==2.2.6",
+    "networkx==3.5",
+    "scikit-learn==1.7.1",
+    "umap-learn==0.5.7",
+    "biopython==1.85",
+    "uvicorn==0.34.3",
+]
 
 [project.optional-dependencies]
 dev = [
